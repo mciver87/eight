@@ -59,6 +59,8 @@
   <!--[if IE 8]><script src="{# PHP: print (path_to_theme()); #}/js/libs/EventListener.js"></script><![endif]-->
   <!--[if IE 8]><script src="{# PHP: print (path_to_theme()); #}/js/libs/selectivizr-min.js"></script><![endif]-->
   {{ scripts }}
+
+  {{ attach_library('nc_eight_theme/global-styling') }}
 </head>
 <body class="{{ classes }}" {{ attributes }}>
 <!--[if lt IE 9]>
