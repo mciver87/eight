@@ -1,0 +1,95 @@
+{#
+/**
+ * @file
+ * This template handles the layout of the views exposed filter form.
+ *
+ * Variables available:
+ * - $widgets: An array of exposed form widgets. Each widget contains:
+ * - $widget->label: The visible label to print. May be optional.
+ * - $widget->operator: The operator for the widget. May be optional.
+ * - $widget->widget: The widget itself.
+ * - $sort_by: The select box to sort the view using an exposed form.
+ * - $sort_order: The select box with the ASC, DESC options to define order. May be optional.
+ * - $items_per_page: The select box with the available items per page. May be optional.
+ * - $offset: A textfield to define the offset of the view. May be optional.
+ * - $reset_button: A button to reset the exposed filter applied. May be optional.
+ * - $button: The submit button for the form.
+ *
+ * @ingroup views_templates
+ */#}
+{% if q is not empty %}
+  {#
+// This ensures that, if clean URLs are off, the 'q' is added first so that
+#}    {#// it shows up first in the URL.
+#}    {{ q }}
+{% endif %}
+<script>
+jQuery('body').on('click', '#advanced-search-link', function(e) {
+  e.preventDefault();
+  window.open(jQuery('#advanced-search-link').attr('href') + jQuery('#edit-search-api-views-fulltext').val(), '_self');
+});
+</script>
+<div class="views-exposed-form">
+  <div class="views-exposed-widgets clearfix">
+    {# PHP: foreach ($widgets as $id => $widget): #}
+      <div id="{{ widget.id }}-wrapper" class="views-exposed-widget views-widget-{{ id }}">
+        {% if widget is not empty %}
+          <label for="{{ widget.id }}">
+            {{ widget.label }}
+          </label>
+        {% endif %}
+
+        {% if widget is not empty %}
+          <div class="views-operator">
+            {{ widget.operator }}
+          </div>
+        {% endif %}
+
+        {% if widget is not empty %}
+          <div class="views-widget">
+            {{ widget.widget }}
+          </div>
+        {% endif %}
+
+        {% if widget is not empty %}
+          <div class="description">
+            {{ widget.description }}
+          </div>
+        {% endif %}
+      </div>
+    {% endfor %}
+    {% if sort_by is not empty %}
+      <div class="views-exposed-widget views-widget-sort-by">
+        {{ sort_by }}
+      </div>
+      {% if sort_order is not empty %}
+        <div class="views-exposed-widget views-widget-sort-order">
+          {{ sort_order }}
+        </div>
+      {% endif %}
+    {% endif %}
+    {% if items_per_page is not empty %}
+      <div class="views-exposed-widget views-widget-per-page">
+        {{ items_per_page }}
+      </div>
+    {% endif %}
+    {% if offset is not empty %}
+      <div class="views-exposed-widget views-widget-offset">
+        {{ offset }}
+      </div>
+    {% endif %}
+    <div class="views-exposed-widget views-submit-button">
+      {{ button }}
+    </div>
+    {% if reset_button is not empty %}
+      <div class="views-exposed-widget views-reset-button">
+        {{ reset_button }}
+      </div>
+    {% endif %}
+    {% if module_exists('nc_google_cse' ) %}
+      <div class="views-exposed-widget">
+        <a id="advanced-search-link" class="button accent form-submit" href="/advanced-search?s=">{# PHP: echo t(variable_get(NC_GOOGLE_CSE_VAR_BUTTON_LABEL, 'Advanced Search')); #}</a>
+      </div>
+    {% endif %}
+  </div>
+</div>

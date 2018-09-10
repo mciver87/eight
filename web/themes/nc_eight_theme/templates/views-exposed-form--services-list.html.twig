@@ -1,0 +1,72 @@
+{#
+/**
+ * @file
+ * This template handles the layout of the views exposed filter form.
+ *
+ * Variables available:
+ * - $widgets: An array of exposed form widgets. Each widget contains:
+ * - $widget->label: The visible label to print. May be optional.
+ * - $widget->operator: The operator for the widget. May be optional.
+ * - $widget->widget: The widget itself.
+ * - $sort_by: The select box to sort the view using an exposed form.
+ * - $sort_order: The select box with the ASC, DESC options to define order. May be optional.
+ * - $items_per_page: The select box with the available items per page. May be optional.
+ * - $offset: A textfield to define the offset of the view. May be optional.
+ * - $reset_button: A button to reset the exposed filter applied. May be optional.
+ * - $button: The submit button for the form.
+ *
+ * @ingroup views_templates
+ */#}
+{% if q is not empty %}
+  {#
+// This ensures that, if clean URLs are off, the 'q' is added first so that
+#}  {#// it shows up first in the URL.
+#}  {{ q }}
+{% endif %}
+
+{# PHP: foreach ($widgets as $id => $widget): #}
+  <div id="{{ widget.id }}-wrapper" class="views-exposed-widget views-widget-{{ id }}">
+    {% if widget is not empty %}
+      <h3 class="section-title">
+        {{ widget.label }}
+      </h3>
+    {% endif %}
+    {% if widget is not empty %}
+      <label>{{ widget.description }}</label>
+    {% endif %}
+    {% if widget is not empty %}
+      <div class="views-operator">
+        {{ widget.operator }}
+      </div>
+    {% endif %}
+    <div class="views-widget">
+      {{ widget.widget }}
+    </div>
+  </div>
+{% endfor %}
+{% if sort_by is not empty %}
+  <div class="views-exposed-widget views-widget-sort-by">
+    {{ sort_by }}
+  </div>
+  <div class="views-exposed-widget views-widget-sort-order">
+    {{ sort_order }}
+  </div>
+{% endif %}
+{% if items_per_page is not empty %}
+  <div class="views-exposed-widget views-widget-per-page">
+    {{ items_per_page }}
+  </div>
+{% endif %}
+{% if offset is not empty %}
+  <div class="views-exposed-widget views-widget-offset">
+    {{ offset }}
+  </div>
+{% endif %}
+<div class="field views-submit-button">
+  {{ button }}
+</div>
+{% if reset_button is not empty %}
+  <div class="field views-reset-button">
+    {{ reset_button }}
+  </div>
+{% endif %}

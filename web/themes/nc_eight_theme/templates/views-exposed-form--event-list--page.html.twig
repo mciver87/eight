@@ -1,0 +1,67 @@
+{#
+/**
+ * @file
+ * This template handles the layout of the views exposed filter form.
+ */#}
+{% if q is not empty %}
+  {#
+// This ensures that, if clean URLs are off, the 'q' is added first so that
+#}    {#// it shows up first in the URL.
+#}    {{ q }}
+{% endif %}
+<div class="views-exposed-form">
+  <div class="views-exposed-widgets clearfix">
+    <div id="filter-results"></div>
+    {# PHP: foreach ($widgets as $id => $widget): #}
+      <div id="{{ widget.id }}-wrapper" class="views-exposed-widget views-widget-{{ id }}">
+        {% if widget is not empty %}
+          <label for="{{ widget.id }}">
+            {{ widget.label }}
+          </label>
+        {% endif %}
+        {% if widget is not empty %}
+          <div class="views-operator">
+            {{ widget.operator }}
+          </div>
+        {% endif %}
+        <div class="views-widget">
+          {{ widget.widget }}
+        </div>
+        {% if widget is not empty %}
+          <div class="description">
+            {{ widget.description }}
+          </div>
+        {% endif %}
+      </div>
+    {% endfor %}
+    {% if sort_by is not empty %}
+      <div class="views-exposed-widget views-widget-sort-by">
+        {{ sort_by }}
+      </div>
+      <div class="views-exposed-widget views-widget-sort-order">
+        {{ sort_order }}
+      </div>
+    {% endif %}
+    {% if items_per_page is not empty %}
+      <div class="views-exposed-widget views-widget-per-page">
+        {{ items_per_page }}
+      </div>
+    {% endif %}
+    {% if offset is not empty %}
+      <div class="views-exposed-widget views-widget-offset">
+        {{ offset }}
+      </div>
+    {% endif %}
+    <div class="views-exposed-widget views-submit-button">
+      {{ button }}
+    </div>
+    {% if reset_button is not empty %}
+      <div class="views-exposed-widget views-reset-button">
+        {{ reset_button }}
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% if show_hr  %}
+<hr/>
+{% endif %}

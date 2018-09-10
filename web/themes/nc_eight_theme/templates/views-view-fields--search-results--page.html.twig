@@ -1,0 +1,16 @@
+{#
+/**
+ * @file
+ * View template to render all the fields as a row.
+ */#}
+{# PHP:
+$microdata = microdata_get_mapping('node', $row->_entity_properties['type']);#}
+{# PHP:$schema_type = (isset($microdata['#itemtype'][0])) ? $microdata['#itemtype'][0] : 'http://schema.org/Thing';
+#}
+<article class="article" itemscope="" itemtype="{{ schema_type }}">
+  <h1 itemprop="name"><a href="{{ row._entity_properties }}" itemprop="url">{{ row._entity_properties }}</a></h1>
+  <div class="meta">
+    <span class="label category">{{ row }}</span>
+  </div>
+  <p itemprop="description">{# PHP: print strip_tags(html_entity_decode($row->_entity_properties['search_api_excerpt']), '<strong></strong>'); #}</p>
+</article>

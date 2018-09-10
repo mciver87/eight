@@ -1,0 +1,19 @@
+{#
+/**
+ * @file
+ * The footer block template for North Carolina.
+ *
+ * Start here if you are troubleshooting the footer columns.
+ */#}
+<section id="{{ block_html_id }}" class="{{ classes }}"{{ attributes }}>
+
+  {{ title_prefix }}
+  {% if block  %}
+    <h3{{ title_attributes }}>{{ block }}</h3>
+  {% endif %}
+  {{ title_suffix }}
+
+  <div class="content"{{ content_attributes }}>
+    {{ content }}
+  </div>
+</section>

@@ -1,0 +1,33 @@
+name: nc_eight_theme
+description: 'New Drupal 8 Twig Theme created with the help of Twigify.'
+package: Core
+version: VERSION
+core: 8.x
+scripts:
+regions:
+   header: 'Header'
+   main_menu_expanded: 'Main Menu'
+   help: 'Help'
+   page_top: 'Page top'
+   page_bottom: 'Page bottom'
+   highlighted: 'Highlighted'
+   alert_box: 'Alert Box'
+   content: 'Content'
+   sidebar_first: 'Sidebar first'
+   sidebar_second: 'Sidebar second'
+   user_feedback: 'User Feedback'
+   band_accent: 'Band Accent'
+   social_share: 'Social Share'
+   footer_firstcolumn: 'Footer first column'
+   footer_secondcolumn: 'Footer second column'
+   footer_thirdcolumn: 'Footer third column'
+   footer_fourthcolumn: 'Footer fourth column'
+   footer: 'Footer'
+settings:
+   shortcut_module_link: '0'
+   color_profile: '1'
+breakpoints:
+type: theme
+engine: twig
+libraries:
+  - nc_eight_theme/global-styling

@@ -1,0 +1,22 @@
+{#
+/**
+ * @file
+ * Views template to style the fields as a row.
+ */#}
+<div class="card event framed" itemscope="" itemtype="http://data-vocabulary.org/Event">
+  <a href="{# PHP: print url("node/{$row->nid}"); #}" itemprop="url">
+    <span itemprop="photo"></span>
+    <div class="meta">
+      <span itemprop="summary">{{ row }}</span>
+      <span itemprop="startDate">
+        <time datetime="{{ row.field_data_field_event_dates_field_event_dates_value }}"></time>
+      </span>
+          <span itemprop="location">
+            <span itemprop="address" itemscope="" itemtype="http://data-vocabulary.org/Address">
+            
+            </span>
+          </span>
+      <span itemprop="eventType">{# PHP: print (!empty($row->field_field_event_terms) ? render($row->field_field_event_terms[0]['rendered']) : "") #}</span>
+    </div>
+  </a>
+</div>

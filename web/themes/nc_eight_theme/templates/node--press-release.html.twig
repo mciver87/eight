@@ -1,0 +1,56 @@
+{#
+/**
+ * @file
+ * NC Base Theme implementation to display a Press Release node.
+ */#}
+
+{{ title_prefix }}
+{% if not page and not view_mode == 'basic_card'  %}
+  <h2{{ title_attributes }}>
+    <a href="{{ node_url }}">{{ title }}</a>
+  </h2>
+{% endif %}
+{{ title_suffix }}
+
+{#
+// Translation links.
+#}{% if isset(content ) %}
+  {# PHP: print _nc_base_theme_get_translation_links($content['links']); #}
+{% endif %}
+
+{% if display_submitted  %}
+  <div class="meta submitted">
+    {{ user_picture }}
+    {{ submitted }}
+  </div>
+{% endif %}
+
+<div class="content clearfix"{{ content_attributes }}>
+  {#
+// We hide the comments and links now so that we can render them later.
+#}  {{ content|without('comments') }}
+  {{ content|without('links') }}
+  {% if field_press_release_terms emptyfield_agency_department and emptyfield_related_content and empty %}
+    {{ content|without('group_details') }}
+  {% endif %}
+  {% if field_files empty %}
+    {{ content|without('group_files') }}
+  {% endif %}
+  {{ content }}
+</div>
+
+{#
+// Remove the "Add new comment" link on the teaser page or if the comment
+#}{#// form is being displayed on the same page.
+#}{% if teaser or content is not empty %}
+  {# PHP:unset($content['links']['comment']['#links']['comment-add']);#}
+{% endif %}
+{#// Only display the wrapper div if there are links.
+#}{# PHP:$links = render($content['links']);#}
+{% if links  %}
+  <div class="link-wrapper">
+    {{ links }}
+  </div>
+{% endif %}
+
+{{ content.comments }}

@@ -1,0 +1,12 @@
+{#
+/**
+ * @file
+ * Overrides view template to display a list of rows.
+ *
+ * @ingroup views_templates
+ */#}
+<section class="results">
+  {# PHP: foreach ($rows as $id => $row): #}
+    {{ row }}
+  {% endfor %}
+</section>

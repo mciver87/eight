@@ -1,0 +1,19 @@
+{#
+/**
+ * @file
+ * Overrides view template to display a list of rows.
+ *
+ * @ingroup views_templates
+ */#}
+<section class="quick-links">
+  {% if title is not empty %}
+    <h3>{{ title }}</h3>
+  {% endif %}
+  <ul>
+    {# PHP: foreach ($rows as $id => $row) : #}
+      <li{% if classes_array  %} {# PHP:print ' class="' . $classes_array[$id] .'"';#}  {% endif %} itemscope itemtype="http://schema.org/Thing">
+        {{ row }}
+      </li>
+    {% endfor %}
+  </ul>
+</section>

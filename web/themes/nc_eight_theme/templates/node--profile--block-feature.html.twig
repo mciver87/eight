@@ -1,0 +1,22 @@
+{#
+/**
+ * @file
+ * NC Base Theme implementation to display an Event node using block_feature
+ * view mode.
+ */#}
+{% if content is not empty %}
+  {# PHP:$section_title = t('Contact');#}
+  {# PHP:$content['group_profile_contact']['#prefix'] = '<h3 class="section-title">' . $section_title . '</h3>';#}
+  {# PHP:unset($content['group_profile_contact']['#suffix']);#}
+{% endif %}
+{% if content is not empty %}
+  {# PHP:$tmp_email = ($content['group_profile_contact']['field_profile_email'][0]['#markup']);#}
+  {% if valid_email_address(tmp_email ) %}
+    {# PHP:$content['group_profile_contact']['field_profile_email'][0]['#markup'] = '<a href="mailto:' . $tmp_email . '">' . check_plain($tmp_email) . '</a>';#}
+  {% endif %}
+{% endif %}
+<div id="node-{{ node.id }}" class="{{ classes }} clearfix"{{ attributes }}>
+  <div class="content clearfix"{{ content_attributes }}>
+    {{ content }}
+  </div>
+</div>

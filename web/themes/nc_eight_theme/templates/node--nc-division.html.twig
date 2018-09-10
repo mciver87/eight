@@ -1,0 +1,103 @@
+{#
+/**
+ * @file
+ * Theme the Division node type.
+ */#}
+<div id="node-{{ node.id }}" class="{{ classes }} clearfix"{{ attributes }}>
+
+  {{ title_prefix }}
+  {% if not page and not view_mode == 'basic_card'  %}
+    <h2{{ title_attributes }}>
+      <a href="{{ node_url }}">{{ title }}</a>
+    </h2>
+  {% endif %}
+  {{ title_suffix }}
+
+  {#
+// Translation links.
+#}  {% if isset(content ) %}
+    {# PHP: print _nc_base_theme_get_translation_links($content['links']); #}
+  {% endif %}
+
+  <article class="clearfix"{{ content_attributes }}>
+      {#
+// Hide the some fields so that we can render them later.
+#}      {{ content|without('comments') }}
+      {{ content|without('field_division_address') }}
+      {{ content|without('field_division_phone') }}
+      {{ content|without('field_division_fax') }}
+      {{ content|without('field_division_email') }}
+      {{ content|without('field_division_assistance_links') }}
+      {{ content|without('field_division_related_pages') }}
+      {{ content|without('links') }}
+      {{ content|without('body') }}
+
+    <h1 itemprop="name" class="agency-title">
+      <span class="icon-nc-government-building" aria-hidden="true"></span><span>{{ title }}</span>
+    </h1>
+
+    {% if not card (empty %}
+      {{ card }}
+    {% endif %}
+
+    <section class="band pad-top">
+      <div class="">
+        <section class="parts-span-third">
+          {{ related_cards }}
+        </section>
+      </div>
+    </section>
+
+    {% if link_group_title is not emptyand group_links is not empty %}
+      <section class="details group">
+        <h2 class="section-title">{{ link_group_title }}</h2>
+        <div itemprop="articleBody" class="link-lists">
+          {{ group_links }}
+        </div>
+      </section>
+    {% endif %}
+    {% if address_info is not emptyor info is not emptyor email is not empty %}
+      <section class="contact group">
+        <header>
+          <h2 class="section-title">{{ contact_group_title }}</h2>
+        </header>
+        <section>
+          {% if address_info  %}
+            <div><p><strong>{{ address_prefix }}</strong></p>
+              <p>{{ address_street }}<br/>{{ address_info }}</p>
+            </div>
+          {% endif %}
+          <div><p><strong>{{ phone_prefix }}</strong></p>
+            <p>{{ phone }}</p>
+            {% if fax_prefix and fax  %}
+              <p><strong>{{ fax_prefix }}</strong></p>
+              <p>{{ fax }}</p>
+            {% endif %}
+          </div>
+          {% if email  %}
+            <div>
+              <p><strong>{{ email_prefix }}</strong></p>
+              <p><a href="mailto:{{ email }}">{{ email }}</a></p>
+            </div>
+          {% endif %}
+        </section>
+      </section>
+    {% endif %}
+    {{ content }}
+  </article>
+
+  {#
+// Remove the "Add new comment" link on the teaser page or if the comment
+#}  {#// form is being displayed on the same page.
+#}  {% if teaser or content is not empty %}
+    {# PHP:unset($content['links']['comment']['#links']['comment-add']);#}
+  {% endif %}
+  {#// Only display the wrapper div if there are links.
+#}  {# PHP:$links = render($content['links']);#}
+  {% if links  %}
+    <div class="link-wrapper">
+      {{ links }}
+    </div>
+  {% endif %}
+
+</div>

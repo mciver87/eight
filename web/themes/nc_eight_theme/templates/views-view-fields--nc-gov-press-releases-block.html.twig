@@ -1,0 +1,7 @@
+{#
+/**
+ * @file
+ * View template to render all the fields as a row.
+ */#}
+<a href="{{ fields.link }}" itemprop="url">{{ fields.title }}</a>
+<time datetime="{# PHP: print format_date($fields['timestamp']->raw, 'custom', 'c'); #}">{{ fields }}</time>

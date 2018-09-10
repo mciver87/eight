@@ -1,0 +1,17 @@
+{#
+/**
+ * @file
+ * Overrides view template to display a list of rows.
+ *
+ * @ingroup views_templates
+ */#}
+<section class="related-cards group stacked">
+  {% if title is not empty %}
+    <h3 class="section-title">{{ title }}<time datetime="{# PHP: print date('Y-M-d', strtotime($title)) #}"></time></h3>
+  {% endif %}
+  <div class="cards">
+    {# PHP: foreach ($rows as $id => $row): #}
+      {{ row }}
+    {% endfor %}
+  </div>
+</section>

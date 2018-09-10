@@ -1,0 +1,31 @@
+{# PHP:
+$_item_title = FALSE;#}
+{# PHP:$_item_content = FALSE;#}
+{# PHP:$_item_block = FALSE;#}
+{# PHP:$_accordion_side_bar_block = FALSE;#}
+
+{% if isset(A ) %}
+    {# PHP:$_item_title = $content['field_accordion_item_title'][0]['#markup'];#}
+{% endif %}
+{% if isset(content ) %}
+    {# PHP:$_item_block = $content['field_accordion_item_block']['#markup'];#}
+{% endif %}
+{% if isset(A ) %}
+    {# PHP:$_item_content = $content['field_accordion_item_content'][0]['#markup'];#}
+{% endif %}
+{% if array_key_exists('field_accordion_sidebar_block' {# ERROR: Encountered unexpected token UNKNOWN on line 16: , #}content )and isset(content ) %}
+    {# PHP:$_accordion_side_bar_block = $content['field_accordion_sidebar_block']['#markup'];#}
+{% endif %}
+{% if _item_title {# ERROR: Encountered unexpected token T_IS_NOT_IDENTICAL on line 20: !== #}FALSEand (_item_content {# ERROR: Encountered unexpected token T_IS_NOT_IDENTICAL on line 20: !== #}FALSEor _item_block {# ERROR: Encountered unexpected token T_IS_NOT_IDENTICAL on line 20: !== #}FALSE) %}
+  <a>{{ _item_title }}</a>
+  <div>
+    <section class="tab-main{% if not _accordion_side_bar_block  %} no-aside{% endif %}">
+        <h2 class="visuallyhidden">{{ _item_title }}</h2>
+        {{ _item_block }}
+        {{ _item_content }}
+    </section>
+    {% if _accordion_side_bar_block  %}
+        <aside class="tab-side">{{ _accordion_side_bar_block }}</aside>
+      {% endif %}
+  </div>
+{% endif %}

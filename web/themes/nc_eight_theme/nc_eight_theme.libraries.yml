@@ -1,0 +1,6 @@
+global-styling:
+  version: VERSION
+  css:
+    theme:
+     css/contextual-links.css: {}
+     css/print.css: { media:print }

@@ -1,0 +1,30 @@
+{# PHP:
+$_tab_title = FALSE;#}
+{# PHP:$_tab_content = FALSE;#}
+{# PHP:$_tab_block = FALSE;#}
+{# PHP:$_tab_side_bar_block = FALSE;#}
+{% if array_key_exists('field_tab_title' {# ERROR: Encountered unexpected token UNKNOWN on line 6: , #}content )and isset(A ) %}
+  {# PHP:$_tab_title = $content['field_tab_title'][0]['#markup'];#}
+{% endif %}
+{% if array_key_exists('field_tab_block' {# ERROR: Encountered unexpected token UNKNOWN on line 9: , #}content )and isset(content ) %}
+  {# PHP:$_tab_block = $content['field_tab_block']['#markup'];#}
+{% endif %}
+{% if array_key_exists('field_tab_content' {# ERROR: Encountered unexpected token UNKNOWN on line 12: , #}content )and isset(A ) %}
+    {# PHP:$_tab_content = $content['field_tab_content'][0]['#markup'];#}
+{% endif %}
+{% if array_key_exists('field_tab_sidebar_block' {# ERROR: Encountered unexpected token UNKNOWN on line 15: , #}content )and isset(content ) %}
+    {# PHP:$_tab_side_bar_block = $content['field_tab_sidebar_block']['#markup'];#}
+{% endif %}
+{% if _tab_title {# ERROR: Encountered unexpected token T_IS_NOT_IDENTICAL on line 19: !== #}FALSEand (_tab_content {# ERROR: Encountered unexpected token T_IS_NOT_IDENTICAL on line 19: !== #}FALSEor _tab_block {# ERROR: Encountered unexpected token T_IS_NOT_IDENTICAL on line 19: !== #}FALSE) %}
+  <a>{{ _tab_title }}</a>
+  <div>
+      <section class="tab-main{% if not _tab_side_bar_block  %} no-aside{% endif %}">
+        <h2 class="visuallyhidden">{{ _tab_title }}</h2>
+        {{ _tab_block }}
+        {{ _tab_content }}
+      </section>
+      {% if _tab_side_bar_block  %}
+        <aside class="tab-side">{{ _tab_side_bar_block }}</aside>
+      {% endif %}
+  </div>
+{% endif %}
