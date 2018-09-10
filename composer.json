@@ -34,6 +34,7 @@
         "drupal/ldap": "^7.2@beta",
         "drupal/menu_breadcrumb": "^1.5",
         "drupal/migrate_tools": "^4.0",
+        "drupal/migrate_upgrade": "^2.0",
         "drupal/oauth": "^2.1",
         "drupal/paragraphs": "^1.2",
         "drupal/path_redirect_import": "^1.0@beta",
