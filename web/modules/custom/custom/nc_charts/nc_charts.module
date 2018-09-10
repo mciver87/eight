@@ -1,0 +1,89 @@
+<?php
+/**
+ * @file
+ * Code for the NC Charts module.
+ */
+
+define('NC_CHARTS_CHART_TYPE_PIE', 'nc_charts_pie');
+define('NC_CHARTS_CHART_TYPE_BAR', 'nc_charts_bar');
+define('NC_CHARTS_CHART_TYPE_LINE', 'nc_charts_line');
+
+/**
+ * Implements hook_bean_types_api_info().
+ */
+function nc_charts_bean_types_api_info() {
+  return array('api' => 4);
+}
+
+/**
+ * Implements hook_bean_types().
+ */
+function nc_charts_bean_types() {
+  $types = array(
+    NC_CHARTS_CHART_TYPE_PIE => array(
+      'label' => t('NC Charts Pie'),
+      'description' => t('Pie Chart'),
+      'class' => 'Pie',
+    ),
+    NC_CHARTS_CHART_TYPE_BAR => array(
+      'label' => t('NC Charts Bar'),
+      'description' => t('Bar Graph'),
+      'class' => 'Bar',
+    ),
+    NC_CHARTS_CHART_TYPE_LINE => array(
+      'label' => t('NC Charts Line'),
+      'description' => t('Line Graph'),
+      'class' => 'Line',
+    ),
+  );
+
+  $plugins = array();
+  $plugin_path = drupal_get_path('module', 'nc_charts') . '/plugins';
+  foreach ($types as $type => $info) {
+    $plugins[$type] = array(
+      'label' => $info['label'],
+      'description' => $info['description'],
+      'handler' => array(
+        'class' => 'NCChartsBean' . $info['class'],
+        'parent' => 'bean',
+      ),
+      'path' => $plugin_path,
+      'file' => 'NCChartsBean' . $info['class'] . '.class.php',
+    );
+  }
+  return $plugins;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function nc_charts_theme() {
+  $template_path = drupal_get_path('module', 'nc_charts') . '/templates';
+  $items = array();
+  $items['nc_charts_chart'] = array(
+    'arguments' => array(
+      'chart_object'         => NULL,
+      'chart_type'           => NULL,
+      'bid'                  => NULL,
+      'bean'                 => NULL,
+      'toggle_table'         => TRUE,
+      'hide_table'           => TRUE,
+      'show_title'           => TRUE,
+      'table_data'           => array(),
+    ),
+    'template' => 'nc-charts--chart',
+    'path'     => $template_path,
+  );
+  return $items;
+}
+
+/**
+ * Returns the chart types names to be used.
+ */
+function _nc_charts_get_types() {
+  return array(
+    NC_CHARTS_CHART_TYPE_BAR,
+    NC_CHARTS_CHART_TYPE_LINE,
+    NC_CHARTS_CHART_TYPE_PIE,
+  );
+}

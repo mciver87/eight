@@ -1,0 +1,5 @@
+name = NC User Messages
+description = Displays user messages to users on their login page.
+core = 7.x
+package = NC User Messages
+version = 7.x-1.0

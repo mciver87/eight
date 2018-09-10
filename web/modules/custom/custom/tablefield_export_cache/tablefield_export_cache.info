@@ -1,0 +1,4 @@
+name = Tablefield Export Cache
+description = Cache's Tablefield Export CSV Files for Quicker Downloads
+core = 7.x
+dependencies[] = tablefield

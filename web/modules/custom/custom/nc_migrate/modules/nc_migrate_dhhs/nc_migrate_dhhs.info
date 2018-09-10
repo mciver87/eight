@@ -1,0 +1,11 @@
+name = "North Carolina Migrate - DHHS"
+description = "Module to migrate content into the NC Platform for DHHS"
+package = "North Carolina Migrate"
+core = 7.x
+dependencies[] = nc_migrate
+
+; Class files for this module
+files[] = includes/MigrateDHHSBase.class.php
+files[] = includes/MigrateDHHSDocuments.class.php
+files[] = includes/MigrateDHHSPressReleases.class.php
+files[] = includes/MigrateDHHSDocumentSource.class.php

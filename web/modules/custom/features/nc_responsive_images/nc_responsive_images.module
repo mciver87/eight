@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the NC Responsive Images feature.
+ */
+
+include_once 'nc_responsive_images.features.inc';

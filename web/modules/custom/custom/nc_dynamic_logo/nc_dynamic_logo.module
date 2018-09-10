@@ -1,0 +1,19 @@
+<?php
+
+/**
+ * @file
+ * Nc_dynamic_logo.module.
+ */
+
+/**
+ * Implements hook_preprocess_page().
+ */
+function nc_dynamic_logo_preprocess_page(&$page) {
+  drupal_add_css(drupal_get_path('module', 'nc_dynamic_logo') . '/css/logo.css', array(
+    'weight' => -1,
+    'scope' => 'header',
+    'group' => 'CSS_THEME',
+    'every_page' => TRUE,
+    'type' => 'inline',
+  ));
+}

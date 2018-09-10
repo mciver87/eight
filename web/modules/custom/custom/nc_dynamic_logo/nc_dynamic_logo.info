@@ -1,0 +1,7 @@
+; NC Dynamic Logo for NCGov
+name = NC Dynamic Logo
+description = Implements dynamic height header logo for use on NCGov
+core = 7.x
+package = North Carolina
+version = 7.x-1.0
+project = nc_dynamic_logo

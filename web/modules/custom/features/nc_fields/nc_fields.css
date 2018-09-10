@@ -1,0 +1,22 @@
+div.nc-term-field ul {
+  list-style: none;
+  display: inline;
+  margin: 0;
+  padding: 0;
+}
+div.nc-term-field ul > li {
+  display: inline;
+}
+.group > h2 > span:after {
+  content: "";
+  display: block;
+  background-color: #0a2940;
+  height: 0.25rem;
+}
+div.nc-term-field,
+div.nc-date-field {
+  display: inline-table;
+}
+div.file-summary-text {
+	font-style: italic;
+}

@@ -1,0 +1,120 @@
+<?php
+
+/**
+ * @file
+ * nc_profile installation and update hooks.
+ */
+
+/**
+ * Implements hook_install().
+ */
+function nc_profile_install() {
+  _nc_profile_block_featured_bean();
+  _nc_profile_nodequeue();
+}
+
+/**
+ * Add bean_entity_view block for custom view mode of Profiles.
+ */
+function _nc_profile_block_featured_bean() {
+  // Check if our bean has already been created.
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', 'bean');
+  $query->propertyCondition('delta', 'nc_profile_node_block_featured');
+  $query->propertyCondition('type', 'bean_entity_view', '=');
+  $result = $query->execute();
+  if (empty($result['bean'])) {
+    // Create the 'Block featured' node block (bean).
+    $bean = bean_create(array('type' => 'bean_entity_view'));
+    $bean->label = 'Profile Featured Block';
+    $bean->uid = 1;
+    $bean->title = '';
+    $bean->delta = 'nc_profile_node_block_featured';
+    $bean->data = array(
+      'entity_type' => 'node',
+      'entity_view_mode' => 'block_feature',
+      'entity_id' => '',
+      'entity_id_position' => 1,
+      'view_mode' => 'default',
+    );
+    $bean->save();
+  }
+}
+
+/**
+ * Create nodequeue's for sorting profiles.
+ */
+function _nc_profile_nodequeue() {
+  $queues = array(
+    'Leadership',
+    'Staff',
+  );
+
+  foreach ($queues as $queue_name) {
+    // Make sure we don't duplicate the nodequeue's.
+    $queue = nodequeue_load_queue_by_name(strtolower($queue_name));
+    if (empty($queue)) {
+      // Add simple our nodequeue.
+      $queue = array(
+        'title' => $queue_name,
+        'name' => strtolower($queue_name),
+        'size' => 0,
+        'reverse' => 0,
+        'reference' => 0,
+        'owner' => 'nodequeue',
+        'roles' => array(),
+        'types' => array('profile'),
+        'i18n' => 0,
+        'show_in_links' => FALSE,
+        'show_in_tab' => TRUE,
+        'show_in_ui' => TRUE,
+        'subqueues' => array(),
+        'add_subqueue' => array($queue_name),
+        'new' => TRUE,
+        'subqueue_title' => $queue_name,
+      );
+
+      $queue = (object) $queue;
+      $qid = nodequeue_save($queue);
+    }
+  }
+}
+
+/**
+ * Add bean_entity_view block for custom view mode of Profiles.
+ */
+function nc_profile_update_7001() {
+  _nc_profile_block_featured_bean();
+}
+
+/**
+ * Add default nodequeue's for nc_profile Views.
+ */
+function nc_profile_update_7002() {
+  _nc_profile_nodequeue();
+}
+
+/**
+ * NC-895: Revert nc_profile:Views.
+ */
+function nc_profile_update_7003() {
+  features_revert(array('nc_profile' => array('views_view')));
+}
+
+/**
+ * ABT-792: Turn off node preview for all content types.
+ */
+function nc_profile_update_7004() {
+  variable_set('node_preview_profile', '0');
+}
+
+/**
+ * Implements hook_update_N().
+ *
+ * DC-515 - Complete image upload requirements.
+ */
+function nc_profile_update_7005() {
+  $main_image = field_info_instance('node', 'field_profile_photo', 'profile');
+  $main_image['settings']['max_filesize'] = 52428800;
+  field_update_instance($main_image);
+}

@@ -1,0 +1,6 @@
+name = Fix For Missing Bands Text Area Data
+description = Workaround for missing content in text area of Bands.
+core = 7.x
+package = North Carolina
+version = 7.x-1.0
+project = nc_bands_fix

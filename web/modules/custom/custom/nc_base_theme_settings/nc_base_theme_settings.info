@@ -1,0 +1,5 @@
+name = NC Base Theme Settings
+description = Used to add more functionlity to the NC Base Theme.  This must be enabled for the Base Theme to work.
+core = 7.x
+package = North Carolina
+version = 7.x-1.0

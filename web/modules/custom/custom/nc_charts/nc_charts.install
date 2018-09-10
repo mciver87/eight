@@ -1,0 +1,267 @@
+<?php
+/**
+ * @file
+ * Install file for the NC Charts module.
+ */
+
+/**
+ * Implements hook_install().
+ */
+function nc_charts_install() {
+  node_types_rebuild();
+  $types = node_type_get_types();
+  if (!field_info_field_types('tablefield')) {
+    field_cache_clear();
+  }
+  // Create the fields.
+  foreach (_nc_charts_installed_fields() as $field) {
+    field_create_field($field);
+  }
+
+  foreach (_nc_charts_installed_instances() as $instance) {
+    foreach (_nc_charts_get_types() as $bundle) {
+      $instance['bundle'] = $bundle;
+      field_create_instance($instance);
+    }
+  }
+}
+
+/**
+ * Implements hook_enable().
+ */
+function nc_charts_enable() {
+  module_invoke_all('permission');
+  $role = user_role_load_by_name('administrator');
+  if ($role) {
+    $permissions = array(
+      'create any nc_charts_pie bean',
+      'edit any nc_charts_pie bean',
+      'view any nc_charts_pie bean',
+      'delete any nc_charts_pie bean',
+      'create any nc_charts_bar bean',
+      'edit any nc_charts_bar bean',
+      'view any nc_charts_bar bean',
+      'delete any nc_charts_bar bean',
+      'create any nc_charts_line bean',
+      'edit any nc_charts_line bean',
+      'view any nc_charts_line bean',
+      'delete any nc_charts_line bean',
+    );
+    // Due to how bean permissions are added, need to manually add to db.
+    foreach ($permissions as $name) {
+      db_merge('role_permission')
+        ->key(array(
+          'rid' => $role->rid,
+          'permission' => $name,
+        ))
+        ->fields(array(
+          'module' => 'bean',
+        ))
+        ->execute();
+    }
+
+    // Clear the user access cache.
+    drupal_static_reset('user_access');
+    drupal_static_reset('user_role_permissions');
+  }
+}
+
+/**
+ * Returns the chart types names to be used.
+ */
+function _nc_charts_install_get_types() {
+  return array(
+    'nc_charts_bar',
+    'nc_charts_line',
+    'nc_charts_pie',
+  );
+}
+
+/**
+ * Returns the fields to be installed.
+ */
+function _nc_charts_installed_fields() {
+  $fields = array();
+
+  $fields['field_chart_data'] = array(
+    'active' => 1,
+    'cardinality' => 1,
+    'deleted' => 0,
+    'entity_types' => array(),
+    'field_name' => 'field_chart_data',
+    'indexes' => array(),
+    'locked' => 0,
+    'module' => 'tablefield',
+    'settings' => array(
+      'cell_processing' => 0,
+      'export' => 0,
+      'lock_values' => 0,
+      'restrict_rebuild' => 0,
+    ),
+    'translatable' => 0,
+    'type' => 'tablefield',
+  );
+
+  return $fields;
+}
+
+/**
+ * Returns the field instances to be installed.
+ */
+function _nc_charts_installed_instances() {
+  $t = get_t();
+  $instances = array();
+  $samples_path = drupal_get_path('module', 'nc_charts') . '/samples';
+  $description = 'Sample data files:
+  <ul>
+    <li><a href="' . base_path() . $samples_path . '/Sample-Bar-Chart.csv' . '">Bar Chart Sample</a></li>
+    <li><a href="' . base_path() . $samples_path . '/Sample-Line-Chart.csv' . '">Line Chart Sample</a></li>
+    <li><a href="' . base_path() . $samples_path . '/SamplePieChart.csv' . '">Pie Chart Sample</a></li>
+    <li><a href="' . base_path() . $samples_path . '/sample-complex-bar-chart.csv' . '">Complex Bar Chart Sample</a></li>
+  </ul>';
+
+  $instances['field_chart_data'] = array(
+    'default_value' => array(
+      0 => array(
+        'tablefield' => array(
+          'cell_0_0' => '',
+          'cell_0_1' => '',
+          'cell_0_2' => '',
+          'cell_0_3' => '',
+          'cell_0_4' => '',
+          'cell_1_0' => '',
+          'cell_1_1' => '',
+          'cell_1_2' => '',
+          'cell_1_3' => '',
+          'cell_1_4' => '',
+          'import' => array(
+            'file' => '',
+            'import' => 'Upload CSV',
+          ),
+          'rebuild' => array(
+            'count_cols' => 5,
+            'count_rows' => 5,
+            'rebuild' => 'Rebuild Table',
+          ),
+        ),
+      ),
+    ),
+    'deleted' => 0,
+    'description' => $description,
+    'display' => array(
+      'default' => array(
+        'label' => 'above',
+        'module' => 'tablefield',
+        'settings' => array(
+          'style_settings' => array(
+            'content' => array(
+              'class' => 'field-items',
+              'element' => 'div',
+            ),
+            'default_classes' => TRUE,
+            'item' => array(
+              'class' => 'field-item',
+              'element' => 'div',
+            ),
+            'item_limit' => '',
+            'prefix_markup' => '',
+            'title' => array(
+              'class' => 'field-label',
+              'element' => 'div',
+              'suffix' => ':',
+            ),
+            'wrapper' => array(
+              'class' => '',
+              'element' => 'div',
+            ),
+          ),
+        ),
+        'type' => 'tablefield_default',
+        'weight' => 0,
+      ),
+    ),
+    'entity_type' => 'bean',
+    'field_name' => 'field_chart_data',
+    'label' => $t('Chart Data'),
+    'required' => 1,
+    'settings' => array(
+      'user_register_form' => FALSE,
+    ),
+    'widget' => array(
+      'active' => 0,
+      'module' => 'tablefield',
+      'settings' => array(),
+      'type' => 'tablefield',
+      'weight' => 31,
+    ),
+  );
+  return $instances;
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function nc_charts_uninstall() {
+  $sql = 'SELECT bid FROM {bean} WHERE `type` IN (:types)';
+  $result = db_query($sql, array(':types' => _nc_charts_install_get_types()));
+  $bids = array();
+  foreach ($result as $row) {
+    $bids[] = $row->bid;
+  }
+  if (count($bids)) {
+    entity_delete_multiple('bean', $bids);
+  }
+
+  foreach (_nc_charts_installed_instances() as $instance_info) {
+    foreach (_nc_charts_install_get_types() as $bundle) {
+      $instance = array(
+        'field_name' => $instance_info['field_name'],
+        'bundle' => $bundle,
+        'entity_type' => 'bean',
+      );
+      field_delete_instance($instance);
+    }
+  }
+
+  foreach (_nc_charts_installed_fields() as $field) {
+    field_delete_field($field['field_name']);
+  }
+
+  field_purge_batch(1000);
+}
+
+/**
+ * Update field instance to add new examples.
+ */
+function nc_charts_update_7001(&$sandbox) {
+  node_types_rebuild();
+  $types = node_type_get_types();
+  if (!field_info_field_types('tablefield')) {
+    field_cache_clear();
+  }
+
+  foreach (_nc_charts_installed_instances() as $instance) {
+    foreach (_nc_charts_get_types() as $bundle) {
+      $instance['bundle'] = $bundle;
+      field_update_instance($instance);
+    }
+  }
+}
+
+/**
+ * Update field instance to add new examples.
+ */
+function nc_charts_update_7002(&$sandbox) {
+  node_types_rebuild();
+  $types = node_type_get_types();
+  if (!field_info_field_types('tablefield')) {
+    field_cache_clear();
+  }
+
+  foreach (_nc_charts_installed_instances() as $instance) {
+    foreach (_nc_charts_get_types() as $bundle) {
+      $instance['bundle'] = $bundle;
+      field_update_instance($instance);
+    }
+  }
+}

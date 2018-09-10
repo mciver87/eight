@@ -1,0 +1,18 @@
+; Core module header.
+name = NC Signup
+description = Provides signup blocks for newsletters.
+core = 7.x
+package = North Carolina
+version = 7.x-1.0
+project = nc_signup
+
+; Dependencies.
+dependencies[] = bean
+
+; Bean base classes for module.
+files[] = includes/NCSignupBase.class.php
+
+; Bean plugin implementations.
+files[] = plugins/NCSignupMailChimp.class.php
+files[] = plugins/NCSignupConstantContact.class.php
+files[] = plugins/NCSignupIContact.class.php

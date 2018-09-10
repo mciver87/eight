@@ -1,0 +1,8 @@
+<?php
+
+/**
+ * ABT-792: Turn off node preview for all content types.
+ */
+function nc_video_update_7000() {
+  variable_set('node_preview_video', '0');
+}

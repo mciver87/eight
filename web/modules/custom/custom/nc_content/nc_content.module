@@ -1,0 +1,414 @@
+<?php
+/**
+ * @file
+ * Code for the NC Content Admin Custom Page.
+ */
+
+ /**
+  * Implements hook_module_implements_alter().
+  */
+ function nc_content_module_implements_alter(&$implementations, $hook) {
+   // Modify the order in which hook_menu_alter is called for our module.
+   if ($hook == 'menu_alter') {
+     // Save the current value from the $implementations array.
+     $nc_content_implementation = $implementations['nc_content'];
+     // Unset it.
+     unset($implementations['nc_content']);
+     // Replace it, thereby making it last in the list.
+     $implementations['nc_content'] = $nc_content_implementation;
+   }
+ }
+
+/**
+ * Implements hook_menu_alter().
+ */
+function nc_content_menu_alter(&$items) {
+  // Remove openpublic content admin link.
+  unset($items['admin/content']['page callback']);
+  // Also optionally unset page arguments, just in case.
+  if (!empty($items['admin/content']['page arguments'])) {
+    unset($items['admin/content']['page arguments']);
+  }
+  // Reset them to their correct values.
+  $items['admin/content']['page callback'] = 'drupal_get_form';
+  $items['admin/content']['page arguments'] = array(
+    'node_admin_content',
+  );
+  $items['admin/content']['file'] = 'node.admin.inc';
+  $items['admin/content']['file path'] = drupal_get_path('module', 'node');
+}
+
+/**
+ * Implements hook_form_alter().
+ */
+function nc_content_form_alter(&$form, &$form_state, $form_id) {
+  $operation = isset($form_state['values']['operation']) ? $form_state['values']['operation'] : '';
+  if ($form_id == 'node_admin_content' && $operation != 'delete') {
+    $form['filter'] = nc_content_filter_form();
+    $form['admin'] = nc_content_admin_nodes();
+    // Remove node_filter_form_submit() if it exists in the #submit array.
+    if (in_array('node_filter_form_submit', $form['#submit'])) {
+      $key = array_search('node_filter_form_submit', $form['#submit']);
+      unset($form['#submit'][$key]);
+    }
+    // Custom submit handler for text and body search.
+    $form['#submit'][] = 'nc_content_filter_form_submit';
+  }
+
+}
+
+/**
+ * Function nc_content_build_search_query().
+ */
+function nc_content_build_search_query($query) {
+  if (isset($_GET['body_search']) && $_GET['body_search'] != '') {
+    $query->join('field_data_body', 'fdb', 'n.nid = fdb.entity_id');
+    $terms = explode(' ', check_plain($_GET['body_search']));
+    if (count($terms) === 1) {
+        $query->condition('fdb.body_value', '%' . db_like($terms[0]) . '%', 'LIKE');
+    }
+    else {
+      // Allows for same results in body search as Openpublic's find content view.
+      // Nodes returned must contain ALL of the search terms (in any order).
+      $query->condition('fdb.body_value', '%' . db_like($terms[0]) . '%', 'LIKE');
+      array_shift($terms);
+      $and = db_and();
+      foreach ($terms as $term) {
+        $and->condition('fdb.body_value', '%' . db_like($term) . '%', 'LIKE');
+        $query->condition($and);
+      }
+    }
+  }
+
+  if (isset($_GET['title_search']) && $_GET['title_search'] != '') {
+    $query->condition('n.title', '%' . db_like(check_plain($_GET['title_search'])) . '%', 'LIKE');
+  }
+}
+
+/**
+ * Function nc_content_filter_form().
+ * @see node_filter_form().
+ *
+ * @ingroup forms
+ */
+function nc_content_filter_form() {
+  $filter_input = array();
+  if (isset($_GET['type']) && $_GET['type'] != '') {
+    $filter_input['type'] = check_plain($_GET['type']);
+  }
+  if (isset($_GET['status']) && $_GET['status'] != '') {
+    $filter_input['status'] = check_plain($_GET['status']);
+  }
+
+  $search_input = array(
+    'title' => isset($_GET['title_search']) ? check_plain($_GET['title_search']) : '',
+    'body' => isset($_GET['body_search']) ? check_plain($_GET['body_search']) : '',
+  );
+  $filters = node_filters();
+  // Remove the language filter.
+  unset($filters['language']);
+  // Remove the unnecessary node statuses.
+  unset($filters['status']['options']['promote-1']);
+  unset($filters['status']['options']['promote-0']);
+  unset($filters['status']['options']['sticky-1']);
+  unset($filters['status']['options']['sticky-0']);
+  unset($filters['status']['options']['translate-0']);
+  unset($filters['status']['options']['translate-1']);
+
+  $i = 0;
+  $form['filters'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Show only items where'),
+    '#theme' => 'exposed_filters__node',
+  );
+  // Remove unused types from the node filters.
+  // Get a list of USED types.
+  $used_types = db_select('node', 'n')
+    ->distinct()
+    ->fields('n', array('type'))
+    ->execute()
+    ->fetchCol();
+  $used_types = array_values($used_types);
+  $available_types = array_keys($filters['type']['options']);
+  $difference = array();
+  $difference = array_diff($available_types, $used_types);
+  // Unset the unused types.
+  if (!empty($difference)) {
+    foreach ($filters['type']['options'] as $key => $value) {
+      if (in_array($key, $difference) && $key != '[any]') {
+        unset($filters['type']['options'][$key]);
+      }
+    }
+  }
+
+  // Modify filters as necessary.
+  if (isset($filter_input)) {
+    foreach ($filter_input as $key => $value) {
+      $value = $filters[$key]['options'][$value];
+    }
+  }
+
+  $form['filters']['status'] = array(
+    '#type' => 'container',
+    '#attributes' => array('class' => array('clearfix')),
+  );
+  $form['filters']['status']['filters'] = array(
+    '#type' => 'container',
+    '#attributes' => array('class' => array('filters')),
+  );
+
+  // Add search boxes for title and body.
+  $form['filters']['status']['title_search'] = array(
+    '#type' => 'textfield',
+    '#title' => 'title contains',
+    '#name' => 'title_search',
+    '#size' => 30,
+    '#default_value' => $search_input['title'],
+  );
+  $form['filters']['status']['body_search'] = array(
+    '#type' => 'textfield',
+    '#title' => 'body contains',
+    '#name' => 'body_search',
+    '#size' => 30,
+    '#default_value' => $search_input['body'],
+  );
+
+  foreach ($filters as $key => $filter) {
+    $form['filters']['status']['filters'][$key] = array(
+      '#type' => 'select',
+      '#options' => $filter['options'],
+      '#title' => $filter['title'],
+      '#default_value' => '[any]',
+    );
+
+  // If options have been chosen, display those as the default select box values.
+  if (isset($filter_input[$key])) {
+      $form['filters']['status']['filters'][$key]['#default_value'] = $filter_input[$key];
+    }
+  }
+
+  $form['filters']['status']['actions'] = array(
+    '#type' => 'actions',
+    '#attributes' => array('class' => array('container-inline')),
+  );
+  $form['filters']['status']['actions']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => count($_GET) > 1 ? t('Refine') : t('Filter'),
+  );
+  if (count($_GET) > 1) {
+    $form['filters']['status']['actions']['reset'] = array('#type' => 'submit', '#value' => t('Reset'));
+  }
+
+  drupal_add_js('misc/form.js');
+
+  return $form;
+}
+
+/**
+ * Function nc_content_admin_nodes().
+ * @see node_admin_nodes()
+ *
+ * @ingroup forms
+ */
+function nc_content_admin_nodes() {
+  $admin_access = user_access('administer nodes');
+
+  // Build the 'Update options' form.
+  $form['options'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Update options'),
+    '#attributes' => array('class' => array('container-inline')),
+    '#access' => $admin_access,
+  );
+  $options = array();
+  foreach (module_invoke_all('node_operations') as $operation => $array) {
+    $options[$operation] = $array['label'];
+  }
+  $form['options']['operation'] = array(
+    '#type' => 'select',
+    '#title' => t('Operation'),
+    '#title_display' => 'invisible',
+    '#options' => $options,
+    '#default_value' => 'approve',
+  );
+  $form['options']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Update'),
+    '#validate' => array('node_admin_nodes_validate'),
+    '#submit' => array('node_admin_nodes_submit'),
+  );
+
+  // Build the sortable table header.
+  $header = array(
+    'title' => array('data' => t('Title'), 'field' => 'n.title'),
+    'type' => array('data' => t('Type'), 'field' => 'n.type'),
+    'author' => array('data' => t('Author'), 'field' => 'u.name'),
+    'status' => array('data' => t('Status'), 'field' => 'n.status'),
+    'changed' => array('data' => t('Updated'), 'field' => 'n.changed', 'sort' => 'desc')
+  );
+  $header['operations'] = array('data' => t('Operations'));
+
+  $query = db_select('node', 'n')->extend('PagerDefault')->extend('TableSort');
+  $query->join('users', 'u', 'n.uid = u.uid');
+
+  $query->addTag('node_admin_filter');
+  nc_content_build_search_query($query);
+  nc_content_build_filter_query($query);
+
+  $nids = $query
+    ->fields('n')
+    ->fields('u', array('uid', 'name'))
+    ->limit(50)
+    ->orderByHeader($header)
+    ->addTag('node_access')
+    ->execute()
+    ->fetchCol();
+  $nodes = node_load_multiple($nids);
+
+  // Prepare the list of nodes.
+  $destination = drupal_get_destination();
+  $options = array();
+  foreach ($nodes as $node) {
+    $uri = entity_uri('node', $node);
+    $options[$node->nid] = array(
+      'title' => array(
+        'data' => array(
+          '#type' => 'link',
+          '#title' => $node->title,
+          '#href' => $uri['path'],
+          '#options' => $uri['options'],
+          '#suffix' => ' ' . theme('mark', array('type' => node_mark($node->nid, $node->changed))),
+        ),
+      ),
+      'type' => check_plain(node_type_get_name($node)),
+      'author' => theme('username', array('account' => $node)),
+      'status' => $node->status ? t('published') : t('not published'),
+      'changed' => t('@interval ago', array('@interval' => format_interval((REQUEST_TIME - $node->changed)))),
+    );
+
+    // Build a list of all the accessible operations for the current node.
+    $operations = array();
+    if (node_access('update', $node)) {
+      $operations['edit'] = array(
+        'title' => t('edit'),
+        'href' => 'node/' . $node->nid . '/edit',
+        'query' => $destination,
+      );
+    }
+    if (node_access('delete', $node)) {
+      $operations['delete'] = array(
+        'title' => t('delete'),
+        'href' => 'node/' . $node->nid . '/delete',
+        'query' => $destination,
+      );
+    }
+    $options[$node->nid]['operations'] = array();
+    if (count($operations) > 1) {
+      // Render an unordered list of operations links.
+      $options[$node->nid]['operations'] = array(
+        'data' => array(
+          '#theme' => 'links__node_operations',
+          '#links' => $operations,
+          '#attributes' => array('class' => array('links', 'inline')),
+        ),
+      );
+    }
+    elseif (!empty($operations)) {
+      // Render the first and only operation as a link.
+      $link = reset($operations);
+      $options[$node->nid]['operations'] = array(
+        'data' => array(
+          '#type' => 'link',
+          '#title' => $link['title'],
+          '#href' => $link['href'],
+          '#options' => array('query' => $link['query']),
+        ),
+      );
+    }
+  }
+
+  // Only use a tableselect when the current user is able to perform any
+  // operations.
+  if ($admin_access) {
+    $form['nodes'] = array(
+      '#type' => 'tableselect',
+      '#header' => $header,
+      '#options' => $options,
+      '#empty' => t('No content available.'),
+    );
+  }
+  // Otherwise, use a simple table.
+  else {
+    $form['nodes'] = array(
+      '#theme' => 'table',
+      '#header' => $header,
+      '#rows' => $options,
+      '#empty' => t('No content available.'),
+    );
+  }
+
+  $form['pager'] = array('#markup' => theme('pager', array('element' => 1, 'parameters' => array('pager' => 'yes'))));
+  return $form;
+}
+
+/**
+ *
+ * function nc_content_filter_form_submit()
+ * @see node_filter_form_submit()
+ *
+ */
+function nc_content_filter_form_submit($form, &$form_state) {
+  $filters = node_filters();
+  // Remove the language filter.
+  unset($filters['language']);
+  // Set these manually so the form can remain method "post" for the update options.
+  $_GET['title_search'] = $form_state['values']['title_search'];
+  $_GET['body_search'] = $form_state['values']['body_search'];
+
+  switch ($form_state['values']['op']) {
+    case t('Filter'):
+    case t('Refine'):
+      // Apply every filter that has a choice selected other than 'any'.
+      foreach ($filters as $filter => $options) {
+        if (isset($form_state['values'][$filter]) && $form_state['values'][$filter] != '[any]') {
+          // Flatten the options array to accommodate hierarchical/nested options.
+          $flat_options = form_options_flatten($filters[$filter]['options']);
+          if (isset($flat_options[$form_state['values'][$filter]])) {
+            $_GET[$filter] = $form_state['values'][$filter];
+          }
+        }
+        elseif ($form_state['values'][$filter] == '[any]') {
+          $_GET[$filter] = '';
+        }
+      }
+      break;
+    case t('Reset'):
+      $_GET = array(
+        'q' => 'admin/content',
+      );
+      break;
+  }
+}
+
+/**
+ *
+ * function nc_content_build_filter_query()
+ * @see node_build_filter_query()
+ *
+ */
+function nc_content_build_filter_query(SelectQueryInterface $query) {
+  // Build query
+  $filter_data = array(
+    'type' => isset($_GET['type']) ? check_plain($_GET['type']) : '',
+    'status' => isset($_GET['status']) ? check_plain($_GET['status']) : '',
+  );
+  foreach ($filter_data as $key => $value) {
+    if (strlen($value) > 0) {
+      if ($key == 'status') {
+        $value = explode('-', $value, 2);
+        $value = $value[1];
+      }
+      $query->condition('n.' . $key, $value);
+    }
+  }
+}

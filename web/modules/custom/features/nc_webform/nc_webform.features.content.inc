@@ -1,0 +1,160 @@
+<?php
+/**
+ * @file
+ * nc_webform.features.content.inc
+ */
+
+/**
+ * Implements hook_content_defaults().
+ */
+function nc_webform_content_defaults() {
+  $content = array();
+
+  $content['user_feedback'] = (object) array(
+    'webform' => array(
+      'confirmation' => '<p><em>Submission Successful!</em></p><p>Thank you for your feedback.</p>',
+      'confirmation_format' => 'full_html',
+      'redirect_url' => '<none>',
+      'status' => 1,
+      'block' => 0,
+      'allow_draft' => 0,
+      'auto_save' => 0,
+      'submit_notice' => 1,
+      'submit_text' => 'Send Feedback',
+      'submit_limit' => -1,
+      'submit_interval' => -1,
+      'total_submit_limit' => -1,
+      'total_submit_interval' => -1,
+      'webform_ajax' => 1,
+      'progressbar_bar' => 0,
+      'progressbar_page_number' => 0,
+      'progressbar_percent' => 0,
+      'progressbar_pagebreak_labels' => 0,
+      'progressbar_include_confirmation' => 0,
+      'progressbar_label_first' => '',
+      'progressbar_label_confirmation' => '',
+      'preview' => 0,
+      'preview_next_button_label' => '',
+      'preview_prev_button_label' => '',
+      'preview_title' => '',
+      'preview_message' => '',
+      'preview_message_format' => 'full_html',
+      'preview_excluded_components' => array(),
+      'next_serial' => 836,
+      'confidential' => 0,
+      'record_exists' => TRUE,
+      'roles' => array(
+        0 => 1,
+        1 => 2,
+      ),
+      'emails' => array(
+        1 => array(
+          'nid' => 5,
+          'eid' => 1,
+          'email' => 'digital@its.nc.gov',
+          'subject' => 'default',
+          'from_name' => 'default',
+          'from_address' => 3,
+          'template' => 'default',
+          'excluded_components' => array(),
+          'html' => 0,
+          'attachments' => 0,
+          'extra' => FALSE,
+          'exclude_empty' => 0,
+          'status' => 1,
+        ),
+      ),
+      'components' => array(
+        0 => array(
+          'pid' => 0,
+          'form_key' => 'email',
+          'name' => 'Email',
+          'type' => 'email',
+          'value' => '',
+          'extra' => array(
+            'title_display' => 'before',
+            'private' => 0,
+            'disabled' => 0,
+            'unique' => 0,
+            'multiple' => 0,
+            'format' => 'short',
+            'width' => '',
+            'description' => '',
+            'description_above' => FALSE,
+            'placeholder' => '',
+            'attributes' => array(),
+            'analysis' => FALSE,
+          ),
+          'required' => 1,
+          'weight' => 4,
+          'class' => 'webform',
+          'page_num' => 1,
+        ),
+        1 => array(
+          'pid' => 0,
+          'form_key' => 'your_message',
+          'name' => 'Your Message',
+          'type' => 'textarea',
+          'value' => '',
+          'extra' => array(
+            'title_display' => 0,
+            'private' => 0,
+            'resizable' => 0,
+            'disabled' => 0,
+            'cols' => '',
+            'rows' => '',
+            'description' => '',
+            'attributes' => array(),
+            'description_above' => FALSE,
+            'placeholder' => '',
+            'analysis' => FALSE,
+          ),
+          'required' => 1,
+          'weight' => 5,
+          'class' => '',
+          'page_num' => 1,
+        ),
+        2 => array(
+          'pid' => 0,
+          'form_key' => 'page_submitted',
+          'name' => 'Page Submitted',
+          'type' => 'hidden',
+          'value' => '[current-page:query:pge_s]',
+          'extra' => array(
+            'private' => 0,
+            'hidden_type' => 'value',
+            'analysis' => FALSE,
+          ),
+          'required' => 0,
+          'weight' => 6,
+          'class' => '',
+          'page_num' => 1,
+        ),
+      ),
+      'conditionals' => array(),
+    ),
+    'captcha' => 'recaptcha/reCAPTCHA',
+    'exported_path' => 'user-feedback',
+    'title' => 'User Feedback',
+    'status' => 1,
+    'promote' => 0,
+    'sticky' => 0,
+    'type' => 'webform',
+    'language' => 'und',
+    'created' => 1294352355,
+    'comment' => 1,
+    'translate' => 0,
+    'machine_name' => 'user_feedback',
+    'body' => array(
+      'und' => array(
+        0 => array(
+          'value' => '<p>Thank you for providing feedback on our website. Your idea will go to our web team. If you want to contact someone specifically and get a response, please go to the contact page.</p>',
+          'summary' => '',
+          'format' => 'full_html',
+        ),
+      ),
+    ),
+  );
+
+return $content;
+}

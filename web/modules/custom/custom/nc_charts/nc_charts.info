@@ -1,0 +1,8 @@
+name = NC Charts
+description = Creates charts.
+core = 7.x
+package = North Carolina
+version = 7.x-1.0
+dependencies[] = bean
+dependencies[] = tablefield
+files[] = plugins/AbstractNCChartsBean.class.php

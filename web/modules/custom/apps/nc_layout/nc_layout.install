@@ -1,0 +1,12 @@
+<?php
+/**
+ * @file
+ * nc_layout install file.
+ */
+
+/**
+ * Implements hook_update_7001().
+ */
+function nc_layout_update_7001() {
+  features_revert(array('nc_layout' => array('variable')));
+}

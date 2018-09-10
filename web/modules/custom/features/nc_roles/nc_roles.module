@@ -1,0 +1,23 @@
+<?php
+/**
+ * @file
+ * Module file for NC Roles.
+ */
+
+/**
+ * Implements hook_user_view().
+ */
+function nc_roles_user_view($account) {
+  $roles = array();
+  foreach ($account->roles as $role) {
+    if ($role != 'authenticated user') {
+      $roles[] = $role;
+    }
+  }
+
+  $account->content['summary']['roles'] = array(
+    '#type' => 'user_profile_item',
+    '#title' => count($roles) > 1 ? t('Roles') : ('Role'),
+    '#markup' => implode(' ', $roles),
+  );
+}

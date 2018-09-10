@@ -1,0 +1,12 @@
+name = "North Carolina Migrate - OSHR"
+description = "Module to migrate content into the NC Platform for OSHR"
+package = "North Carolina Migrate"
+core = 7.x
+dependencies[] = nc_migrate
+dependencies[] = nc_document
+
+; Class files for this module
+files[] = includes/MigrateOSHRBase.class.php
+files[] = includes/MigrateOSHRPages.class.php
+files[] = includes/MigrateOSHRDocuments.class.php
+files[] = includes/MigrateOSHRFiles.class.php

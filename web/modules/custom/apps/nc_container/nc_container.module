@@ -1,0 +1,52 @@
+<?php
+/**
+ * @file
+ * Code for the NC Application Container feature.
+ */
+
+include_once 'nc_container.features.inc';
+
+/**
+ * Implements hook_node_view_alter().
+ */
+function nc_container_node_view_alter(&$build) {
+  // Check to make sure we only operate on application_container nodes.
+  $node = $build['#node'];
+  if (!empty($node->type) && 'application_container' == $node->type) {
+    // Add node-level CSS to header.
+    $css = field_get_items('node', $node, 'field_css_files');
+    if (!empty($css) && is_array($css)) {
+      foreach ($css as $item) {
+        if (!empty($item['uri'])) {
+          drupal_add_css(file_create_url($item['uri']), array('type' => 'external'));
+        }
+      }
+    }
+
+    // Add node-level JS to header.
+    $js_header = field_get_items('node', $node, 'field_js_header_files');
+    if (!empty($js_header) && is_array($js_header)) {
+      foreach ($js_header as $item) {
+        if (!empty($item['uri'])) {
+          drupal_add_js(file_create_url($item['uri']), array(
+            'type' => 'external',
+            'scope' => 'header',
+          ));
+        }
+      }
+    }
+
+    // Add node-level JS to footer.
+    $js_footer = field_get_items('node', $node, 'field_js_footer_files');
+    if (!empty($js_footer) && is_array($js_footer)) {
+      foreach ($js_footer as $item) {
+        if (!empty($item['uri'])) {
+          drupal_add_js(file_create_url($item['uri']), array(
+            'type' => 'external',
+            'scope' => 'footer',
+          ));
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,72 @@
+<?php
+/**
+ * @file
+ * Code for the NC Carousel feature.
+ */
+
+include_once 'nc_carousel.features.inc';
+
+
+/**
+ * Implements hook_bean_types_api_info().
+ */
+function nc_carousel_bean_types_api_info() {
+  return array('api' => 4);
+}
+
+/**
+ * Implements hook_bean_types().
+ */
+function nc_carousel_bean_types() {
+  $plugins = array();
+  $plugin_path = drupal_get_path('module', 'nc_carousel') . '/plugins';
+  $plugins['nc_carousel'] = array(
+    'label' => t('Carousel'),
+    'description' => t('Create carousels based on the Owl javascript library.'),
+    'handler' => array(
+      'class' => 'NCCarouselBean',
+      'parent' => 'bean',
+    ),
+    'path' => $plugin_path,
+    'file' => 'NCCarouselBean.class.php',
+  );
+  return $plugins;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function nc_carousel_theme() {
+  $items = array();
+  $items['nc_carousel_slide'] = array(
+    'arguments' => array(
+      'slides' => NULL,
+    ),
+    'file' => 'nc_carousel.theme.inc',
+  );
+  $items['nc_carousel_hero'] = array(
+    'arguments' => array(
+      'slide' => NULL,
+    ),
+    'file' => 'nc_carousel.theme.inc',
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_form_alter().
+ */
+function nc_carousel_form_bean_form_alter(&$form, &$form_state, $form_id) {
+  if (module_exists('maxlength')) {
+    if ($form['bean']['#value']->type == "nc_carousel") {
+      $language = $form['field_slide']['#language'];
+      $slides = array_intersect_key($form['field_slide']['und'], element_children($form['field_slide']['und']));
+      foreach ($slides as $index => $value) {
+        $form['field_slide']['und'][$index]['field_slide_heading'][$language][0]['value']['#maxlength'] = 75;
+        $form['field_slide']['und'][$index]['field_slide_heading'][$language][0]['value']['#maxlength_js'] = TRUE;
+        $form['field_slide']['und'][$index]['field_slide_text'][$language][0]['value']['#maxlength'] = 250;
+        $form['field_slide']['und'][$index]['field_slide_text'][$language][0]['value']['#maxlength_js'] = TRUE;
+      }
+    }
+  }
+}

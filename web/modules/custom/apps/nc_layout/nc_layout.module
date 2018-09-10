@@ -1,0 +1,40 @@
+<?php
+/**
+ * @file
+ * Code for the NC Layout feature.
+ */
+
+include_once 'nc_layout.features.inc';
+
+/**
+ * Implements hook_menu_local_tasks_alter().
+ */
+function nc_layout_menu_local_tasks_alter(&$data, $router_item, $root_path) {
+  // Only add the layout tab for these root paths.
+  $layout_pages = array(
+    'node/%',
+    'node/%/draft',
+  );
+
+  // Conditional bit re context checks borrowed from
+  // context_ui_menu_contextual_links_alter.
+  if (in_array($root_path, $layout_pages) &&
+      context_ui_dialog_is_enabled()  &&
+      !context_isset('context_ui', 'context_ui_editor_present') &&
+      user_access('administer contexts')) {
+    $data['tabs'][0]['output'][] = array(
+      '#theme' => 'menu_local_task',
+      '#link' => array(
+        'title' => t('Layout'),
+        'href' => 'context-ui/activate',
+        'localized_options' => array(
+          'query' => array('destination' => $_GET['q']),
+          'options' => array('html' => FALSE, 'attributes' => array()),
+        ),
+      ),
+    );
+
+    // Update tab count.
+    $data['tabs'][0]['count'] = count($data['tabs'][0]['output']);
+  }
+}

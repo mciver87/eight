@@ -1,0 +1,14 @@
+<?php
+/**
+ * @file
+ * Contains install, uninstall, schema and update hooks for module
+ */
+
+/**
+ * Weform Deter SSN fix - Remedy ticket TBD.
+ */
+function nc_webform_deter_update_7100() {
+  if (module_exists('nc_webform_deter')) {
+    features_revert_module('nc_webform_deter');
+  }
+}

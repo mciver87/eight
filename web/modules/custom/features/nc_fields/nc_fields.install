@@ -1,0 +1,127 @@
+<?php
+/**
+ * @file
+ * Perform installation actions for the profile.
+ */
+
+/**
+ * Implements hook_update_dependencies().
+ */
+function nc_fields_update_dependencies() {
+  // NC Carousel 7003 reverts the IMCE field change.
+  $dependencies['nc_fields'][7002] = array(
+    'nc_carousel' => 7002,
+  );
+  return $dependencies;
+}
+
+/**
+ * ABT#97 - Adding IMCE file selector to the site.
+ */
+function nc_fields_update_7001() {
+  // Enable IMCE File Field module.
+  module_enable(array('imce_filefield'));
+
+  // Update the Allow users to select fiels from IMCD File Browser for
+  // this field on all field instances.
+  $instances = field_info_instances();
+
+  foreach ($instances as $instance_key => $instance) {
+    if (count($instance)) {
+      foreach ($instance as $type_key => $types) {
+        foreach ($types as $field_key => $field) {
+          if (isset($field['widget']) && isset($field['widget']['type']) && $field['widget']['type'] === 'image_image') {
+            $instance_info = field_info_instance($instance_key, $field_key, $type_key);
+            $instance_info['widget']['settings']['imce_filefield_on'] = TRUE;
+            field_update_instance($instance_info);
+          }
+        }
+      }
+    }
+  }
+}
+
+/**
+ * ABT#97 - Adding IMCE file selector to the site.
+ */
+function nc_fields_update_7002() {
+  // Enable IMCE File Field module.
+  module_enable(array('imce_filefield'));
+
+  // Update the Allow users to select fiels from IMCD File Browser for
+  // this field on all field instances.
+  $instances = field_info_instances();
+
+  foreach ($instances as $instance_key => $instance) {
+    if (count($instance)) {
+      foreach ($instance as $type_key => $types) {
+        foreach ($types as $field_key => $field) {
+          if (isset($field['widget']) && isset($field['widget']['type']) && $field['widget']['type'] === 'image_image') {
+            $instance_info = field_info_instance($instance_key, $field_key, $type_key);
+            $instance_info['widget']['settings']['imce_filefield_on'] = TRUE;
+            field_update_instance($instance_info);
+          }
+        }
+      }
+    }
+  }
+}
+
+/**
+ * ABT#641 - Disable URL validation on Link fields.
+ */
+function nc_fields_update_7003() {
+  // Collect all field instances.
+  $instances = field_info_instances();
+
+  // Iterate through field instances, look for fields of type link_field.
+  foreach ($instances as $instance_key => $instance) {
+    if (count($instance)) {
+      foreach ($instance as $type_key => $types) {
+        foreach ($types as $field_key => $field) {
+          $field_info = field_info_field($field_key);
+          if ($field_info['type'] == 'link_field') {
+            // Disable link validation.
+            $instance_info = field_info_instance($instance_key, $field_key, $type_key);
+            $instance_info['widget']['settings']['validate_url'] = 0;
+            $instance_info['settings']['validate_url'] = 0;
+            field_update_instance($instance_info);
+          }
+        }
+      }
+    }
+  }
+}
+
+/**
+ * ABT#641 - Rerun - Disable URL validation on Link fields.
+ */
+function nc_fields_update_7004() {
+  // Collect all field instances.
+  $instances = field_info_instances();
+
+  // Iterate through field instances, look for fields of type link_field.
+  foreach ($instances as $instance_key => $instance) {
+    if (count($instance)) {
+      foreach ($instance as $type_key => $types) {
+        foreach ($types as $field_key => $field) {
+          $field_info = field_info_field($field_key);
+          if ($field_info['type'] == 'link_field') {
+            // Disable link validation.
+            $instance_info = field_info_instance($instance_key, $field_key, $type_key);
+            $instance_info['widget']['settings']['validate_url'] = 0;
+            $instance_info['settings']['validate_url'] = 0;
+            field_update_instance($instance_info);
+          }
+        }
+      }
+    }
+  }
+}
+
+/**
+ * ABT-730 - Updates the field to display the documents by default.
+ */
+function nc_fields_update_7005() {
+  features_revert(array('nc_fields' => array('field_base')));
+}

@@ -1,0 +1,13 @@
+<?php 
+/**
+ * @file
+ * Code for the NC Admin module.
+ */
+
+function nc_admin_preprocess_html(&$variables) {
+// Add conditional stylesheets for admin pages on admin theme.
+  if (path_is_admin(current_path())) {
+    // reference your own stylesheet    
+    drupal_add_css(drupal_get_path('module', 'nc_admin') . '/css/nc_admin.css', array('weight' => CSS_THEME));
+  }
+}

@@ -1,0 +1,20 @@
+.paragraphs-item-two-column > .content,
+.paragraphs-item-three-column > .content,
+.paragraphs-item-four-column > .content {
+    display: flex;
+}
+.paragraphs-item-two-column .content .field-group-div,
+.paragraphs-item-three-column .content .field-group-div,
+.paragraphs-item-four-column .content .field-group-div {
+    flex: 1;
+    overflow: hidden;
+}
+.paragraphs-item-two-column .content .field-group-div {
+    max-width: 50%;
+}
+.paragraphs-item-three-column .content .field-group-div {
+    max-width: 33%;
+}
+.paragraphs-item-four-column .content .field-group-div {
+    max-width: 25%;
+}

@@ -1,0 +1,75 @@
+<?php
+/**
+ * @file
+ * Contains install, schema, update and uninstall hooks for module.
+ */
+
+/**
+ * NC-932: Update IMCE config for User-1 and NC-editors profiles.
+ */
+function nc_wysiwyg_update_7001() {
+  features_revert(array('nc_wysiwyg' => array('variable')));
+}
+
+/**
+ * NC-1004: Update IMCE role-profile mappings.
+ */
+function nc_wysiwyg_update_7002() {
+  features_revert(array('nc_wysiwyg' => array('variable')));
+}
+
+/**
+ * ABT-640: Update IMCE source code view.
+ */
+function nc_wysiwyg_update_7003() {
+  features_revert(array('nc_wysiwyg' => array('wysiwyg')));
+}
+
+/**
+ * ABT-701: Update to support jCaption.
+ */
+function nc_wysiwyg_update_7004() {
+  features_revert(array('nc_wysiwyg' => array('wysiwyg', 'variable')));
+}
+
+/**
+ * ABT-701: Update to support jCaption.
+ */
+function nc_wysiwyg_update_7005() {
+  features_revert(array('nc_wysiwyg' => array('variable')));
+}
+
+/**
+ * ABT-724: Update site manager profile settings for IMCE.
+ */
+function nc_wysiwyg_update_7006() {
+  _nc_wysiwyg_set_imce_role_profile();
+}
+
+/**
+ * ABT-724: Update site admin profile settings for IMCE.
+ */
+function nc_wysiwyg_update_7007() {
+  _nc_wysiwyg_set_imce_role_profile();
+}
+
+/**
+ * ABT-776 - Revert wysiwyg to remove strikethrough and underline.
+ */
+function nc_wysiwyg_update_7008() {
+  features_revert_module('nc_wysiwyg');
+}
+
+/**
+ * DC-452 - Revert wysiwyg to update allowed video filter formats.
+ */
+function nc_wysiwyg_update_7009() {
+  features_revert_module('nc_wysiwyg');
+}
+
+/**
+ * DC-452 - Revert wysiwyg to update related videos and video filter height settings.
+ */
+function nc_wysiwyg_update_7010() {
+  features_revert_module('nc_wysiwyg');
+}

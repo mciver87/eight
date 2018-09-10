@@ -1,0 +1,127 @@
+<?php
+/**
+ * @file
+ * Drupal needs this blank file.
+ */
+
+/**
+ * Implements hook_bean_types_api_info().
+ */
+function nc_quicklinks_bean_types_api_info() {
+  return array('api' => 4);
+}
+
+/**
+ * Implements hook_bean_types().
+ */
+function nc_quicklinks_bean_types() {
+  $plugins = array();
+  $plugin_path = drupal_get_path('module', 'nc_quicklinks') . '/plugins';
+  $plugins['nc_quicklinks'] = array(
+    'label' => t('Quick Links'),
+    'description' => t('Allows a user to add a set of links that are rendered into a list..'),
+    'handler' => array(
+      'class' => 'NCQuickLinksBean',
+      'parent' => 'bean',
+    ),
+    'path' => $plugin_path,
+    'file' => 'NCQuickLinksBean.class.php',
+  );
+  return $plugins;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function nc_quicklinks_theme() {
+  $items = array();
+  $items['nc_quicklinks_links'] = array(
+    'arguments' => array(
+      'title' => "",
+      'links' => array(),
+      'style' => "default",
+    ),
+    'file' => 'nc_quicklinks.theme.inc',
+  );
+  return $items;
+}
+
+/**
+ * Converts the 'style' of the quicklink block to a proper CSS class.
+ *
+ * @param string $style
+ *   The name of the style.
+ *
+ * @return string
+ *   The class which should be used for the quicklinks block.
+ */
+function _nc_quicklinks_wrapper_style_to_class($style) {
+  switch ($style) {
+    case 'inverted':
+      return $style;
+
+    case 'primary':
+      return "primary inverted";
+
+    case 'accent':
+      return "accent inverted";
+
+    default:
+      return "";
+  }
+}
+
+/**
+ * Converts the 'style' of the quicklink links to a proper CSS class.
+ *
+ * @param string $style
+ *   The name of the style.
+ *
+ * @return string
+ *   The class which should be used for the quicklinks a tag.
+ */
+function _nc_quicklinks_link_style_to_class($style) {
+  switch ($style) {
+
+    case 'button':
+      return "button";
+
+    case 'button-accent':
+      return "button accent";
+
+    case 'button-ghost':
+      return "button ghost";
+
+    case 'button-ghost-accent':
+      return "button ghost accent";
+
+    case 'button-ghost-inverted':
+      return "button ghost inverted";
+
+    default:
+      return "";
+  }
+}
+
+/**
+ * Converts the 'style' of the quicklink links header to a proper CSS class.
+ *
+ * @param string $style
+ *   The name of the style.
+ *
+ * @return string
+ *   The class which should be used for the quicklinks a tag.
+ */
+function _nc_quicklinks_header_style_to_class($style) {
+  switch ($style) {
+
+    case 'secondary':
+      return "secondary-title";
+
+    case 'plain':
+      return "plain-title";
+
+    default:
+      return "section-title";
+  }
+}

@@ -1,0 +1,19 @@
+<?php
+/**
+ * @file
+ * Install file for NC 404.
+ */
+
+/**
+ * Checks if the 404 page has been made.
+ */
+function nc_404_enable() {
+  $vars = variable_get(NC_404_VARS, array());
+  if (empty($vars)) {
+    _nc_404_create();
+    $vars = variable_get(NC_404_VARS, array());
+  }
+  if (!variable_get('site_404') && isset($vars[NC_404_VAR_PAGE])) {
+    variable_set('site_404', 'node/' . $vars[NC_404_VAR_PAGE]);
+  }
+}

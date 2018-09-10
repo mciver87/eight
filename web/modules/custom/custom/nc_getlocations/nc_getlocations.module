@@ -1,0 +1,13 @@
+<?php
+
+/**
+ * @File Hacky McHackersons for getlocations' js file requirements.
+ */
+
+/**
+ * Implements hook_getlocations_markerdir().
+ */
+function nc_getlocations_getlocations_markerdir() {
+  $markers = drupal_get_path('module', 'nc_getlocations') . '/markers';
+  return $markers;
+}

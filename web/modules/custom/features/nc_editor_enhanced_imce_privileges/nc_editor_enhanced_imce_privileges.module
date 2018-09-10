@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the NC Editor Enhanced IMCE Privileges feature.
+ */
+
+include_once 'nc_editor_enhanced_imce_privileges.features.inc';

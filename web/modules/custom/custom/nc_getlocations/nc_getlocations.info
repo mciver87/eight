@@ -1,0 +1,6 @@
+name = NC GetLocations workaround
+description = Workaround for Getlocations' crappy JS requirements.
+core = 7.x
+package = North Carolina
+version = 7.x-1.0
+project = nc_getlocations

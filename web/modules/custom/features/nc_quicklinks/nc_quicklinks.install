@@ -1,0 +1,13 @@
+<?php
+/**
+ * @file
+ * Contains install, uninstall, schema and update hooks for module
+ */
+
+/**
+ * ABT-DOR - Updated to add new styles and description field.
+ */
+function nc_quicklinks_update_7100() {
+    features_revert(array('nc_fields' => array('field_base')));
+    features_revert_module('nc_quicklinks');
+}

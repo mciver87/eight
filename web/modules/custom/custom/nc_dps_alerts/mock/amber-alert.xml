@@ -1,0 +1,55 @@
+<rss xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:taxo="http://purl.org/rss/1.0/modules/taxonomy/" version="2.0">
+    <channel>
+        <title>N.C. Silver Alerts</title>
+        <link>http://www.ncdps.gov</link>
+        <description>NC Amber Alerts RSS Feed</description>
+        <pubDate>Wed, 13 Jan 2016 15:18:18 GMT</pubDate>
+        <item>
+            <title>
+                An Amber Alert has been issued for Little Bobby Tables by the N.C. Center for Missing Persons
+            </title>
+            <link>
+                https://en.wikipedia.org/wiki/Substomatal_cavity
+            </link>
+            <description>
+                In plants, the substomatal cavity is the cavity located immediately proximal to the stoma. It acts as a diffusion chamber connected with intercellular air spaces and allows rapid diffusion of carbon dioxide and other gases (such as plant pheromones) in and out of plant cells.
+            </description>
+            <pubDate>Tue, 05 Jan 2016 20:40:00 GMT</pubDate>
+            <guid>
+                https://en.wikipedia.org/wiki/Substomatal_cavity
+            </guid>
+        </item>
+        <item>
+            <title>
+                An Amber Alert Alert has been issued for Sue Jane Doe by the N.C. Center for Missing Persons
+            </title>
+            <link>
+                https://en.wikipedia.org/wiki/House_of_Krasi%C5%84ski
+            </link>
+            <description>
+                Krasiński (plural: Krasińscy) is the surname of a Polish noble-aristocratic family. Because Polish adjectives have different forms for the genders, Krasińska is the form for a female family member.
+
+                The Krasiński family had a number of soldiers, politicians (including voivodes of Poland and other members of the senate of Poland) and bishops. The family's most famous member is the 19th-century poet Zygmunt Krasiński.
+            </description>
+            <pubDate>Wed, 02 Dec 2015 02:08:00 GMT</pubDate>
+            <guid>
+                https://en.wikipedia.org/wiki/House_of_Krasi%C5%84ski
+            </guid>
+        </item>
+        <item>
+            <title>
+                An Amber Alert Alert has been issued for Carmen Sandiego by the N.C. Center for Missing Persons
+            </title>
+            <link>
+                https://en.wikipedia.org/wiki/Philodromus_depriesteri
+            </link>
+            <description>
+                Philodromus depriesteri is a spider species found in Austria and Germany.
+            </description>
+            <pubDate>Thu, 08 Oct 2015 05:08:00 GMT</pubDate>
+            <guid>
+                https://en.wikipedia.org/wiki/Philodromus_depriesteri
+            </guid>
+        </item>
+    </channel>
+</rss>

@@ -1,0 +1,51 @@
+<?php
+/**
+ * @file
+ * Contains install, uninstall, update and schema hooks for module.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function nc_migrate_doa_schema() {
+  $schema = array();
+
+  $schema['nc_migrate_doa_docrefs'] = array(
+    'description' => 'Document URL crossref table for legacy content',
+    'fields' => array(
+      'old_url' => array(
+        'description' => 'Old URL from legacy site',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'new_url' => array(
+        'description' => 'New URL on current site',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'nid' => array(
+        'description' => 'Node ID of the parent document node',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'fid' => array(
+        'description' => 'File ID of the document',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+    ),
+    'unique keys' => array(
+      'old_url' => array('old_url'),
+    ),
+  );
+
+  return $schema;
+}

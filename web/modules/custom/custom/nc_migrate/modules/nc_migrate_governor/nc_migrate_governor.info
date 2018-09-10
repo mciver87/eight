@@ -1,0 +1,16 @@
+name = "North Carolina Migrate - Governor"
+description = "Module to migrate content into the NC Platform for Governor"
+package = "North Carolina Migrate"
+core = 7.x
+dependencies[] = nc_migrate
+
+; Governor migration classes.
+files[] = includes/MigrateGovernorBase.class.php
+files[] = includes/MigrateGovernorNodeBase.class.php
+files[] = includes/MigrateGovernorSource.class.php
+files[] = includes/MigrateGovernorPressRelease.class.php
+files[] = includes/MigrateGovernorOrderProclamation.class.php
+files[] = includes/MigrateGovernorDocumentTerms.class.php
+files[] = includes/MigrateGovernorPressReleaseTerms.class.php
+files[] = includes/MigrateGovernorVideo.class.php
+files[] = includes/MigrateGovernorVideoTerms.class.php

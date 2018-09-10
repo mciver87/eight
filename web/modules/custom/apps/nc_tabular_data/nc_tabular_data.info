@@ -1,0 +1,9 @@
+name = North Carolina Tabular Data
+description = Set a contact profile for OpenSanMateo content.
+core = 7.x
+package = NorthCarolina
+php = 5.2.4
+dependencies[] = features
+dependencies[] = jquery_update
+dependencies[] = tablefield
+dependencies[] = nc_data_table

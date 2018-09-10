@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the NC Workflow feature.
+ */
+
+include_once 'nc_workflow.features.inc';

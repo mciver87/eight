@@ -1,0 +1,7 @@
+name = Views Term Link Formatter
+description = "Field formatter for links to Views with exposed filters on taxonomy."
+core = 7.x
+package = Fields
+dependencies[] = views
+dependencies[] = field
+files[] = views_link_formatter.module

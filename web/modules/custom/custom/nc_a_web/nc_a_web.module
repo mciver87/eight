@@ -1,0 +1,23 @@
+<?php
+
+/**
+ * @file
+ * nc_a_web.module.
+ */
+
+/**
+ * Implements hook_page_alter().
+ */
+function nc_a_web_page_alter(&$page) {
+  $output = <<<EOM
+<!-- A-Web script -->
+
+<script src='//v2.mk-sense.com/aweb?license=0c92d3b879f941a485eb770a87f8cfb5' defer></script>
+
+<!-- End A-Web Script -->
+EOM;
+
+  $page['page_bottom']['a_web_tool'] = array(
+    '#markup' => $output,
+  );
+}

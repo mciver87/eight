@@ -1,0 +1,108 @@
+<?php
+
+/**
+ * @file
+ * Nc_matomo.module.
+ */
+
+/**
+ * Implements hook_page_alter().
+ */
+function nc_matomo_page_alter(&$page) {
+  $matomo_code = _nc_matomo_get_code();
+  if (!empty($matomo_code)) {
+    $output = <<<EOM
+<!-- Matomo -->
+<script type="text/javascript">
+  var _paq = _paq || [];
+  /* tracker methods like "setCustomDimension" should be called before "trackPageView" */
+  _paq.push(['trackPageView']);
+  _paq.push(['enableLinkTracking']);
+  (function() {
+    var u="https://analytics.nc.gov/";
+    _paq.push(['setTrackerUrl', u+'piwik.php']);
+    _paq.push(['setSiteId', '$matomo_code']);
+    var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+    g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'piwik.js'; s.parentNode.insertBefore(g,s);
+  })();
+</script>
+<noscript>
+<img src="https://analytics.nc.gov/piwik.php?idsite=$matomo_code&amp;rec=1" style="border:0" alt="" />
+</noscript>
+<!-- End Matomo Code -->
+EOM;
+
+    $page['page_bottom']['matomo'] = array(
+      '#markup' => $output,
+    );
+  }
+}
+
+/**
+ * Function _nc_matomo_get_code().
+ * returns an ID based on the following array.
+ */
+function _nc_matomo_get_code() {
+  $code = FALSE;
+  global $shortcode;
+  global $os_env;
+
+  $matomo_list = array(
+    'ncdit' => 3,
+    'ncdigital' => 2,
+    'ncdigitalcommons' => 2,
+    'ncgov' => 8,
+    'ncdoa' => 12,
+    'ncdeq' => 13,
+    'ncosbm' => 14,
+    'ncoshr' => 15,
+    'ncdmva' => 16,
+    'hiea' => 17,
+    'ncparks' => 18,
+    'ncdor' => 19,
+    'ltgov' => 20,
+    'ncosc' => 21,
+    'ncdmva' => 22,
+    'ncstrong' => 23,
+    'rebuildnc' => 24,
+    'ncshp' => 25,
+    'governor' => 28,
+    'ncdcr' => 29,
+    'ncdhhs' => 30,
+    'ncdma' => 31,
+    'ncdps' => 32,
+    'dncr-moh' => 33,
+    'dncr-nhp' => 34,
+    'dncr-statelibrary' => 35,
+    'dncr-historicsites' => 36,
+    'dncr-arch' => 37,
+    'dncr-qar' => 38,
+    'cwmtf' => 39,
+    'pubstaff' => 40,
+    'ncelc' => 41,
+    'ncaplus' => 42,
+    'mgmnc' => 43,
+    'ncalbemarle' => 44,
+    'capefear' => 45,
+    'ncarts' => 46,
+    'deftech' => 47,
+    'dncr-archives' => 48,
+    'ncdol' => 49,
+    'dncr-aahc' => 50,
+    'dncr-rifp' => 51,
+    'deqee' => 52,
+  );
+
+  $find_this_id = '';
+  if ($os_env != 'local') {
+    $find_this_id = $shortcode;
+    if ($os_env != 'prod') {
+      // Add environment to shortcode.
+      $find_this_id = $os_env . '-' . $shortcode;
+    }
+    if (!empty($matomo_list[$find_this_id])) {
+      $code = $matomo_list[$find_this_id];
+    }
+  }
+  return $code;
+}

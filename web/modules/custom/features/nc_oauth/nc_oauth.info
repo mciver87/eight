@@ -1,0 +1,10 @@
+name = NC OAuth
+description = OAuth Configuration for NC sites allowing use of NC File Browser nodejs app.
+core = 7.x
+package = North Carolina
+version = 7.x-1.0
+dependencies[] = ctools
+dependencies[] = oauth_common
+features[ctools][] = oauth_common:oauth:1
+features[features_api][] = api:2
+features[oauth_common_context][] = filebrowser

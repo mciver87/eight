@@ -1,0 +1,23 @@
+<rss xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:taxo="http://purl.org/rss/1.0/modules/taxonomy/" version="2.0">
+    <channel>
+        <title>N.C. Silver Alerts</title>
+        <link>http://www.ncdps.gov</link>
+        <description>NC Silver Alerts RSS Feed</description>
+        <pubDate>Wed, 13 Jan 2016 15:18:18 GMT</pubDate>
+        <item>
+            <title>
+                A Silver Alert has been issued for Someone Special by the N.C. Center for Missing Persons
+            </title>
+            <link>
+                https://en.wikipedia.org/wiki/Acacia_phasmoides
+            </link>
+            <description>
+                Acacia phasmoides, commonly known as phantom wattle,[3] is a shrub species that is endemic to south-eastern Australia.[3]
+            </description>
+            <pubDate>Tue, 05 Jan 2016 20:40:00 GMT</pubDate>
+            <guid>
+                https://en.wikipedia.org/wiki/Acacia_phasmoides
+            </guid>
+        </item>
+    </channel>
+</rss>

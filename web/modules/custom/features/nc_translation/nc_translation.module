@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the NC Translation feature.
+ */
+
+include_once 'nc_translation.features.inc';

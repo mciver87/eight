@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the NC Linkchecker feature.
+ */
+
+include_once 'nc_linkchecker.features.inc';

@@ -1,0 +1,184 @@
+<?php
+/**
+ * @file
+ * Contains main codebase for newsletter signup blocks.
+ */
+
+/**
+ * Implements hook_bean_types_api_info().
+ */
+function nc_signup_bean_types_api_info() {
+  return array('api' => 4);
+}
+
+/**
+ * Implements hook_bean_types().
+ */
+function nc_signup_bean_types() {
+  $beans = array();
+  $plugin_path = drupal_get_path('module', 'nc_signup') . '/plugins';
+
+  $beans['nc_signup_mailchimp'] = array(
+    'label' => t('Signup: MailChimp'),
+    'description' => t('Provides signup form for MailChimp newletter'),
+    'handler' => array(
+      'class' => 'NCSignupMailChimp',
+      'parent' => 'bean',
+      'path' => $plugin_path,
+    ),
+  );
+
+  $beans['nc_signup_constant_contact'] = array(
+    'label' => t('Signup: Constant Contact'),
+    'description' => t('Provides signup form for Constant Contact newletter'),
+    'handler' => array(
+      'class' => 'NCSignupConstantContact',
+      'parent' => 'bean',
+      'path' => $plugin_path,
+    ),
+  );
+
+  $beans['nc_signup_icontact'] = array(
+    'label' => t('Signup: iContact'),
+    'description' => t('Provides signup form for iContact newletter'),
+    'handler' => array(
+      'class' => 'NCSignupIContact',
+      'parent' => 'bean',
+      'path' => $plugin_path,
+    ),
+  );
+
+  return $beans;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function nc_signup_theme($existing, $type, $theme, $path) {
+  $items = array();
+
+  $items['nc_signup_form'] = array(
+    'render element' => 'form',
+    'template' => 'nc-signup-form',
+    'path' => $path . '/theme',
+  );
+  $items['nc_signup_form_card'] = array(
+    'render element' => 'form',
+    'template' => 'nc-signup-form-card',
+    'path' => $path . '/theme',
+  );
+
+  return $items;
+}
+
+/**
+ * Implements main template_preprocess_nc_signup_form().
+ */
+function template_preprocess_nc_signup_form(&$vars) {
+  $form = &$vars['form'];
+  $bean = $form['#bean'];
+
+  // Set path for images used in template.
+  $vars['theme_path'] = '/' . drupal_get_path('theme', variable_get('theme_default', NULL));
+
+  // Pull bean title, if present.
+  $vars['title'] = !empty($bean->title) ? $bean->title : t('Get Email Alerts');
+
+  // Don't render email element, but keep in form for proper processing.
+  $form['email']['#printed'] = TRUE;
+
+  // Set the card variable for the template, depending on the view mode.
+  $vars['card'] = ($bean->view_mode == 'card') ? TRUE : FALSE;
+}
+
+/**
+ * Form callback for nc_signup_form.
+ */
+function nc_signup_form($form, &$form_state, $bean, $content, $view_mode, $langcode) {
+  $form = array();
+
+  $form['call_to_action'] = array(
+    '#type' => 'markup',
+    '#markup' => $bean->call_to_action,
+  );
+
+  $form['email'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Email Address:'),
+    '#attributes' => array(
+      'placeholder' => 'someone@example.com',
+      'autocapitalize' => 'off',
+    ),
+  );
+
+  $form['subscribe'] = array(
+    '#type' => 'submit',
+    '#value' => t('Subscribe'),
+    '#attributes' => array(
+      'class' => array(
+        'button',
+        'accent',
+        'ghost',
+        'inverted',
+      ),
+    ),
+  );
+
+  // Store off bean for future reference.
+  $form['#bean'] = $bean;
+
+  // Call signup class to extend the form as needed.
+  $bean->object->view_form($form, $form_state, $content, $view_mode, $langcode);
+
+  return $form;
+}
+
+/**
+ * Validate handler for nc_signup_form.
+ */
+function nc_signup_form_validate($form, &$form_state) {
+  // ABT-689: This effectively disables validation on admin side.
+  if (!path_is_admin(current_path())) {
+    $bean = $form['#bean'];
+
+    // Perform basic form validation.
+    if (empty($form_state['values']['email']) || !filter_var($form_state['values']['email'], FILTER_VALIDATE_EMAIL)) {
+      form_set_error('email', t('Email address is required'));
+    }
+
+    // Validate form submission at the bean level.
+    $bean->object->validate_form($form, $form_state);
+  }
+}
+
+/**
+ * Submit handler for nc_signup_form.
+ */
+function nc_signup_form_submit($form, &$form_state) {
+  $bean = $form['#bean'];
+
+  // Process form submission at the bean level.
+  if ($bean->object->submit_form($form, $form_state)) {
+    drupal_set_message(t('You have been successfully subscribed to the newsletter.'));
+  }
+}
+
+/**
+ * Implements hook_form_alter().
+ */
+function nc_signup_form_bean_form_alter(&$form, &$form_state, $form_id) {
+  $bean = $form['bean']['#value'];
+  if (strstr($bean->type, 'nc_signup')) {
+    $form['view_mode']['#options'] = $bean->view_modes;
+  }
+}
+
+/**
+ * Implements hook_entity_info_alter().
+ */
+function nc_signup_entity_info_alter(&$entity_info) {
+  $entity_info['bean']['view modes']['card'] = array(
+    'label' => t('Card'),
+    'custom settings' => TRUE,
+  );
+}

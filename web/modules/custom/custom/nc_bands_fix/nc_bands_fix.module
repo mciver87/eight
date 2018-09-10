@@ -1,0 +1,57 @@
+<?php
+/**
+ * @file
+ * Code NC Bands Fix.
+ */
+
+/**
+ * Implements hook_init().
+ *
+ * The Bands' text area field(s) get deleted entirely whenever
+ * multiple duplicate requests occur. And through the use of traversing
+ * the edit screens while using the browser's back and forwards buttons,
+ * it's actually possible to generate duplicate requests, causing
+ * data loss (see ABT#613).
+ *
+ * This is an attempt to take advantage of the browser cache control
+ * to force new form token/ids/etc even when the back button comes
+ * into play. It's not pretty, but it may just prevent data loss,
+ * and that's always a good thing.
+ *
+ * Ultimately, we want to identify root cause(s) and address those
+ * directly. However, this may be a nice provisional solution until
+ * we have something better.
+ */
+function nc_bands_fix_init() {
+  // On the admin side, update cache control.
+  if (path_is_admin(current_path())) {
+    drupal_add_http_header('Cache-Control', 'no-cache, no-store, max-age=0, must-revalidate, post-check=0, pre-check=0');
+  }
+}
+
+/**
+ * Implements hook_admin_paths().
+ *
+ * ABT-613: Content is still disappearing from Paragraphs fields. Content
+ * editors state they are not using the browser back/forward buttons, and
+ * yet content still continues to go missing.
+ *
+ * As part of the continued investigation, I noticed that some scripts
+ * are getting included in the admin section of the site that should
+ * really only be run on the frontend. These scripts sometimes produce
+ * Javascript errors when editing the Paragraphs. However, the
+ * path_is_admin function fails to identify the Paragraphs AJAX endpoints
+ * as admin paths. This is a fix to allow Drupal to identify them
+ * as admin paths. This allows us to wrap the Javascript inclusion code
+ * in the path_is_admin function, and prevent them from loading unless
+ * the user is vising the frontend of the site.
+ *
+ * In doing so, we can reduce the number of Javascript errors that happen
+ * when editing content. This may be part of the issue with missing content.
+ */
+function nc_bands_fix_admin_paths() {
+  $paths = array(
+    'paragraphs/*/ajax' => TRUE,
+  );
+  return $paths;
+}

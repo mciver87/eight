@@ -1,0 +1,16 @@
+.featured-results h1 {
+  font-size: 21px;
+  font-size: 1.3125rem;
+  padding: 20px;
+  padding: 1.25rem;
+  margin: 0rem 0 0rem;
+}
+
+.featured-results {
+  background: url(/profiles/north_carolina/themes/nc_base_theme/img/bg_poly-core-off-white.jpg);
+}
+
+.featured_results meta {
+  padding-left: 20px;
+  padding-left: 1.25rem;
+}

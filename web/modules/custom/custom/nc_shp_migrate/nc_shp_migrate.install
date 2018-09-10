@@ -1,0 +1,8 @@
+<?php
+
+function nc_shp_migrate_update_7001(&$sandbox) {
+  $file_path = drupal_get_path('module', 'nc_shp_migrate') . '/files/pharmacy.csv';
+  $file = drupal_realpath($file_path);
+  $csv = array_map('str_getcsv', file($file));
+  variable_set('ncshppharmacy', $csv);
+}

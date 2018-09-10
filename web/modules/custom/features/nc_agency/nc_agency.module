@@ -1,0 +1,130 @@
+<?php
+/**
+ * @file
+ * Code for the NC Agency feature.
+ */
+
+include_once 'nc_agency.features.inc';
+
+/**
+ * Implements hook_preprocess_node().
+ */
+function nc_agency_preprocess_node(&$variables) {
+  if ($variables['type'] == 'agency') {
+    $variables['classes_array'][] = 'primary-content agency';
+    $variables['contact_group_title'] = t('Contact us');
+    $variables['detail_group_title'] = t('Details');
+    $variables['follow_group_title'] = t('Follow Us');
+    $variables['address_prefix'] = t('Mailing Address');
+    $variables['phone_prefix'] = t('Telephone');
+    $variables['email_prefix'] = t('Email');
+    $variables['category_prefix'] = t('This agency is related to');
+
+    $wrapper = entity_metadata_wrapper('node', $variables['node']);
+
+    // Build the info card.
+    $link = $wrapper->field_agency_card_link->value(array('serialize' => TRUE));
+    $description = $wrapper->field_agency_card_description->value(array('serialize' => TRUE));
+    if ($link || $description) {
+      $card = array(
+        'card_title' => $link['title'],
+        'card_link' => ($wrapper->field_top_level_agency->value()) ? $link['url'] : '',
+        'card_description' => $description,
+      );
+      $variables['card'] = theme('nc_card_info', $card);
+    }
+
+    // Build the social links.
+    $social_links = array();
+    $social_links = $wrapper->field_agency_social_links->value(array('serialize' => TRUE));
+    $links = array();
+    foreach ($social_links as $social_link) {
+      $icon_text = "icon-" . check_plain(strtolower($social_link['title']));
+      $icons = nc_agency_icon_classes();
+      if (array_key_exists($icon_text, $icons)) {
+        $icon_class = $icons[$icon_text];
+      }
+      else {
+        $icon_class = 'icon-share';
+      }
+      $options = array(
+        'class' => $icon_class,
+        'aria-hidden' => 'true',
+      );
+      $attributes = drupal_attributes($options);
+      $links[] = array(
+        '#prefix' => "<li><a href='{$social_link['url']}'>",
+        '#suffix' => '</a></li>',
+        'icon' => array(
+          '#markup' => "<span {$attributes}></span><span>{$social_link['title']}</span>",
+        ),
+      );
+    }
+    if (($links)) {
+      $variables['social_links'] = array(
+        '#prefix' => '<ul>',
+        '#suffix' => '</ul>',
+        'links' => $links,
+      );
+    }
+    else {
+      $variables['social_links'] = '';
+    }
+
+    // Build the address values.
+    $address_info = $wrapper->field_agency_address->value(array('serialize' => TRUE));
+    $variables['address_info'] = '';
+    if ($address_info) {
+      $variables['address_street'] = $address_info['thoroughfare'];
+      $variables['address_info'] = "{$address_info['locality']}, {$address_info['administrative_area']} {$address_info['postal_code']}";
+    }
+
+    // Build the remaining contact info.
+    $variables['email'] = $wrapper->field_agency_email->value(array('serialize' => TRUE));
+    $variables['phone'] = $wrapper->field_agency_phone->value(array('serialize' => TRUE));
+  }
+}
+
+/**
+ * Implements hook_preprocess_page().
+ */
+function nc_agency_preprocess_page(&$variables) {
+  if (!empty($variables['node']) && $variables['node']->type == 'agency') {
+    if (node_is_page($variables['node'])) {
+      // Don't print the node title where it would normally be done inside
+      // page.tpl.php.
+      $variables['title'] = '';
+    }
+  }
+}
+
+/**
+ * Provides an array of allowed icon classes.
+ */
+function nc_agency_icon_classes() {
+  $icons = nc_fields_icons();
+  $icons['icon-rss'] = 'icon-feed';
+  return $icons;
+}
+
+/**
+ * Implements hook_views_query_alter().
+ */
+function nc_agency_views_query_alter(&$view, &$query) {
+  if ($view->name == 'agencies' && $view->current_display == 'page') {
+    // NC-758: the view is set to filter on Top Level Agency for the default
+    // listing.
+    // If an exposed filter is set by the user, remove that restriction.
+    if (!empty($view->exposed_input)) {
+      if ($view->exposed_input['combine'] || $view->exposed_input['field_agency_category_tid'] != 'All') {
+        foreach ($query->where[1]['conditions'] as $index => $clause) {
+          if ($clause['field'] == 'field_data_field_top_level_agency.field_top_level_agency_value') {
+            unset($query->where[1]['conditions'][$index]);
+          }
+        }
+      }
+    }
+    $query->add_field('node', 'nid', 'node_nid', array('function' => 'groupby'));
+    $query->add_groupby('node.nid');
+  }
+}

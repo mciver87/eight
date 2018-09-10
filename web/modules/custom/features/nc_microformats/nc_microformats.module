@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the NC Microformats feature.
+ */
+
+include_once 'nc_microformats.features.inc';

@@ -1,0 +1,26 @@
+<?php
+/**
+ * @file
+ * Code for the NC Document feature.
+ */
+
+include_once 'nc_document.features.inc';
+
+/**
+ * Implements hook_views_default_views_alter().
+ */
+function nc_document_views_default_views_alter(&$views) {
+  // Disable the document_list View since we replaced it with nc_documents.
+  if (array_key_exists('document_list', $views)) {
+    $views['document_list']->disabled = TRUE;
+  }
+}
+
+/**
+ * Implements hook_preprocess_node().
+ */
+function nc_document_preprocess_node(&$variables) {
+  if ($variables['type'] == 'document') {
+    $variables['classes_array'][] = 'resource';
+  }
+}

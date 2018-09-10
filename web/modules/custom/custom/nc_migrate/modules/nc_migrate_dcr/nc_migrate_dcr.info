@@ -1,0 +1,6 @@
+name = "North Carolina Migrate - DCR"
+description = "Module to migrate content into the NC Platform for DCR"
+package = "North Carolina Migrate"
+core = 7.x
+dependencies[] = nc_migrate
+dependencies[] = wordpress_migrate

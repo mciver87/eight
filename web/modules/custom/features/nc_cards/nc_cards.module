@@ -1,0 +1,368 @@
+<?php
+/**
+ * @file
+ * Code for the NC Cards feature.
+ */
+
+include_once 'nc_cards.features.inc';
+
+/**
+ * Implements hook_bean_types_api_info().
+ */
+function nc_cards_bean_types_api_info() {
+  return array('api' => 4);
+}
+
+/**
+ * Implements hook_views_api().
+ */
+function nc_cards_views_api() {
+  return array(
+    'api' => 3,
+    'path' => drupal_get_path('module', 'nc_cards') . '/views',
+  );
+}
+
+/**
+ * Implements hook_bean_types().
+ */
+function nc_cards_bean_types() {
+  $beans = array();
+  $card_types = nc_cards_types();
+  $plugin_path = drupal_get_path('module', 'nc_cards') . '/plugins';
+  foreach ($card_types as $name => $card_type) {
+    $beans[$name] = array(
+      'label' => $card_type['label'],
+      'description' => $card_type['description'],
+      'handler' => array(
+        'class' => $card_type['class'],
+        'parent' => 'bean',
+      ),
+      'path' => $plugin_path,
+      'file' => "{$card_type['class']}.class.php",
+    );
+  }
+  return $beans;
+}
+
+/**
+ * Returns an array of card types and their properties defined by this module.
+ */
+function nc_cards_types() {
+  return array(
+    'nc_card_article' => array(
+      'label' => t('Article Card'),
+      'description' => t('Create Cards of type Article.'),
+      'class' => 'NCCardsBeanArticle',
+    ),
+    'nc_card_cta' => array(
+      'label' => t('CTA Card'),
+      'description' => t('Create Cards of type CTA.'),
+      'class' => 'NCCardsBeanCTA',
+    ),
+    'nc_card_stat' => array(
+      'label' => t('Stat Card'),
+      'description' => t('Create Cards of type Stat.'),
+      'class' => 'NCCardsBeanStat',
+    ),
+    'nc_card_animated_stat' => array(
+      'label' => t('Animated Stat Card'),
+      'description' => t('Create Cards of type Animated Stat.'),
+      'class' => 'NCCardsBeanAnimatedStat',
+    ),
+    'nc_card_govt' => array(
+      'label' => t('Government Card'),
+      'description' => t('Create Cards of type Government.'),
+      'class' => 'NCCardsBeanGovt',
+    ),
+    'nc_card_service' => array(
+      'label' => t('Service Card'),
+      'description' => t('Create Cards of type Service.'),
+      'class' => 'NCCardsBeanService',
+    ),
+    'nc_card_agency' => array(
+      'label' => t('Agency Card'),
+      'description' => t('Create Cards of type Agency.'),
+      'class' => 'NCCardsBeanAgency',
+    ),
+    'nc_card_info' => array(
+      'label' => t('Info Card'),
+      'description' => t('Create Cards of type Info.'),
+      'class' => 'NCCardsBeanInfo',
+    ),
+    'nc_card_event' => array(
+      'label' => t('Event Card'),
+      'description' => t('Create Cards of type Event.'),
+      'class' => 'NCCardsBeanEvent',
+    ),
+    'nc_card_person' => array(
+      'label' => t('Person Card'),
+      'description' => t('Create Cards of type Person.'),
+      'class' => 'NCCardsBeanPerson',
+    ),
+    'nc_card_video'  => array(
+      'label' => t('Video Card'),
+      'description' => t('Create Cards of type Video'),
+      'class' => 'NCCardsBeanVideo',
+    ),
+  );
+}
+
+/**
+ * Implements hook_theme().
+ */
+function nc_cards_theme($existing, $type, $theme, $path) {
+  $items = array();
+  $template_path = drupal_get_path('module', 'nc_cards') . '/templates';
+  $items['nc_card_article'] = array(
+    'template' => 'card--article',
+    'path' => $template_path,
+    'variables' => array(
+      'card_image' => FALSE,
+      'card_link' => '',
+      'card_title' => '',
+      'card_date' => '',
+      'card_keywords' => '',
+      'card_framed' => '',
+      'card_description' => '',
+    ),
+  );
+  $items['nc_card_cta'] = array(
+    'template' => 'card--cta',
+    'path' => $template_path,
+    'variables' => array(
+      'card_link' => '',
+      'card_title' => '',
+      'card_description' => '',
+      'card_accent' => '',
+      'icon_classes' => 'icon-check',
+    ),
+  );
+  $items['nc_card_stat'] = array(
+    'template' => 'card--stat',
+    'path' => $template_path,
+    'variables' => array(
+      'card_stat' => '',
+      'card_title' => '',
+      'card_description' => '',
+      'card_accent' => '',
+    ),
+  );
+  $items['nc_card_animated_stat'] = array(
+    'template' => 'card--animated-stat',
+    'path' => $template_path,
+    'variables' => array(
+      'card_title' => '',
+      'card_description' => '',
+      'animation_type' => '',
+      'counter_prefix' => '',
+      'counter_value' => '',
+      'counter_suffix' => '',
+      'counter_duration' => '',
+      'chart_values' => '',
+    ),
+  );
+  $items['nc_card_govt'] = array(
+    'template' => 'card--govt',
+    'path' => $template_path,
+    'variables' => array(
+      'card_image' => FALSE,
+      'card_title' => '',
+      'card_keywords' => '',
+      'card_link' => '',
+      'card_link_text' => '',
+      'card_accent' => '',
+    ),
+  );
+  $items['nc_card_service'] = array(
+    'template' => 'card--service',
+    'path' => $template_path,
+    'variables' => array(
+      'card_name' => '',
+      'card_link' => '',
+      'card_icon' => '',
+      'card_accent' => '',
+      'icon_classes' => 'icon-check',
+    ),
+  );
+  $items['nc_card_agency'] = array(
+    'template' => 'card--agency',
+    'path' => $template_path,
+    'variables' => array(
+      'card_link' => '',
+      'card_title' => '',
+      'card_keywords' => '',
+      'card_description' => '',
+      'card_link_website' => '',
+      'card_link_website_title' => '',
+      'social_links' => '',
+      'card_prefix' => '',
+      'phone' => '',
+      'icon_classes' => 'icon-nc-government-building',
+    ),
+  );
+  $items['nc_card_info'] = array(
+    'template' => 'card--info',
+    'path' => $template_path,
+    'variables' => array(
+      'card_link' => '',
+      'card_title' => '',
+      'card_description' => '',
+      'card_style' => '',
+    ),
+  );
+  $items['nc_card_event'] = array(
+    'template' => 'card--event',
+    'path' => $template_path,
+    'variables' => array(
+      'card_image' => FALSE,
+      'card_link' => '',
+      'card_title' => '',
+      'card_framed' => '',
+      'card_description' => '',
+      'card_datetime' => date('c', time()),
+      'card_date_day' => date('j', time()),
+      'card_date_month' => date('F', time()),
+      'card_address_locality' => '',
+      'card_address_region' => '',
+      'card_event_type' => '',
+    ),
+  );
+  $items['nc_card_person'] = array(
+    'template' => 'card--person',
+    'path' => $template_path,
+    'variables' => array(
+      'card_image' => NULL,
+      'card_link' => '',
+      'card_title' => '',
+      'card_name' => '',
+      'card_framed' => '',
+    ),
+  );
+  $items['nc_card_video'] = array(
+    'template' => 'card--video',
+    'path' => $template_path,
+    'variables' => array(
+      'card_image' => FALSE,
+      'card_link' => '',
+      'card_title' => '',
+      'card_date' => '',
+      'card_keywords' => '',
+      'card_framed' => '',
+    ),
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_entity_info_alter().
+ */
+function nc_cards_entity_info_alter(&$entity_info) {
+  $entity_info['node']['view modes']['basic_card'] = array(
+    'label' => t('Basic Card'),
+    'custom settings' => TRUE,
+  );
+}
+
+/**
+ * Custom Entity Label callback.
+ */
+function nc_cards_ctools_plugin_pre_alter(&$plugin, &$info) {
+  if ($plugin['name'] == 'bean_entity_view') {
+    $plugin['label'] = t('Content Card');
+  }
+}
+
+/**
+ * Implements hook_form_alter().
+ */
+function nc_cards_form_bean_form_alter(&$form, &$form_state, $form_id) {
+  if (in_array($form['#bundle'], array_keys(nc_cards_types()))) {
+    // Hide some Bean elements to clean up the UI.
+    hide($form['title']);
+    hide($form['view_mode']);
+    hide($form['revision']);
+  }
+  // Add form validation for Animated Stats.
+  if ($form['#bundle'] == 'nc_card_animated_stat') {
+    $form['#validate'][] = 'nc_cards_animated_stat_block_form_validate';
+  }
+}
+
+/**
+ * Function nc_cards_animated_stat_block_form_validate().
+ * 
+ * Validation callback for the Animated Stat bean form.
+ * 
+ * @see hook_form_validate()
+ */
+function nc_cards_animated_stat_block_form_validate($form, &$form_state) {
+  $vals = $form_state['values'];
+  if ($vals['field_animation_type'][LANGUAGE_NONE][0]['value'] == 'countup') {
+    // Duration and value are required.
+    if (empty($vals['field_counter_duration'][LANGUAGE_NONE][0]['value'])) {
+      form_set_error('field_counter_duration', t('Duration is required when using the Counter animation type.'));
+    }
+    if (empty($vals['field_counter_value'][LANGUAGE_NONE][0]['value'])) {
+      form_set_error('field_counter_value', t('Counter Value is required when using the Counter animation type.'));
+    }
+  }
+}
+
+/**
+ * Utility function for making sure urls are in correct form.
+ */
+function nc_cards_check_url($url) {
+  return check_url($url);
+}
+
+
+/**
+ * Provides an array of allowed icon classes.
+ */
+function nc_cards_icon_classes() {
+  $icons = array();
+  $icons[] = '- select - ';
+  $icons['icon-rss'] = 'icon-feed';
+  $icons += nc_fields_icons();
+  return $icons;
+}
+
+/**
+ * Cleans up the card link so the query can be used.
+ */
+function _nc_cards_card_link_query_fix($link) {
+  $url = $link['url'];
+  $query_str = parse_url($url, PHP_URL_QUERY);
+  if ($query_str) {
+    // Remove the query string from the url.
+    $link['url'] = str_replace('?' . $query_str, '', $url);
+    parse_str($query_str, $query_ar);
+    if (isset($link['query'])) {
+      $link['query'] += $query_ar;
+    }
+    else {
+      $link['query'] = $query_ar;
+    }
+  }
+  return $link;
+}
+
+/**
+ * Converts the 'style' of the info block to a proper CSS class.
+ *
+ * @param string $style
+ *   The name of the style.
+ *
+ * @return string
+ *   The class which should be used for the info block.
+ */
+function _nc_cards_info_wrapper_style_to_class($style) {
+  switch ($style) {
+    case 'accent':
+      return "accent";
+
+    default:
+      return "";
+  }
+}

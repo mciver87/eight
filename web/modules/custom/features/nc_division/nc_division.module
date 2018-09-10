@@ -1,0 +1,121 @@
+<?php
+/**
+ * @file
+ * Code for the NC Division feature.
+ */
+
+include_once 'nc_division.features.inc';
+
+/**
+ * Implements hook_preprocess_node().
+ */
+function nc_division_preprocess_node(&$variables) {
+  if ($variables['type'] == 'nc_division') {
+    $variables['classes_array'][] = 'primary-content agency';
+    $variables['contact_group_title'] = t('Contact us');
+    $variables['link_group_title'] = t('Assistance');
+    $variables['address_prefix'] = t('Mailing Address');
+    $variables['phone_prefix'] = t('Telephone');
+    $variables['fax_prefix'] = t('Fax');
+    $variables['email_prefix'] = t('Email');
+    $variables['card'] = '';
+    $variables['related_cards'] = '';
+    $variables['group_links'] = '';
+    $variables['email'] = '';
+    $variables['fax'] = '';
+
+    $wrapper = entity_metadata_wrapper('node', $variables['node']);
+
+    // Build the info card.
+    if (!empty($variables['node']->body)) {
+      $description = $wrapper->body->value->value(array('serialize' => TRUE));
+      if ($description) {
+        $card = array(
+          'card_description' => $description,
+        );
+        $variables['card'] = theme('nc_card_info', $card);
+      }
+    }
+
+    // Build the address values.
+    if (!empty($variables['node']->field_division_address)) {
+      $address_info = $wrapper->field_division_address->value(array('serialize' => TRUE));
+      $variables['address_info'] = '';
+      if ($address_info) {
+        $variables['address_street'] = $address_info['thoroughfare'];
+        $variables['address_info'] = "{$address_info['locality']}, {$address_info['administrative_area']} {$address_info['postal_code']}";
+      }
+    }
+
+    // Build the contact info.
+    if ($variables['node']->field_division_email) {
+      $variables['email'] = $wrapper->field_division_email->value(array('serialize' => TRUE));
+    }
+    if ($variables['node']->field_division_phone) {
+      $variables['phone'] = $wrapper->field_division_phone->value(array('serialize' => TRUE));
+    }
+    if ($variables['node']->field_division_fax) {
+      $variables['fax'] = $wrapper->field_division_fax->value(array('serialize' => TRUE));
+    }
+
+    // Build the related cards.
+    if (!empty($variables['node']->field_division_related_pages)) {
+      $related_nodes = $wrapper->field_division_related_pages->value();
+      if (is_array($related_nodes)) {
+        $i = 0;
+        foreach ($related_nodes as $related_node) {
+          $related_wrapper = entity_metadata_wrapper('node', $related_node);
+
+          if (!empty($related_node->field_main_image)) {
+            $image = $related_wrapper->field_main_image->value();
+            $temp_card[$i]['card_image'] = array(
+              '#theme' => 'image_formatter',
+              '#item' => $image,
+              '#image_style' => 'card_photo',
+            );
+          }
+          else {
+            $tem_card[$i]['card_image'] = '';
+          }
+          $temp_card[$i]['card_title'] = check_plain($related_node->title);
+          $temp_card[$i]['card_link'] = url('node/' . $related_node->nid);
+          $temp_card[$i]['card_keywords'] = $wrapper->field_division_agency_acronym->value(array('sanitized' => TRUE));
+          $temp_card[$i]['card_framed'] = 'framed';
+          if (!empty($variables['body'])) {
+            $temp_card['card_description'] = $related_wrapper->body->summary->value(array('sanitized' => TRUE));
+          }
+          $variables['related_cards'] .= theme('nc_card_article', $temp_card[$i]);
+          $i++;
+        }
+      }
+    }
+
+    // Build the group links.
+    $items = '';
+    if ($variables['node']->field_division_assistance_links) {
+      $links = $wrapper->field_division_assistance_links->value();
+      foreach ($links as $link) {
+        $items .= '<li>' . l($link['title'], $link['url']) . '</li>';
+      }
+
+      $variables['group_links'] = array(
+        '#prefix' => '<ul>',
+        '#suffix' => '</ul>',
+        '#markup' => $items,
+      );
+    }
+  }
+}
+
+/**
+ * Implements hook_preprocess_page().
+ */
+function nc_division_preprocess_page(&$variables) {
+  if (!empty($variables['node']) && $variables['node']->type == 'nc_division') {
+    if (node_is_page($variables['node'])) {
+      // Don't print the node title where it would normally be done inside
+      // page.tpl.php.
+      $variables['title'] = '';
+    }
+  }
+}

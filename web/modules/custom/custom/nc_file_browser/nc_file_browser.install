@@ -1,0 +1,49 @@
+<?php
+/**
+ * @file
+ * Install file for the nc_file_browser module.
+ */
+
+/**
+ * Implements hook_enable().
+ */
+function nc_file_browser_enable() {
+  $role_ed = user_role_load_by_name('editor');
+  $role_pub = user_role_load_by_name('publisher');
+  $role_ec = user_role_load_by_name('event creator');
+  $role_sm = user_role_load_by_name('site manager');
+  $role_sa = user_role_load_by_name('site admin');
+  $admin_role = user_role_load_by_name('administrator');
+  if ($role_sa) {
+    // Hides oauth ui from site admin user pages.
+    // They don't need to interact with it, so it's unnecessary clutter.
+    user_role_revoke_permissions($role_sa->rid, array('access own authorizations'));
+    user_role_revoke_permissions($role_sa->rid, array('access own consumers'));
+    user_role_grant_permissions($role_sa->rid, array('administer nc file browser'));
+    user_role_grant_permissions($role_sa->rid, array('delete mkdir nc file browser'));
+    user_role_grant_permissions($role_sa->rid, array('oauth authorize consumers in filebrowser'));
+  }
+  if ($admin_role) {
+    // Only admins get access to the browser by default.
+    user_role_grant_permissions($admin_role->rid, array('administer nc file browser'));
+    user_role_grant_permissions($admin_role->rid, array('delete mkdir nc file browser'));
+    user_role_grant_permissions($admin_role->rid, array('oauth authorize consumers in filebrowser'));
+  }
+  if ($role_ed) {
+    user_role_grant_permissions($role_ed->rid, array('administer nc file browser'));
+    user_role_grant_permissions($role_ed->rid, array('oauth authorize consumers in filebrowser'));
+  }
+  if ($role_pub) {
+    user_role_grant_permissions($role_pub->rid, array('administer nc file browser'));
+    user_role_grant_permissions($role_pub->rid, array('oauth authorize consumers in filebrowser'));
+  }
+  if ($role_ec) {
+    user_role_grant_permissions($role_ec->rid, array('administer nc file browser'));
+    user_role_grant_permissions($role_ec->rid, array('oauth authorize consumers in filebrowser'));
+  }
+  if ($role_sm) {
+    user_role_grant_permissions($role_sm->rid, array('administer nc file browser'));
+    user_role_grant_permissions($role_sm->rid, array('delete mkdir nc file browser'));
+    user_role_grant_permissions($role_sm->rid, array('oauth authorize consumers in filebrowser'));
+  }
+}

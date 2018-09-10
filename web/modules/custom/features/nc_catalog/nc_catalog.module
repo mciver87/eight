@@ -1,0 +1,761 @@
+<?php
+/**
+ * @file
+ * Code for the NC Catalog feature.
+ */
+
+include_once 'nc_catalog.features.inc';
+
+/**
+ * Implements hook_entity_info_alter().
+ */
+function nc_catalog_entity_info_alter(&$entity_info) {
+  // Create taxonomy and node view modes for:
+  //  - Map
+  //  - Simple List
+  //  - Icon List
+  //  - Photo List
+  $entity_info['node']['view modes'] += array(
+    'catalog_map' => array(
+      'label' => t('Catalog Map Display'),
+      'custom settings' => TRUE,
+    ),
+    'catalog_simple' => array(
+      'label' => t('Catalog Simple List Display'),
+      'custom settings' => TRUE,
+    ),
+    'catalog_icon' => array(
+      'label' => t('Catalog Icon List Display'),
+      'custom settings' => TRUE,
+    ),
+    'catalog_photo' => array(
+      'label' => t('Catalog Photo List Display'),
+      'custom settings' => TRUE,
+    ),
+  );
+  $entity_info['taxonomy_term']['view modes'] += array(
+    'catalog_map' => array(
+      'label' => t('Catalog Map Display'),
+      'custom settings' => TRUE,
+    ),
+    'catalog_simple' => array(
+      'label' => t('Catalog Simple List Display'),
+      'custom settings' => TRUE,
+    ),
+    'catalog_icon' => array(
+      'label' => t('Catalog Icon List Display'),
+      'custom settings' => TRUE,
+    ),
+    'catalog_photo' => array(
+      'label' => t('Catalog Photo List Display'),
+      'custom settings' => TRUE,
+    ),
+  );
+
+  return $entity_info;
+}
+
+/**
+ * Implements hook_image_default_styles().
+ */
+function nc_catalog_image_default_styles() {
+  $styles = array();
+
+  // Exported image style: band_background_image.
+  $styles['catalog_header_image'] = array(
+    'name' => 'catalog_header_image',
+    'label' => 'Catalog Header Image',
+    'effects' => array(
+      array(
+        'name' => 'image_scale',
+        'data' => array(
+          'width' => 1140,
+          'height' => 200,
+          'upscale' => 1,
+        ),
+        'weight' => 0,
+      ),
+    ),
+    'storage' => IMAGE_STORAGE_NORMAL,
+  );
+
+  return $styles;
+}
+
+/**
+ * Implements hook_field_extra_fields().
+ */
+function nc_catalog_field_extra_fields() {
+  // Instantiate placeholder fields for the catalog taxonomy.
+  // We need sidebar filter and search results.
+  $extra['taxonomy_term']['catalog'] = array(
+    'display' => array(
+      'catalog_sidebar_filter' => array(
+        'label' => t('Catalog Sidebar Filter'),
+        'description' => t('Displays a contextual sidebar filter.'),
+        'weight' => 0,
+      ),
+      'catalog_search_results' => array(
+        'label' => t('Catalog Search Results'),
+        'description' => t('Displays search results for the catalog.'),
+        'weight' => 0,
+      ),
+    ),
+  );
+  return $extra;
+}
+
+function nc_catalog_preprocess_node(&$vars) {
+  if ($vars['node']->type == 'catalog' && $vars['view_mode'] == 'catalog_simple') {
+    $vars['theme_hook_suggestions'][] = 'node_catalog_simple';
+    // Get node variables in an easy-to-access manner.
+    $node_emw = entity_metadata_wrapper('node', $vars['node']);
+    // Set teaser if set.
+    if ($node_emw->body) {
+      $body_value = $node_emw->body->value();
+      $vars['summary'] = NULL;
+      if (!empty($body_value['summary'])) {
+        $vars['summary'] = '<p itemprop="description">' . $body_value['summary'] . '</p>';
+      }
+      $vars['body'] = '<p itemprop="description">' . $body_value['value'] . '</p>';
+    }
+    // Internal/External link.
+    $vars['links'] = NULL;
+    $links = array();
+    if ($node_emw->field_internal_or_external_url) {
+      foreach ($node_emw->field_internal_or_external_url as $link) {
+        $link_value = $link->value();
+        $rendered_link = array(
+          '#theme' => 'link',
+          '#text' => $link_value['title'],
+          '#path' => $link_value['url'],
+          '#options' => array(
+            'attributes' => array(),
+          ),
+        );
+        $links[] = render($rendered_link);
+      }
+      if(!empty($links)) {
+        $vars['links'] = '<p class="catalog-links" itemprop="url">' . implode('<br />', $links) . '</p>';
+      }
+    }
+    // Vars for catageory terms.
+    $vars['terms'] = array();
+    if ($node_emw->field_catalog_categories) {
+      $terms = $node_emw->field_catalog_categories->value();
+      foreach ($terms as $term) {
+        if (strtolower($term->name) != 'no' && strtolower($term->name) != 'yes') {
+          $vars['terms'][] = $term->name;
+        }
+      }
+      $vars['terms_exploded'] = '<div class="meta"><span class="label category">';
+      $vars['terms_exploded'] .= implode(', ', $vars['terms']) . '</span></div>';
+    }
+
+    // Contacts fieldgroup
+    // Should be able to simplify this...
+    $vars['contacts'] = NULL;
+    $contacts = array();
+
+    if ($node_emw->field_contacts) {
+      foreach($node_emw->field_contacts as $key) {
+        if (!empty($key->field_contact_name->value())) {
+          $rendered_contact = array(
+            '#markup' => $key->field_contact_name->value(),
+            '#prefix' => '<p><span class="icon-person"></span> ',
+            '#suffix' => '</p>',
+          );
+          $contacts[] = render($rendered_contact);
+        }
+        if (!empty($key->field_contact_phone->value())) {
+          $rendered_phone = array(
+            '#markup' => $key->field_contact_phone->value(),
+            '#prefix' => '<p><span class="icon-phone" aria-hidden="true"></span> ',
+            '#suffix' => '</p>',
+          );
+          $contacts[] = render($rendered_phone);
+        }
+        if (!empty($key->field_contact_email->value())) {
+            // Render email address as mailto: link.
+          $rendered_email = array(
+            '#theme' => 'link',
+            '#text' => $key->field_contact_email->value(),
+            '#path' => 'mailto:' . $key->field_contact_email->value(),
+            '#prefix' => '<p><span class="icon-email" aria-hidden="true"></span> ',
+            '#suffix' => '</p>',
+            '#options' => array(
+              'attributes' => array(),
+              'html' => $key->field_contact_email->value(),
+            ),
+          );
+          $contacts[] = render($rendered_email);
+        }
+        $contacts[] = '<br \>';
+      }
+      if (count($contacts) > 0) {
+        $vars['contacts'] = '<div class="nc-catalog-contact">' . implode('', $contacts) . '</div>';
+      }
+      else {
+        $vars['contacts'] = NULL;
+      }
+    }
+
+    // Location fieldgroup
+    $vars['locations'] = NULL;
+    if ($node_emw->field_address) {
+      $final_address = array();
+      foreach ($node_emw->field_address->value() as $key => $value) {
+        if (!empty($value) && $value != 'US' && $value != 'NC') {
+          if ($key == 'locality') {
+            $final_address[] = $value . ', NC';
+          }
+          else {
+            $final_address[] = $value;
+          }
+        }
+      }
+      if (count($final_address) > 0) {
+        $street = array_pop($final_address);
+        array_unshift($final_address, $street);
+        array_unshift($final_address, '<span class="icon-location-on" aria-hidden="true"></span> ');
+        $vars['locations'] = '<div class="nc-catalog-location">' . implode(' ', $final_address) . '</div>';
+      }
+      else {
+        $vars['locations'] = NULL;
+      }
+    }
+
+    // Field Order
+    $vars['order'] = NULL;
+    $catalog_tid = $node_emw->field_catalog->value()->tid;
+    $taxonomy_term = entity_load('taxonomy_term', array($catalog_tid));
+    $field_order = field_get_items('taxonomy_term', $taxonomy_term[$catalog_tid], 'field_catalog_field_order');
+    if ($field_order) {
+      $order_string = reset($field_order);
+    }
+
+    $vars['order'] = explode(',', $order_string['value']);
+  }
+}
+
+/**
+ * Implements hook_preprocess_taxonomy_term().
+ *
+ * This should be refactored... somehow... Must... keep... under 20... lines...
+ */
+function nc_catalog_preprocess_taxonomy_term(&$variables) {
+  switch ($variables['elements']['#bundle']) {
+    case 'catalog':
+      // Change the hook suggestions to add the custom view modes.
+    $view_mode = check_plain(_nc_catalog_get_view_mode($variables['tid']));
+    $variables['theme_hook_suggestions'][] = 'taxonomy_term__catalog__' . $view_mode;
+      // Add some classes based on view mode.
+    $variables['classes_array'][] = 'nc-catalog-page';
+    $variables['classes_array'][] = drupal_clean_css_identifier($view_mode);
+      // Add the appropriate variables for sidebar filters, search results,
+      // header image.
+    $taxonomy_term_emw = entity_metadata_wrapper('taxonomy_term', $variables['term']);
+      // Get the main image information.
+    $main_image = $taxonomy_term_emw->field_main_image->value();
+      // Render the main image (if it is populated).
+    if (!empty($main_image)){
+      $variables['header_image'] = array(
+        '#theme' => 'image_style',
+        '#style_name' => 'catalog_header_image',
+        '#path' => $main_image['uri'],
+      );
+    }
+      // Do we allow for pagers/view all?
+    if ($taxonomy_term_emw->field_provide_a_pager) {
+      $provide_pager = $taxonomy_term_emw->field_provide_a_pager->value();
+      if ($provide_pager) {
+        $variables['allow_pager'] = TRUE;
+          // Set the items per-page. Default to 10.
+        $items_per_page = 10;
+        if ($taxonomy_term_emw->field_items_per_page) {
+          $items_per_page = $taxonomy_term_emw->field_items_per_page->value();
+        }
+          // Add the JS.
+        drupal_add_js(array(
+          'catalogPager' => array(
+            'allowPager' => TRUE,
+            'items' => $items_per_page,
+          ),
+        ), 'setting');
+
+        $variables['pager_next'] = t('Next') . ' &raquo;';
+          // Is the "View All" options available?
+        if ($taxonomy_term_emw->field_allow_view_all_option) {
+          if ($taxonomy_term_emw->field_allow_view_all_option->value()) {
+            $variables['allow_view_all'] = TRUE;
+            $variables['view_all_text'] = t('View all');
+              // Add the JS.
+            drupal_add_js(array(
+              'catalogPagerViewAll' => array(
+                'viewAll' => TRUE,
+              ),
+            ), 'setting');
+
+          }
+        }
+      }
+    }
+      // Add the singular and plural elements to both the JS settings
+      // and the template.
+    $variables['singular_item'] = $taxonomy_term_emw->field_singular_item_name->value();
+    $variables['plural_item'] = $taxonomy_term_emw->field_plural_item_name->value();
+    drupal_add_js(array(
+      'catalogTaxonomyData' => array(
+        'singular' => $taxonomy_term_emw->field_singular_item_name->value(),
+        'plural' => $taxonomy_term_emw->field_plural_item_name->value(),
+      ),
+    ), 'setting');
+    drupal_add_css(drupal_get_path('module', 'nc_catalog') . '/css/nc_catalog.css',
+      array(
+        'group' => CSS_DEFAULT,
+        'every_page' => FALSE,
+      ));
+
+    $variables['sidebar_filters'] = array(
+      '#theme' => 'sidebar_filters',
+      '#catalog_term' => $variables['tid'],
+    );
+      // Are we displaying search?
+    $variables['display_search'] = FALSE;
+    if (!empty($taxonomy_term_emw->field_display_search_field) && $taxonomy_term_emw->field_display_search_field->value() == TRUE) {
+        // Yes.
+      $variables['display_search'] = TRUE;
+    }
+      // Default results text.
+    $variables['catalog_results'] = array(
+      '#markup' => '<strong>No content has been created for this catalog.</strong>',
+    );
+      // Only render nodes if there are actually nodes to render.
+    if ($nids = taxonomy_select_nodes($variables['tid'], FALSE)) {
+        // Render nodes as the correct view mode.
+      $view_mode = _nc_catalog_get_view_mode($variables['tid']);
+        // Attach the found NIDs to the sidebar filter theme function.
+      $variables['result_count'] = count($nids);
+      $nodes = node_load_multiple($nids);
+
+      // Sort catalog items by their titles
+      function sort_by_title($a, $b) {
+        return strcmp($a->title, $b->title);
+      }
+      usort($nodes, "sort_by_title");
+
+      $variables['sidebar_filters']['#term_nodes'] = $nodes;
+
+      $rendered_nodes = reset(node_view_multiple($nodes, $view_mode));
+
+      // dpm($view_mode);
+
+      foreach ($rendered_nodes as $nid => $rendered_node) {
+        if (!empty($rendered_nodes[$nid]['#node'])) {
+          // print_r('<pre>');
+          // print_r(var_dump($nid));
+          // print_r('</pre>');
+          unset($rendered_nodes[$nid]['#node']);
+        }
+      }
+
+      print_r('<pre>');
+      print_r(var_dump($rendered_nodes));
+      print_r('</pre>');
+
+      $variables['catalog_results'] = array(
+        '#theme' => 'item_list',
+        '#list_type' => 'ul',
+        '#items' => array_filter($rendered_nodes, function(&$node) {
+          if (!is_array($node)) {
+            return false;
+          }
+          $node = drupal_render($node);
+          return true;
+        }),
+        '#attributes' => array(
+          'class' => array(
+            'list',
+          ),
+        ),
+      );
+    }
+    break;
+  }
+}
+
+/**
+ * Function theme_sidebar_filters().
+ *
+ * Renders sidebar filters based on the selected Catalog term.
+ *
+ * @param array $variables
+ *   Theme variables.
+ *
+ * @return mixed
+ *   A render array, or FALSE if nothing.
+ */
+function theme_sidebar_filters($variables) {
+  // Load all term nodes.
+  $term_checkboxes_element = array();
+  if (!empty($variables['term_nodes'])) {
+    $term_checkboxes_element = _nc_catalog_get_checkbox_form($variables['term_nodes']);
+    // Dummy form state variable.
+    $form_state = array('values' => array());
+    $form_element['#type'] = 'fieldset';
+    $form_element['#collapsible'] = FALSE;
+    $form_element['checkboxes'] = $term_checkboxes_element;
+    $form_element['#attached']['js'][] = array(
+     'data' => drupal_get_path('module', 'nc_catalog') . '/js/catalog_filters.js',
+     'scope' => 'footer',
+     'type' => 'file',
+    );
+    $form_element['#attached']['js'][] = array(
+     'data' => base_path() . 'sites/all/libraries/listjs/list.min.js',
+     'scope' => 'footer',
+     'type' => 'file',
+    );
+    $form_element['#attached']['js'][] = array(
+     'data' => drupal_get_path('module', 'nc_catalog') . '/js/catalog_fold.js',
+     'scope' => 'footer',
+     'type' => 'file',
+   );
+
+    $catalog_filter_data = _nc_catalog_get_filter_data($variables['term_nodes']);
+    $form_element['#attached']['js'][] = array(
+      'data' => array('catalog_filter_data' => $catalog_filter_data),
+      'type' => 'setting'
+    );
+    $form_build = form_builder('sidebar_filter_form', $form_element, $form_state);
+    return render($form_build);
+  }
+  return FALSE;
+}
+
+/**
+ * Function _nc_catalog_get_filter_data().
+ *
+ * Build a javascript settings array of terms and their respecitve nodes.
+ *
+ * @param array $nodes
+ *  An array of node data.
+ *
+ * @return array
+ *  A settings array to be passed to javascript.
+ */
+function _nc_catalog_get_filter_data($nodes) {
+  $settings = array();
+  // Foreach through nodes.
+  foreach ($nodes as $node) {
+    // Load the entity data.
+    $node_emw = entity_metadata_wrapper('node', $node);
+    foreach ($node_emw->field_catalog_categories as $cat_term) {
+      $cat_term_tid = $cat_term->tid->value();
+      // Our array should be one-dimensional and only have nids matched to tids.
+      $settings[$cat_term_tid][] = $node_emw->nid->value();
+    }
+  }
+  return $settings;
+}
+
+/**
+ * Function _nc_catalog_get_checkbox_form().
+ *
+ * Return a form array of checkbox form data.
+ *
+ * @param array $term_nodes
+ *  Term nodes that match, in an array.
+ *
+ * @return array
+ *  A form array.
+ */
+function _nc_catalog_get_checkbox_form($term_nodes) {
+  $term_checkboxes_element = array();
+  $county_cat_tid = FALSE;
+  foreach ($term_nodes as $node) {
+    $term_node_emw = entity_metadata_wrapper('node', $node);
+    $term_node_emws[] = $term_node_emw;
+    // We assume that there are only ever two levels to catalog terms.
+    // We also require the deepest term to be selected.
+    // Therefore, we can assume that all field_catalog_categories terms are
+    // going to be child terms, and we can get their parents.
+    foreach ($term_node_emw->field_catalog_categories as $cat_term) {
+      if (!empty($cat_term)) {
+        $cat_term_tid = $cat_term->tid->value();
+        $cat_term_name = $cat_term->name->value();
+        // Get parent.
+        if (!empty($cat_term->parent)) {
+          $cat_parent = current($cat_term->parent->value());
+          if ($cat_parent->name == 'County') {
+            $county_cat_tid = $cat_parent->tid;
+          }
+          if (!empty($cat_parent->tid)) {
+            $term_checkboxes_element[$cat_parent->tid]['#type'] = 'checkboxes';
+            $term_checkboxes_element[$cat_parent->tid]['#title'] = false;
+            $term_checkboxes_element[$cat_parent->tid]['#prefix'] = '<h3 class="section-title">' . $cat_parent->name . '</h3>';
+            $term_checkboxes_element[$cat_parent->tid]['#options'][$cat_term_tid] = $cat_term_name;
+            $term_checkboxes_element[$cat_parent->tid]['#weight'] = $cat_parent->weight;
+          }
+        }
+      }
+    }
+    // Sort based upon the user's sort settings in Catalog Category.
+    uasort($term_checkboxes_element, "element_sort");
+    // Also sort by alpha for county.
+    if (!empty($county_cat_tid)) {
+      asort($term_checkboxes_element[$county_cat_tid]['#options']);
+    }
+  }
+  return $term_checkboxes_element;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function nc_catalog_theme($existing, $type, $theme, $path) {
+  return array(
+    'sidebar_filters' => array(
+      'variables' => array('catalog_term' => NULL, 'term_nodes' => array()),
+    ),
+    'nc_catalog_tabledrag' => array(
+      'render element' => 'tabledrag_fieldset',
+    ),
+  );
+}
+
+/**
+ * Implements hook_entity_view_mode_alter().
+ */
+function nc_catalog_entity_view_mode_alter(&$view_mode, $context) {
+  if ($context['entity_type'] == 'taxonomy_term' &&
+    $context['entity']->vocabulary_machine_name == 'catalog') {
+    // We're viewing a catalog term. Switch the view mode based on the field.
+    $view_mode = _nc_catalog_get_view_mode($context['entity']->tid);
+  }
+}
+
+/**
+ * Function _nc_catalog_get_view_mode().
+ *
+ * Helper function to get the current term's view mode.
+ *
+ * @param int $tid
+ *   The taxonomy term tid.
+ *
+ * @return string
+ *   The current view mode machine name.
+ */
+function _nc_catalog_get_view_mode($tid) {
+  $taxonomy_term = entity_load('taxonomy_term', array($tid));
+  if (!empty($taxonomy_term)) {
+    $current_term = current($taxonomy_term);
+    $selected_view_mode = field_get_items('taxonomy_term', $current_term, 'field_view_mode');
+    $current_view_mode = current($selected_view_mode);
+    $view_mode = $current_view_mode['value'];
+    return $view_mode;
+  }
+  return FALSE;
+}
+
+/**
+ * Implements hook_theme_registry_alter().
+ */
+function nc_catalog_theme_registry_alter(&$theme_registry) {
+  // Defined path to the current module.
+  $module_path = drupal_get_path('module', 'nc_catalog');
+  // Find all .tpl.php files in this module's folder recursively.
+  $template_file_objects = drupal_find_theme_templates($theme_registry, '.tpl.php', $module_path);
+  // Iterate through all found template file objects.
+  foreach ($template_file_objects as $key => $template_file_object) {
+    // If the template has not already been overridden by a theme.
+    if (!isset($theme_registry[$key]['theme path']) || !preg_match('#/themes/#', $theme_registry[$key]['theme path'])) {
+      // Alter the theme path and template elements.
+      $theme_registry[$key]['theme path'] = $module_path;
+      $theme_registry[$key] = array_merge($theme_registry[$key], $template_file_object);
+      $theme_registry[$key]['type'] = 'module';
+    }
+  }
+}
+
+/**
+ * Implements hook_menu_alter().
+ */
+function nc_catalog_menu_alter(&$items) {
+  // Alter the taxonomy term render page to handle catalog stuff.
+  $items['taxonomy/term/%taxonomy_term'] = array(
+    'title' => 'Taxonomy term',
+    'title callback' => 'taxonomy_term_title',
+    'title arguments' => array(2),
+    'page callback' => 'nc_catalog_taxonomy_term_page',
+    'page arguments' => array(2),
+    'access arguments' => array('access content'),
+    'file' => 'nc_catalog.pages.inc',
+    'file path' => drupal_get_path('module', 'nc_catalog'),
+  );
+}
+
+/**
+ * Implements hook_form_alter().
+ */
+function nc_catalog_form_alter(&$form, &$form_state, $form_id) {
+  if ($form_id == 'catalog_node_form') {
+    // Default to North Carolina for the state dropdown.
+    $form['field_address'][LANGUAGE_NONE][0]['locality_block']['administrative_area']['#value'] = 'NC';
+    $form['field_address'][LANGUAGE_NONE][0]['locality_block']['administrative_area']['#access'] = FALSE;
+    $form['field_address'][LANGUAGE_NONE][0]['country']['#access'] = FALSE;
+  }
+
+  // Add draggable above/below "fold" field sorting on per-catalog basis.
+  if ($form_id == 'taxonomy_form_term' && $form['#entity']->vocabulary_machine_name == 'catalog') {
+    $form['field_fold_button_text'] = array(
+      '#type' => 'textfield',
+      '#title' => 'View more button text',
+      '#default_value' => 'Details',
+      '#weight' => 49,
+      '#description' => t('Text that appears in the button to expand folded catalog items.'),
+    );
+
+    // Get catalog items fields as associative array.
+    $catalog_item_fields = field_info_instances('node', 'catalog');
+
+    // Remove the fields we aren't allowing the user to sort (for now).
+    unset($catalog_item_fields['title_field']);
+    unset($catalog_item_fields['field_catalog']);
+    unset($catalog_item_fields['field_main_image']);
+    unset($catalog_item_fields['field_icon']);
+
+    $catalog_item_fields['field_fold'] = array(
+      'label' => '<strong>*** Fold -- Items below this are hidden until item is expanded. ***</strong>'
+    );
+
+    // This text field is where the tabledrag field order/display is stored.
+    // It's set via the tabledrag UI below, so the user needn't access this field directly.
+    $form['field_catalog_field_order']['#access'] = FALSE;
+
+    $form['field_field_order_ui'] = array(
+    '#type' => 'fieldset',
+    '#title' => 'Field Sequence',
+    '#weight' => 50,
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE,
+    '#description' => t('Use the table to determine catalog item field order. The top three enabled fields appear above the fold.'),
+    );
+
+    // Use the nc_catalog_tabledrag theme function.
+    $form['field_field_order_ui']['show_fields'] = array(
+      '#theme' => 'nc_catalog_tabledrag',
+      '#tree' => TRUE,
+    );
+
+    // Get current sort from the field order textarea.
+    // May be a better way to get form TID
+    $term = entity_metadata_wrapper('taxonomy_term', $form['#entity']->tid);
+    if (!empty($term->field_catalog_field_order)) {
+      $default_sort = explode(',', $term->field_catalog_field_order->value());
+    }
+    // Provide a default sort for brand new catalogs.
+    else {
+      $default_sort = array(
+        'body',
+        'field_address',
+        'field_contacts',
+        'field_fold',
+        'field_catalog_categories',
+        'field_internal_or_external_url',
+        'Details'
+      );
+    }
+
+    // The fold button text will always be the last item.
+    $form['field_fold_button_text']['#default_value'] = end($default_sort);
+
+    foreach ($catalog_item_fields as $field => $field_data) {
+      $form['field_field_order_ui']['show_fields'][$field]['field'] = array(
+        '#markup' => $field_data['label'],
+      );
+
+      $form['field_field_order_ui']['show_fields'][$field]['enabled'] = array(
+        '#type' => 'checkbox',
+        '#default_value' => in_array($field, $default_sort)
+        ? 1
+        : 0,
+      );
+
+      // The field contains sort info (weights).
+      $form['field_field_order_ui']['show_fields'][$field]['weight'] = array(
+        '#type' => 'weight',
+        '#title' => t('Weight'),
+        '#title_display' => 'invisible',
+        '#default_value' => array_search($field, $default_sort),
+      );
+    }
+    // Sort tabledrag rows.
+    uasort($form['field_field_order_ui']['show_fields'], 'drupal_sort_weight');
+
+    // Add custom submit handler to enter tabledrag values.
+    $form['#submit'][] = 'nc_catalog_taxonomy_form_submit';
+  }
+}
+
+// Theme function for catalog item field sorting tabledrag field.
+function theme_nc_catalog_tabledrag($variables) {
+  $form = $variables['tabledrag_fieldset'];
+  $rows = array();
+
+  foreach (element_children($form) as $catalog_item_field) {
+    $form[$catalog_item_field]['weight']['#attributes']['class'] = array('services-order-weight');
+    $rows[] = array(
+      'data' => array(
+        drupal_render($form[$catalog_item_field]['field']),
+        drupal_render($form[$catalog_item_field]['enabled']),
+        drupal_render($form[$catalog_item_field]['weight']),
+      ),
+      'class' => array('draggable'),
+    );
+  }
+
+  $header = array(t('Field'), t('Enabled'), t('Weight'));
+  $output = theme('table', array(
+    'header' => $header,
+    'rows' => $rows,
+    'attributes' => array('id' => 'service-order'),
+    'variables' => array(),
+  ));
+
+  drupal_add_tabledrag('service-order', 'order', 'sibling', 'services-order-weight');
+
+  return $output;
+}
+
+// Submit handler for the catalog taxonomy edit form.
+// Takes our tabledrag input and places in hidden field field_catalog_field_order.
+function nc_catalog_taxonomy_form_submit(&$form, &$form_state) {
+  uasort($form['field_field_order_ui']['show_fields'], function($a, $b) {
+    $a_weight = (is_array($a) && isset($a['weight']['#value'])) ? $a['weight']['#value'] : 0;
+    $b_weight = (is_array($b) && isset($b['weight']['#value'])) ? $b['weight']['#value'] : 0;
+
+    if ($a_weight == $b_weight) {
+      return 0;
+    }
+    return ($a_weight < $b_weight) ? -1 : 1;
+  });
+
+  $field_order = array_keys($form['field_field_order_ui']['show_fields']);
+
+  $order_string = '';
+  foreach ($field_order as $field) {
+    if (strpos($field, 'field_') > -1 || strpos($field, 'body') > -1) {
+      if ($form['field_field_order_ui']['show_fields'][$field]['enabled']['#value'] == 1) {
+        $order_string .= $field . ',';
+      }
+    }
+  }
+
+  $order_string .= ',' . $form['field_fold_button_text']['#value'];
+
+  $term = entity_metadata_wrapper('taxonomy_term', $form_state['values']['tid']);
+
+  $term->field_catalog_field_order->set($order_string);
+
+  $term->save();
+}

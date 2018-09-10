@@ -1,0 +1,203 @@
+<?php
+/**
+ * @file
+ * Code for the NC Webform feature.
+ */
+
+include_once 'nc_webform.features.inc';
+
+define('NC_WEBFORM_BLOCK_USER_FEEDBACK_LINK', 'user_feedback_link');
+define('NC_WEBFORM_VARIABLE_FEEDBACK_LINK_PATH', 'nc_webform_user_feedback_link_path');
+define('NC_WEBFORM_VARIABLE_FEEDBACK_LINK_TEXT', 'nc_webform_user_feedback_link_text');
+define('NC_WEBFORM_DEFAULT_FEEDBACK_LINK_PATH', 'user-feedback');
+define('NC_WEBFORM_DEFAULT_FEEDBACK_LINK_TEXT', 'How can we make this page better for you?');
+
+/**
+ * Implements hook_block_info().
+ */
+function nc_webform_block_info() {
+  $blocks = array();
+  $blocks[NC_WEBFORM_BLOCK_USER_FEEDBACK_LINK] = array(
+    'info' => t('User Feedback Form Link'),
+    'cache' => DRUPAL_CACHE_PER_PAGE,
+    'region' => 'user_feedback',
+    'status' => 1,
+  );
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_configure().
+ */
+function nc_webform_block_configure($delta = '') {
+  $form = array();
+  if ($delta == NC_WEBFORM_BLOCK_USER_FEEDBACK_LINK) {
+    $form[NC_WEBFORM_VARIABLE_FEEDBACK_LINK_PATH] = array(
+      '#type' => 'textfield',
+      '#title' => t('Feedback Form Link Path'),
+      '#default_value' => variable_get(NC_WEBFORM_VARIABLE_FEEDBACK_LINK_PATH, NC_WEBFORM_DEFAULT_FEEDBACK_LINK_PATH),
+    );
+    $form[NC_WEBFORM_VARIABLE_FEEDBACK_LINK_TEXT] = array(
+      '#type' => 'textfield',
+      '#title' => t('Feedback Form Link Text'),
+      '#default_value' => variable_get(NC_WEBFORM_VARIABLE_FEEDBACK_LINK_TEXT, NC_WEBFORM_DEFAULT_FEEDBACK_LINK_TEXT),
+    );
+  }
+  return $form;
+}
+
+/**
+ * Implements hook_block_save().
+ */
+function nc_webform_block_save($delta = '', $edit = array()) {
+  if ($delta == NC_WEBFORM_BLOCK_USER_FEEDBACK_LINK) {
+    variable_set(NC_WEBFORM_VARIABLE_FEEDBACK_LINK_PATH, $edit[NC_WEBFORM_VARIABLE_FEEDBACK_LINK_PATH]);
+    variable_set(NC_WEBFORM_VARIABLE_FEEDBACK_LINK_TEXT, $edit[NC_WEBFORM_VARIABLE_FEEDBACK_LINK_TEXT]);
+  }
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function nc_webform_block_view($delta = '') {
+  if ($delta == NC_WEBFORM_BLOCK_USER_FEEDBACK_LINK) {
+    $link_text = variable_get(NC_WEBFORM_VARIABLE_FEEDBACK_LINK_TEXT, NC_WEBFORM_DEFAULT_FEEDBACK_LINK_TEXT);
+    $link_path = variable_get(NC_WEBFORM_VARIABLE_FEEDBACK_LINK_PATH, NC_WEBFORM_DEFAULT_FEEDBACK_LINK_PATH);
+    $content = l($link_text, $link_path, array('attributes' => array('target' => 'blank'), 'query' => array('pge_s' => request_uri())));
+    return array('content' => $content);
+  }
+}
+
+function nc_webform_webform_select_options_info(){
+  $items = array();
+  $items['nc_counties'] = array(
+    'title' => t('North Carolina Counties'),
+    'options callback' => 'nc_webform_county_options'
+  );
+  return $items;
+}
+
+function nc_webform_county_options($component, $flat, $arguments){
+  $counties = drupal_map_assoc(array(
+    'Alamance',
+    'Alexander',
+    'Alleghany',
+    'Anson',
+    'Ashe',
+    'Avery',
+    'Beaufort',
+    'Bertie',
+    'Bladen',
+    'Brunswick',
+    'Buncombe',
+    'Burke',
+    'Cabarrus',
+    'Caldwell',
+    'Camden',
+    'Carteret',
+    'Caswell',
+    'Catawba',
+    'Chatham',
+    'Cherokee',
+    'Chowan',
+    'Clay',
+    'Cleveland',
+    'Columbus',
+    'Craven',
+    'Cumberland',
+    'Currituck',
+    'Dare',
+    'Davidson',
+    'Davie',
+    'Duplin',
+    'Durham',
+    'Edgecombe',
+    'Forsyth',
+    'Franklin',
+    'Gaston',
+    'Gates',
+    'Graham',
+    'Granville',
+    'Greene',
+    'Guilford',
+    'Halifax',
+    'Harnett',
+    'Haywood',
+    'Henderson',
+    'Hertford',
+    'Hoke',
+    'Hyde',
+    'Iredell',
+    'Jackson',
+    'Johnston',
+    'Jones',
+    'Lee',
+    'Lenoir',
+    'Lincoln',
+    'Macon',
+    'Madison',
+    'Martin',
+    'McDowell',
+    'Mecklenburg',
+    'Mitchell',
+    'Montgomery',
+    'Moore',
+    'Nash',
+    'New Hanover',
+    'Northampton',
+    'Onslow',
+    'Orange',
+    'Pamlico',
+    'Pasquotank',
+    'Pender',
+    'Perquimans',
+    'Person',
+    'Pitt',
+    'Polk',
+    'Randolph',
+    'Richmond',
+    'Robeson',
+    'Rockingham',
+    'Rowan',
+    'Rutherford',
+    'Sampson',
+    'Scotland',
+    'Stanly',
+    'Stokes',
+    'Surry',
+    'Swain',
+    'Transylvania',
+    'Tyrrell',
+    'Union',
+    'Vance',
+    'Wake',
+    'Warren',
+    'Washington',
+    'Watauga',
+    'Wayne',
+    'Wilkes',
+    'Wilson',
+    'Yadkin',
+    'Yancey'
+  ));
+  return $counties;
+}
+
+function nc_webform_webform_submission_render_alter(&$renderable) {
+  if (isset($renderable['#email'])) {
+    // This formats top level form fields.
+    foreach (element_children($renderable) as $key) {
+      $renderable[$key]['#bold_title'] = TRUE;
+      $renderable[$key]['#title'] .= ': ';
+      // This handles fieldset children, which were not getting formatted previously.
+      if (isset($renderable[$key]['#type']) && $renderable[$key]['#type'] == 'fieldset') {
+        foreach (element_children($renderable[$key]) as $fieldsetkey) {
+            if (isset($renderable[$key][$fieldsetkey]['#title'])) {
+                $renderable[$key][$fieldsetkey]['#bold_title'] = TRUE;
+                $renderable[$key][$fieldsetkey]['#title'] .= ': ';
+            }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,29 @@
+<?php
+
+/**
+ * @file
+ * Honeypot module file.
+ */
+
+/**
+ * Implements hook_preprocess_html().
+ */
+function nc_honeypot_preprocess_html(&$variables) {
+  $variables['page']['page_bottom']['honeypot'] = array(
+    '#theme' => 'link',
+    '#text' => t('Server Maintenance Schedule (Please do not click)'),
+    '#options' => array(
+      'html' => FALSE,
+      'attributes' => array(
+        'rel' => 'nofollow',
+        'style' => array(
+          'display:none;'
+        ),
+        'aria-hidden' => array(
+          'true',
+        ),
+      ),
+    ),
+    '#path' => 'Server-Maintenance-Schedule',
+  );
+}

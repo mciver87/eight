@@ -1,0 +1,6 @@
+name = NC Permissions
+description = Defines North Carolina Default Permissions.
+core = 7.x
+package = North Carolina
+version = 7.x-2.0
+project = nc_permissions

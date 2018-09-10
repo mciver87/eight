@@ -1,0 +1,23 @@
+<?php
+
+/**
+ * @file
+ * nc_addressfield_staticmap installation and update hooks.
+ */
+
+/**
+ * Implements hook_field_schema().
+ *
+ * Sets up the columns needed for the field's table.
+ */
+function nc_addressfield_staticmap_field_schema($field) {
+  return array(
+    'columns' => array(
+      'addressfield' => array(
+        'type'   => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+      ),
+    ),
+  );
+}

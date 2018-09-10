@@ -1,0 +1,6 @@
+name = Field Formatter
+description = "Allows custom HTML wrappers and classes for field formatters."
+core = 7.x
+package = Fields
+dependencies[] = field
+dependencies[] = field_formatter_settings

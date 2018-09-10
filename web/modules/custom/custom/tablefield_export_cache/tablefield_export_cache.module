@@ -1,0 +1,239 @@
+<?php
+/**
+ * @file
+ * File for setting up the Tablefield Export Cache module.
+ */
+
+/**
+ * Implements hook_menu_alter().
+ *
+ * Modify the menu callback to call our custom function.
+ */
+function tablefield_export_cache_menu_alter(&$items) {
+  $items['tablefield/export/%/%/%/%/%']['page callback'] = '_tablefield_export_cache_export_csv';
+}
+
+/**
+ * Implements hook_theme_registry_alter().
+ */
+function tablefield_export_cache_theme_registry_alter(&$theme_registry) {
+  if (isset($theme_registry['tablefield_view'])) {
+    $theme_registry['tablefield_view']['theme path'] = drupal_get_path('module', 'tablefield_export_cache');
+    $theme_registry['tablefield_view']['function'] = 'theme_tablefield_export_cache_view';
+  }
+}
+
+/**
+ * Theme function for table view.
+ *
+ * This is over riding the theme_tablefield_view() function to add the nofollow
+ * to the link.
+ */
+function theme_tablefield_export_cache_view($variables) {
+  $attributes = array(
+    'id' => 'tablefield-' . $variables['delta'],
+    'class' => array(
+      'tablefield',
+    ),
+  );
+
+  // If the user has access to the csv export option, display it now.
+  $export = '';
+  if ($variables['export'] && user_access('export tablefield')) {
+    $url = sprintf('tablefield/export/%s/%s/%s/%s/%s', $variables['entity_type'], $variables['entity_id'], $variables['field_name'], $variables['langcode'], $variables['delta']);
+    $export = '<div id="tablefield-export-link-' . $variables['delta'] . '" class="tablefield-export-link">' . l(t('Export Table Data'), $url, array('attributes' => array('rel' => 'nofollow'))) . '</div>';
+  }
+
+  return '<div id="tablefield-wrapper-' . $variables['delta'] . '" class="tablefield-wrapper">'
+  . theme('table',
+    array(
+      'header' => $variables['header'],
+      'rows' => $variables['rows'],
+      'attributes' => $attributes,
+    )
+  )
+  . $export
+  . '</div>';
+}
+
+/**
+ * Implements hook_node_update().
+ */
+function tablefield_export_cache_node_update($node) {
+  // Only delete cache files if the node type is not under moderation. If it is
+  // under moderation, then it will delete cached files on publish.
+  if (function_exists('workbench_moderation_node_type_moderated') && !workbench_moderation_node_type_moderated($node->type)) {
+    _table_field_export_cache_delete_cache($node);
+  }
+}
+
+/**
+ * Implements hook_workbench_moderation_transition().
+ */
+function tablefield_export_cache_workbench_moderation_transition($node, $previous_state, $new_state) {
+  if ($new_state == 'published') {
+    _table_field_export_cache_delete_cache($node);
+    // Get all fields.
+    $fields_info = field_info_instances('node', $node->type);
+    // Find all tablefield fields.
+    foreach ($fields_info as $field_name => $value) {
+      // Get field type.
+      $field_info = field_info_field($field_name);
+      if ($field_info['type'] == 'tablefield') {
+        if (isset($node->$field_name)) {
+          // Get all lang codes and deltas.
+          foreach ($node->$field_name as $langcode => $deltas) {
+            foreach ($deltas as $delta => $data) {
+              $filename = _tablefield_export_cache_filename('node', $node->nid, $field_name, $langcode, $delta);
+              $table_data = array();
+              if (isset($node->{$field_name}[$langcode][$delta]['value'])) {
+                $table_data = tablefield_rationalize_table(unserialize($node->{$field_name}[$langcode][$delta]['value']));
+              }
+              _tablefield_export_cache_create_csv($filename, $table_data);
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_node_delete().
+ */
+function tablefield_export_cache_node_delete($node) {
+  _table_field_export_cache_delete_cache($node);
+}
+
+/**
+ * Gets the cache file name to be used.
+ *
+ * @param string $entity_type
+ *   The type of entity, e.g. node.
+ * @param string $entity_id
+ *   The id of the entity.
+ * @param string $field_name
+ *   The machine name of the field to load.
+ * @param string $langcode
+ *   The language code specified.
+ * @param string $delta
+ *   The field delta to load.
+ *
+ * @return string
+ *   The file name used in the cache.
+ */
+function _tablefield_export_cache_filename($entity_type, $entity_id, $field_name, $langcode, $delta) {
+  return sprintf('%s_%s_%s_%s_%s.csv', $entity_type, $entity_id, $field_name, $langcode, $delta);
+}
+
+/**
+ * Menu callback to export a table as a CSV.
+ *
+ * @param string $entity_type
+ *   The type of entity, e.g. node.
+ * @param string $entity_id
+ *   The id of the entity.
+ * @param string $field_name
+ *   The machine name of the field to load.
+ * @param string $langcode
+ *   The language code specified.
+ * @param string $delta
+ *   The field delta to load.
+ */
+function _tablefield_export_cache_export_csv($entity_type, $entity_id, $field_name, $langcode, $delta) {
+  $filename = _tablefield_export_cache_filename($entity_type, $entity_id, $field_name, $langcode, $delta);
+  $entity = _tablefield_export_cache_load_entity($entity_id, $entity_type);
+  $table_data = array();
+  if (isset($entity->{$field_name}[$langcode][$delta]['value'])) {
+    $table_data = tablefield_rationalize_table(unserialize($entity->{$field_name}[$langcode][$delta]['value']));
+  }
+  $uri = _tablefield_export_cache_create_csv($filename, $table_data);
+  if ($uri) {
+    // Directly download the file.  No need to stream.
+    drupal_goto(file_create_url($uri));
+  }
+  else {
+    drupal_add_http_header('Status', '500 Internal Server Error');
+    print t('Error generating CSV.');
+    drupal_exit();
+  }
+}
+
+/**
+ * Creates the CSV file and saves in cache.
+ *
+ * @param string $filename
+ *   The filtename to be used.
+ * @param array $table_data
+ *   The data to be used in the csv file
+ *
+ * @return bool|string
+ *   Returns FALSE on error, file name on success.
+ */
+function _tablefield_export_cache_create_csv($filename, array $table_data) {
+  $temp_uri = 'temporary://' . $filename;
+  $uri = 'public://tablefield-csvs/' . $filename;
+  // Check if file exists, if not create it.
+  if (!file_exists($uri)) {
+    // Ensure that the data is available and that we can load a
+    // temporary file to stream the data.
+    if (_tablefield_export_cache_check_dir() && $fp = fopen($temp_uri, 'w+')) {
+      // Save the data as a CSV file.
+      foreach ($table_data as $row) {
+        fputcsv($fp, $row, variable_get('tablefield_csv_separator', ','));
+      }
+      fclose($fp);
+      return file_unmanaged_copy($temp_uri, $uri, FILE_EXISTS_REPLACE);
+    }
+    else {
+      return FALSE;
+    }
+  }
+  return $uri;
+}
+
+/**
+ * Get the entity information.
+ */
+function _tablefield_export_cache_load_entity($entity_id, $entity_type) {
+  // Attempt to load the entity.
+  $ids = array($entity_id);
+  $entity = entity_load($entity_type, $ids);
+  return array_pop($entity);
+}
+
+/**
+ * Prepare the upload directory.
+ */
+function _tablefield_export_cache_check_dir() {
+  $uri = 'public://tablefield-csvs';
+  return file_prepare_directory($uri, FILE_MODIFY_PERMISSIONS | FILE_CREATE_DIRECTORY);
+}
+
+/**
+ * Deletes all cached filed found for a node.
+ */
+function _table_field_export_cache_delete_cache($node) {
+  // Get all fields.
+  $fields_info = field_info_instances('node', $node->type);
+  // Find all tablefield fields.
+  foreach ($fields_info as $field_name => $value) {
+    // Get field type.
+    $field_info = field_info_field($field_name);
+    if ($field_info['type'] == 'tablefield') {
+      if (isset($node->$field_name)) {
+        // Get all lang codes and deltas.
+        foreach ($node->$field_name as $lang => $deltas) {
+          foreach ($deltas as $delta => $data) {
+            // Check if chache file exists and delete if it does.
+            $filename = _tablefield_export_cache_filename('node', $node->nid, $field_name, $lang, $delta);
+            $uri = 'public://tablefield-csvs/' . $filename;
+            if (file_exists($uri)) {
+              file_unmanaged_delete($uri);
+            }
+          }
+        }
+      }
+    }
+  }
+}

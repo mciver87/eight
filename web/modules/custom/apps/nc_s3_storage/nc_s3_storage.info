@@ -1,0 +1,9 @@
+name = NC S3 Storage
+description = Provides Amazon S3 storage functionality for public files (including aggregated CSS/JS).
+core = 7.x
+package = North Carolina
+version = 7.x-1.0
+project = nc_s3_storage
+dependencies[] = s3fs
+dependencies[] = advagg
+project path = profiles/north_carolina/modules/apps

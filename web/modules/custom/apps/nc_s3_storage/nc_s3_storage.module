@@ -1,0 +1,81 @@
+<?php
+
+/**
+ * @file
+ * Code for the NC S3 Storage module.
+ */
+
+/**
+ * Implements hook_advagg_get_root_files_dir_alter().
+ */
+function nc_s3_storage_advagg_get_root_files_dir_alter(&$css_paths, &$js_paths) {
+  if ($css_paths[0] != 'public://advagg_css' || $js_paths[0] != 'public://advagg_js') {
+    throw new Exception("unexpected value in the advagg css_paths or js_paths.");
+  }
+  $css_paths[0] = 's3://advagg_css';
+  $js_paths[0] = 's3://advagg_js';
+}
+
+/**
+ * Implements hook_advagg_modify_css_pre_render_alter().
+ */
+function nc_s3_storage_advagg_modify_css_pre_render_alter(&$children, &$elements) {
+  // Don't do anything unless bucket is set.
+  if ($bucket = variable_get('s3fs_bucket')) {
+    global $base_url;
+    foreach ($children as $index => $file) {
+      if (isset($file['#attributes']['href'])) {
+        $s3fs_css_path = $base_url . '/s3fs-css';
+        $bucket_url = '//' . $bucket . '.s3.amazonaws.com/s3fs-public';
+        $children[$index]['#attributes']['href'] = str_ireplace(
+          $s3fs_css_path,
+          $bucket_url,
+          $file['#attributes']['href']
+        );
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_advagg_modify_js_pre_render_alter().
+ */
+function nc_s3_storage_advagg_modify_js_pre_render_alter(&$children, &$elements) {
+  // Don't do anything unless bucket is set.
+  if ($bucket = variable_get('s3fs_bucket')) {
+    global $base_url;
+    foreach ($children as $index => $file) {
+      if (isset($file['#attributes']['src'])) {
+        $s3fs_js_path = $base_url . '/s3fs-js';
+        $bucket_url = '//' . $bucket . '.s3.amazonaws.com/s3fs-public';
+        $children[$index]['#attributes']['src'] = str_ireplace(
+          $s3fs_js_path,
+          $bucket_url,
+          $file['#attributes']['src']
+        );
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_js_alter().
+ */
+function nc_s3_storage_js_alter(&$javascript) {
+  foreach ($javascript as $info => $data) {
+    if (strstr($info, path_to_theme(), 0)) {
+      $javascript[$info]['preprocess'] = FALSE;
+    }
+  }
+}
+
+/**
+ * Implements hook_css_alter().
+ */
+function nc_s3_storage_css_alter(&$css) {
+  foreach ($css as $info => $data) {
+    if (strstr($data['data'], path_to_theme(), 0)) {
+      $css[$info]['preprocess'] = FALSE;
+    }
+  }
+}

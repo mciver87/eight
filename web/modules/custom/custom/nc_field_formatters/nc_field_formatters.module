@@ -1,0 +1,83 @@
+<?php
+/**
+ * @file
+ * Contains custom formatters for the NC platform.
+ */
+
+/**
+ * Implements hook_field_formatter_info().
+ */
+function nc_field_formatters_field_formatter_info() {
+  return array(
+    // Plain text variant from core text_summary_or_trimmed.
+    'text_summary_or_trimmed_plain' => array(
+      'label' => t('Summary or trimmed plaintext'),
+      'field types' => array('text_with_summary'),
+      'settings' => array('trim_length' => 600),
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_formatter_settings_form().
+ */
+function nc_field_formatters_field_formatter_settings_form($field, $instance, $view_mode, $form, &$form_state) {
+  $display = $instance['display'][$view_mode];
+  $settings = $display['settings'];
+
+  $element = array();
+
+  if ('text_summary_or_trimmed_plain' == $display['type']) {
+    $element['trim_length'] = array(
+      '#title' => t('Trim length'),
+      '#type' => 'textfield',
+      '#size' => 10,
+      '#default_value' => $settings['trim_length'],
+      '#element_validate' => array('element_validate_integer_positive'),
+      '#required' => TRUE,
+    );
+  }
+
+  return $element;
+}
+
+/**
+ * Implements hook_field_formatter_settings_summary().
+ */
+function nc_field_formatters_field_formatter_settings_summary($field, $instance, $view_mode) {
+  $display = $instance['display'][$view_mode];
+  $settings = $display['settings'];
+
+  $summary = '';
+
+  if ('text_summary_or_trimmed_plain' == $display['type']) {
+    $summary = t('Trim length') . ': ' . check_plain($settings['trim_length']);
+  }
+
+  return $summary;
+}
+
+/**
+ * Implements hook_field_formatter_view().
+ */
+function nc_field_formatters_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+  $element = array();
+
+  switch ($display['type']) {
+    case 'text_summary_or_trimmed_plain':
+      foreach ($items as $delta => $item) {
+        if (!empty($item['summary'])) {
+          $output = _text_sanitize($instance, $langcode, $item, 'summary');
+        }
+        else {
+          $output = _text_sanitize($instance, $langcode, $item, 'value');
+          $output = strip_tags($output);
+          $output = text_summary($output, $instance['settings']['text_processing'] ? $item['format'] : NULL, $display['settings']['trim_length']);
+        }
+        $element[$delta] = array('#markup' => $output);
+      }
+      break;
+  }
+
+  return $element;
+}

@@ -1,0 +1,12 @@
+<?php
+/**
+ * @file
+ * Install file for nc_bean
+ */
+
+/**
+ * Implements hook_enable().
+ */
+function nc_bean_enable() {
+  views_invalidate_cache();
+}

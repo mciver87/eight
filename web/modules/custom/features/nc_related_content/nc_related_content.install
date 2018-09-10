@@ -1,0 +1,12 @@
+<?php
+/**
+ * @file
+ * Install file for the NC Document feature.
+ */
+
+/**
+ * ABT-706: Updated display settings.
+ */
+function nc_related_content_update_7001() {
+  features_revert(array('nc_related_content' => array('field_instance')));
+}

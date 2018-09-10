@@ -1,0 +1,233 @@
+<?php
+/**
+ * @file
+ * Install file for North Carolina Services.
+ */
+
+/**
+ * Implements hook_install().
+ */
+function nc_services_install() {
+  _nc_services_create_terms();
+}
+
+/**
+ * Create default taxonomy terms.
+ */
+function _nc_services_create_terms() {
+  $vocab = taxonomy_vocabulary_machine_name_load('service_category');
+
+  // Clean up old terms that were not canonical.
+  if (!empty($vocab->vid)) {
+    taxonomy_vocabulary_delete($vocab->vid);
+  }
+  $vocab = new stdClass();
+  $vocab->name = 'Service category';
+  $vocab->machine_name = 'service_category';
+  taxonomy_vocabulary_save($vocab);
+
+  $terms = array(
+    'Budget' => array(
+      'Budget & Spending',
+      'State Audits',
+      'Tax Information',
+      'Doing Business with the State',
+    ),
+    'Business ' => array(
+      'Business Assistance',
+      'New Business',
+      'Business Insurance',
+      'Employment Insurance',
+      'Community Development',
+      'Business Incentives',
+      'Taxes',
+      'Employer Resources',
+      'Workspace Safety',
+      'Doing Business with the State',
+      'Non-Profit',
+    ),
+    'Recreation & Culture' => array(
+      'Recreation',
+      'Attractions',
+      'Events',
+      'State Fair',
+      'Tourism',
+      'Arts & Culture',
+      'History',
+      'State Parks',
+      'Lottery',
+    ),
+    'Education' => array(
+      'K-12 Education',
+      'Higher Education',
+      'School Report Cards',
+      'Early Childhood Education',
+      'Non-traditional Education',
+      'Environmental Education',
+    ),
+    'Employment' => array(
+      'Employer Resources',
+      'Employment',
+      'Insurance Jobs',
+    ),
+    'Land & Environment' => array(
+      'Conservation',
+      'State Parks',
+      'Forestry',
+      'Agriculture',
+      'Wildlife',
+      'Emergency Preparedness',
+      'Pest Control',
+      'Air Quality',
+      'Water',
+      'Shorelines',
+      'Pollution',
+      'Waste Management Recreation',
+      'Life Sciences Education',
+    ),
+    'Health' => array(
+      'Children & Family Health',
+      'Disability Services',
+      'Older Adults',
+      'Veterans',
+      'Public Health',
+      'Vital Records',
+      'Protective Services - Children',
+      'Protective Services - Partner or Spouse',
+      'Protective Services - Older Adult',
+      'Health Insurance',
+      'Local Healthcare Resources',
+      'Health Care Facilities',
+      'Health Care Providers',
+      'Nutrition',
+    ),
+    'Consumer & Housing' => array(
+      'Waste Management Housing',
+      'Buying a Home',
+      'Maintenance',
+      'Consumer Services',
+    ),
+    'Courts & Justice' => array(
+      'Protective Services - Crime Victims',
+      'Protective Services - Partner or Spouse',
+      'Law Enforcement',
+      'Crime & Criminals',
+      'Child Support Courts',
+      'Vital Records',
+    ),
+    'Elections & Voting' => array(
+      'Lobbyists',
+      'Representatives & Legislature',
+      'Elections',
+      'Voting',
+    ),
+    'Safety' => array(
+      'Programs',
+      'Emergency Preparedness',
+      'Cyber Security',
+      'Crime & Criminals',
+      'Protective Services - Crime Victims',
+      'Protective Services - Children',
+      'Protective Services - Partner or Spouse',
+      'Protective Services - Older Adults',
+      'Workplace Safety',
+      'Security Breaches',
+    ),
+    'Social Programs' => array(
+      'Children & Family Health',
+      'Disability Services',
+      'Nutrition',
+      'Social Programs',
+      'Older Adults',
+      'Veterans',
+      'Protective Services - Children',
+      'Protective Services - Partner or Spouse',
+      'Protective Services - Older Adults',
+      'Child Support',
+      'Child Services',
+    ),
+    'Taxes' => array(
+      'Tax Information',
+      'Business Incentives',
+    ),
+    'Transportation & Infrastructure' => array(
+      'DMV',
+      'Vehicle',
+      'Ferries',
+      'Trains',
+      'Construction',
+      'Infrastructure',
+    ),
+  );
+
+  if ($vocab->vid) {
+    foreach ($terms as $name => $children) {
+      $parent = new stdClass();
+      $parent->name = $name;
+      $parent->vid = $vocab->vid;
+      taxonomy_term_save($parent);
+      // Level 2.
+      foreach ($children as $child) {
+        $term = new stdClass();
+        $term->name = $child;
+        $term->vid = $vocab->vid;
+        $term->parent = $parent->tid;
+        taxonomy_term_save($term);
+      }
+    }
+  }
+}
+
+/**
+ * NC-916: Alphabetize values in field_service_type, revert field defs.
+ */
+function nc_services_update_7001() {
+  features_revert(array(
+    'nc_services' => array(
+      'field_base',
+      'field_instance',
+    ),
+  ));
+}
+
+/**
+ * ABT-614: Services Page.
+ */
+function nc_services_update_7002() {
+  module_enable(array('better_exposed_filters'));
+  features_revert_module('nc_services');
+  $view = views_get_view('services_list');
+  views_revert_view($view);
+}
+
+/**
+ * ABT-614: Services Page.
+ *
+ * Adding this since 7002 has likely already run on the dev server
+ * and we'll need to rerun the revert to apply new changes.
+ */
+function nc_services_update_7003() {
+  // This was added to appease the dev server, but we don't want
+  // it to run twice on staging or production.
+  // However, we also cannot remove this function,
+  // or the next update will fail on th dev server unless
+  // the database gets rolled back or synced to prod.
+  // Long story short, do nothing.
+  return 1;
+}
+
+/**
+ * Implements hook_update_N().
+ *
+ * ABT-706 updated to set the correct label for the field group.
+ */
+function nc_services_update_7004() {
+  features_revert(array('nc_services' => array('field_group')));
+}
+
+/**
+ * ABT-792: Turn off node preview for all content types.
+ */
+function nc_services_update_7005() {
+  variable_set('node_preview_services', '0');
+}

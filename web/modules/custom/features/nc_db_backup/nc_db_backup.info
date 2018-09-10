@@ -1,0 +1,12 @@
+name = NC DB Backup
+description = Contains database backup definition
+core = 7.x
+package = North Carolina
+version = 7.x-1.0
+project = nc_db_backup
+dependencies[] = backup_migrate
+dependencies[] = ctools
+features[backup_migrate_destinations][] = s3_db_storage
+features[backup_migrate_schedules][] = daily_backup
+features[ctools][] = backup_migrate:backup_migrate_exportables:1
+features[features_api][] = api:2

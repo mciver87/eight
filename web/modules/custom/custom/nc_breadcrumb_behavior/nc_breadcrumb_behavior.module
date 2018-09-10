@@ -1,0 +1,103 @@
+<?php
+
+/**
+ * @file
+ * Module file for nc_breadcrumb_behavior.
+ */
+
+/**
+ * Validate positive integer.
+ *
+ * @param array $element
+ *   The element.
+ * @param array $form_state
+ *   The form state.
+ * @param array $form
+ *   The form.
+ */
+function nc_breadcrumb_behavior_positive_integer_validate($element, &$form_state, $form) {
+  $value = isset($element['#value']) && is_numeric($element['#value']) ? intval($element['#value']) : FALSE;
+  $title = isset($element['#title']) ? $element['#title'] : 'This field';
+
+  if ($value === FALSE || !is_int($value) || $value < 0) {
+    form_error($element, t('@title needs to be a number greater than or equal to 0.', array('@title' => $title)));
+  }
+}
+
+/**
+ * Add an hr / divider.
+ *
+ * @param string $content
+ *   The content.
+ * @param array $element
+ *   The element.
+ *
+ * @return string
+ *   Updated content.
+ */
+function nc_breadcrumb_behavior_divider(&$content, &$element) {
+  $content .= '<hr align="left" width="25%"/>';
+  return $content;
+}
+
+/**
+ * Modify the breadcrumb admin form.
+ *
+ * @param array $form
+ *   The form.
+ * @param array $form_state
+ *   The form state.
+ * @param string $form_id
+ *   Form name.
+ */
+function nc_breadcrumb_behavior_form_alter(&$form, &$form_state, $form_id) {
+  // Hijack the breadcrumb admin page.
+  if ($form_id === 'menu_breadcrumb_admin_settings_form') {
+    // Make a group.
+    $form['nc_breadcrumb_behavior'] = array(
+      '#weight' => -100,
+      '#type' => 'fieldset',
+      '#title' => t('Breadcrumb Behavior'),
+      '#collapsible' => FALSE,
+      '#collapsed' => FALSE,
+    );
+
+    // Enable Truncate Segments.
+    $form['nc_breadcrumb_behavior']['nc_breadcrumb_behavior_truncate_segments'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Enable Segment Truncation'),
+      '#description' => t('Enables or disables the functionality that truncates long segments. Leave checked to truncate.'),
+      '#default_value' => variable_get('nc_breadcrumb_behavior_truncate_segments', 1),
+    );
+
+    // Segment Max Length.
+    $form['nc_breadcrumb_behavior']['nc_breadcrumb_behavior_truncate_segment_charlen'] = array(
+      '#type' => 'textfield',
+      '#number_type' => 'decimal',
+      '#element_validate' => array('nc_breadcrumb_behavior_positive_integer_validate'),
+      '#size' => 8,
+      '#maxlength' => 3,
+      '#field_name' => 'truncate_segment_charlen',
+      '#title' => t('Maximum Segment Length'),
+      '#description' => t("This is the maximum length (in characters) of a segment before it's truncated."),
+      '#default_value' => variable_get('nc_breadcrumb_behavior_truncate_segment_charlen', 30),
+    );
+  }
+}
+
+/**
+ * Send settings and data to javascript.
+ *
+ * @param array $vars
+ *   Vars.
+ * @param mixed $hook
+ *   Hook.
+ */
+function nc_breadcrumb_behavior_preprocess_page(&$vars, $hook) {
+  $settings = array(
+    "truncateSegments" => variable_get('nc_breadcrumb_behavior_truncate_segments', TRUE) ? 'enable' : 'disable',
+    "maxSegmentLength" => variable_get('nc_breadcrumb_behavior_truncate_segment_charlen', 30),
+    "appendTruncated" => "&hellip;",
+  );
+  drupal_add_js(array('abtBreadcrumbs' => $settings), 'setting');
+}

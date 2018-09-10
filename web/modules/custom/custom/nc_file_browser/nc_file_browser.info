@@ -1,0 +1,12 @@
+name = NC File Browser
+description = "Adds an alternative file browser for platform users."
+core = 7.x
+package = North Carolina
+version = 7.x-1.0
+project = nc_file_browser
+dependencies[] = services
+dependencies[] = services_oauth
+dependencies[] = oauth_common
+dependencies[] = oauth_common_providerui
+dependencies[] = rest_server
+dependencies[] = nc_oauth

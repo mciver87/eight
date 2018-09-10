@@ -1,0 +1,118 @@
+<?php
+/**
+ * @file
+ * Code for the NC Varnish feature.
+ */
+
+include_once 'nc_varnish.features.inc';
+
+/**
+ * Implements hook_menu_update().
+ */
+function nc_varnish_menu_update($menu) {
+  nc_varnish_purge_the_whole_site();
+}
+
+/**
+ * Implements hook_menu_insert().
+ */
+function nc_varnish_menu_insert($menu) {
+  nc_varnish_purge_the_whole_site();
+}
+
+/**
+ * Implements hook_menu_delete().
+ */
+function nc_varnish_menu_delete($menu) {
+  nc_varnish_purge_the_whole_site();
+}
+
+/**
+ * Implements hook_link_update().
+ */
+function nc_varnish_menu_link_update($link) {
+  nc_varnish_purge_the_whole_site();
+}
+
+/**
+ * Implements hook_link_insert().
+ */
+function nc_varnish_menu_link_insert($link) {
+  nc_varnish_purge_the_whole_site();
+}
+
+/**
+ * Implements hook_link_delete().
+ */
+function nc_varnish_menu_link_delete($link) {
+  nc_varnish_purge_the_whole_site();
+}
+
+/**
+ * Function nc_varnish_purge_the_whole_site().
+ *
+ * Purges the entire site. Note that this requires custom code in your .vcl:
+ * if (regsub(req.url, "^\/", "") == "*") {
+ *   ban("req.http.host ~ " + req.http.host);
+ *   return (synth(200, "Global ban executed."));
+ * }
+ */
+function nc_varnish_purge_the_whole_site() {
+  $has_run = &drupal_static('nc_varnish_purge_ran', FALSE);
+  if (!$has_run) {
+    varnish_tag_invalidate_purge_tags(array('*'));
+    watchdog('nc_varnish', 'The whole site was purged.');
+    $has_run = TRUE;
+  }
+}
+
+/**
+ * Implements hook_views_pre_render().
+ */
+function nc_varnish_views_pre_render(&$view) {
+  if (!empty($view)) {
+    // Add the view name to the tags.
+    if (!empty($view->name)) {
+      varnish_tag_invalidate_add_tags('view_' . $view->name);
+    }
+    // Also add nodes - only bothering with nodes for now, more entities
+    // could be added later.
+    if (!empty($view->base_table) && !empty($view->result)) {
+      foreach ($view->result as $result) {
+        if (!empty($result->nid)) {
+          varnish_tag_invalidate_add_tags($view->base_table . '_' . $result->nid);
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_views_view_save().
+ */
+function nc_varnish_views_view_save($view) {
+  if (!empty($view->name)) {
+    varnish_tag_invalidate_purge_tags(array('view_' . $view->name));
+  }
+}
+
+/**
+ * Implements hook_block_view_alter().
+ * 
+ * Sets tags for viewing blocks running bean module.
+ */
+function nc_varnish_block_view_alter(&$data, $block) {
+  if ($block->module == 'bean' && !empty($block->delta)) {
+    varnish_tag_invalidate_add_tags('bean_' . $block->delta);
+  }
+}
+
+/**
+ * Implements hook_entity_presave().
+ */
+function nc_varnish_entity_presave($bean, $entity_type) {
+  if ($entity_type =='bean' && !empty($bean->delta)) {
+    varnish_tag_invalidate_purge_tags(array('bean_' . $bean->delta));
+  }
+}
+

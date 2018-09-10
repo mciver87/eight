@@ -1,0 +1,11 @@
+name = "North Carolina Migrate - OITS"
+description = "Module to migrate content into the NC Platform for OITS"
+package = "North Carolina Migrate"
+core = 7.x
+dependencies[] = nc_migrate
+
+; Class files for this module
+files[] = includes/MigrateOITSBase.class.php
+files[] = includes/MigrateOITSDocuments.class.php
+files[] = includes/MigrateOITSPages.class.php
+files[] = includes/MigrateOITSPressReleases.class.php

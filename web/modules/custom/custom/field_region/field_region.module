@@ -1,0 +1,155 @@
+<?php
+
+/**
+ * @file
+ * Module file for field_region.
+ */
+
+define('FIELD_REGION_STORAGE_STATIC', 'field_region_storage');
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ *
+ * Adds a column to the "display fields" table-form, with a checkbox for each
+ * field.
+ */
+function field_region_form_field_ui_display_overview_form_alter(&$form, &$form_state, $form_id) {
+  $entity_type = $form['#entity_type'];
+  $bundle = $form['#bundle'];
+  $view_mode = $form['#view_mode'];
+
+  if ($view_mode == 'default' || ($view_mode == 'full')) {
+    $variable_name = 'field_region-' . $entity_type . '-' . $bundle . '-' . $view_mode;
+    $settings = variable_get($variable_name, array());
+
+    // Add a column header.
+    $form['fields']['#header'][] = t('Display in region');
+
+    $options = array('' => '<none>') + system_region_list(variable_get('theme_default', 'bartik'));
+
+    // Add checkboxes.
+    $field_names = array_merge($form['#fields'], $form['#extra']);
+    foreach ($field_names as $field_name) {
+      $form['fields'][$field_name]['region'] = array(
+        '#type' => 'select',
+        '#default_value' => isset($settings[$field_name]) ? $settings[$field_name] : '',
+        '#options' => $options,
+        '#title' => '',
+      );
+    }
+
+    // Add a submit handler.
+    $form['#submit'][] = 'field_region_field_display_submit';
+  }
+}
+
+/**
+ * Form submit handler for field_ui_display_overview_form.
+ *
+ * Saves a single variable for each entity + bundle + view mode combination if
+ * a field has been made available as block. Having separate variables makes the
+ * configuration more flexible for exporting with strongarm and features.
+ */
+function field_region_field_display_submit($form, &$form_state) {
+  $entity_type = $form['#entity_type'];
+  $bundle = $form['#bundle'];
+  $view_mode = $form['#view_mode'];
+  $variable_name = 'field_region-' . $entity_type . '-' . $bundle . '-' . $view_mode;
+  $settings = array();
+
+  foreach ($form_state['values']['fields'] as $field_name => $field) {
+    if (!empty($field['region'])) {
+      $settings[$field_name] = $field['region'];
+    }
+  }
+
+  if (empty($settings)) {
+    // This variable may have existed before, so let's clean up a little.
+    variable_del($variable_name);
+  }
+  else {
+    variable_set($variable_name, $settings);
+  }
+}
+
+/**
+ * Implements hook_field_attach_view_alter().
+ *
+ * Stores fields attached to the current entity in a static cache, to be
+ * retrieved in fieldblock_block_view, and hides the field from the renderable
+ * array.
+ */
+function field_region_field_attach_view_alter(&$output, $context) {
+  // Do nothing if essential information is missing.
+  if (!isset($output['#bundle'], $context['entity_type'], $context['view_mode'])) {
+    return;
+  }
+
+  // Only set for default view mode.
+  if (!$context['view_mode'] == 'default') {
+    return;
+  }
+
+  // Only do this on the main entity page.
+  $object = menu_get_object($context['entity_type']);
+  if (!$object || entity_id($context['entity_type'], $object) != entity_id($context['entity_type'], $context['entity'])) {
+    return;
+  }
+
+  $entity_type = $context['entity_type'];
+  $bundle = $output['#bundle'];
+  $view_mode = $context['view_mode'];
+
+  // Check whether the view mode uses custom display settings or the 'default'
+  // mode.
+  $view_mode_settings = field_view_mode_settings($entity_type, $bundle);
+  $actual_mode = (!empty($view_mode_settings[$view_mode]['custom_settings']) ? $view_mode : 'default');
+
+  $field_region_storage = &drupal_static(FIELD_REGION_STORAGE_STATIC);
+
+  $variable_name = 'field_region-' . $entity_type . '-' . $bundle . '-' .  $actual_mode;
+  $fieldblock_settings = variable_get($variable_name, array());
+
+  // Loop over the fieldblocks for this entity + bundle + view mode combination
+  // and store the field's render array for later use.
+  foreach ($fieldblock_settings as $field_name => $region) {
+    if (isset($output[$field_name])) {
+      $field_region_storage[$region][$field_name] = $output[$field_name];
+      hide($output[$field_name]);
+    }
+  }
+}
+
+/**
+ * Implements hook_page_build().
+ */
+function field_region_page_build(&$page) {
+  $field_region_storage = &drupal_static(FIELD_REGION_STORAGE_STATIC);
+
+  // Sanity check.
+  if (!is_array($field_region_storage)) {
+    return;
+  }
+
+  foreach ($field_region_storage as $region => $fields) {
+    foreach ($fields as $field => $contents) {
+      $title = $contents['#title'];
+      $content = render($contents);
+      $fake_block = new stdClass();
+      $fake_block->subject = $title;
+      $fake_block->region = $region;
+      $fake_block->module = 'field_region';
+      $fake_block->delta = $field;
+
+      // Allow other modules to alter.
+      drupal_alter('field_region', $content, $fake_block, $contents);
+
+      $page[$region][$field] = array(
+        '#markup' => $content,
+        '#block' => $fake_block,
+        '#node' => $contents['#object'],
+        '#theme_wrappers' => array('block'),
+      );
+    }
+  }
+}

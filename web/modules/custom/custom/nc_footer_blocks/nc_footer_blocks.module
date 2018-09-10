@@ -1,0 +1,21 @@
+<?php
+/**
+ * @file
+ * Code for the NC Footer Blocks feature.
+ */
+
+/**
+ * Override or insert variables into the block template.
+ */
+function nc_footer_blocks_preprocess_block(&$variables) {
+  $block_id = $variables['block_html_id'];
+  $region = $variables['block']->region;
+  if ($region == "footer_firstcolumn" || $region == "footer_secondcolumn" || $region == "footer_thirdcolumn" || $region == "footer_fourthcolumn") {
+    $variables['theme_hook_suggestions'][] = 'block__footer_column';
+    $variables['title_attributes_array']['class'][] = 'section-title border';
+    $variables['classes_array'][] = 'inverted group';
+    if ($block_id == 'block-boxes-contact-information') {
+      $variables['classes_array'][] = 'contact';
+    }
+  }
+}

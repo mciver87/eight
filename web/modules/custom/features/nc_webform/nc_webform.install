@@ -1,0 +1,49 @@
+<?php
+/**
+ * @file
+ * Contains install, uninstall, schema and update hooks for module
+ */
+
+/**
+ * ABT-646 Removed file option.
+ */
+function nc_webform_update_7100() {
+  features_revert(array('nc_webform' => array('variable')));
+}
+
+/**
+ * ABT-682: Add reCAPTCHA to all forms.
+ */
+function nc_webform_update_7101() {
+  // Set Webforms to use reCAPTCHA.
+  $query = db_update('captcha_points')
+    ->fields(array('module' => 'recaptcha', 'captcha_type' => 'reCAPTCHA'))
+    ->condition('form_id', 'webform_%', 'LIKE');
+  $rows = $query->execute();
+
+  // Set comment forms to use no challenge (remove CAPTCHA).
+  $query = db_update('captcha_points')
+    ->fields(array('module' => NULL, 'captcha_type' => NULL))
+    ->condition('form_id', 'comment_node_%', 'LIKE');
+  $rows = $query->execute();
+
+  // Set user forms to use no challenge (remove CAPTCHA).
+  $query = db_update('captcha_points')
+    ->fields(array('module' => NULL, 'captcha_type' => NULL))
+    ->condition('form_id', 'user_%', 'LIKE');
+  $rows = $query->execute();
+}
+
+/**
+ * ABT-758 - update feedback form.
+ */
+function nc_webform_update_7102() {
+  features_revert(array('nc_webform' => array('content')));
+}
+
+/**
+ * ABT-792: Turn off node preview for all content types.
+ */
+function nc_webform_update_7103() {
+  variable_set('node_preview_webform', '0');
+}

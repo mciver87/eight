@@ -1,0 +1,14 @@
+<?php
+/**
+ * @file
+ * Contains install, uninstall, schema and update hooks for module
+ */
+
+/**
+ * Enable nc_content module.
+ */
+function nc_workflow_update_7100() {
+  if (!module_exists('nc_content')) {
+    module_enable(array('nc_content'));
+  }
+}

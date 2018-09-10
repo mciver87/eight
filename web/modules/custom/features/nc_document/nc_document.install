@@ -1,0 +1,116 @@
+<?php
+/**
+ * @file
+ * Install file for the NC Document feature.
+ */
+
+/**
+ * ABT-84: Updating views to use views_filters_populate.
+ */
+function nc_document_update_7001() {
+  features_revert_module('nc_document');
+}
+
+/**
+ * ABT-698: Updating views to use clickable taxonomy.
+ */
+function nc_document_update_7002() {
+  features_revert_module('nc_document');
+}
+
+/**
+ * ABT-713: Set to neutral language.
+ */
+function nc_document_update_7003() {
+  features_revert(array('nc_document' => array('variable')));
+}
+
+/**
+ * Implements hook_update_N().
+ *
+ * Enable the transliteration module.
+ */
+function nc_document_update_7004() {
+  if (!module_exists('transliteration')) {
+    module_enable(array('transliteration'));
+  }
+}
+
+/**
+ * ABT-717: Updating to support IMCE File Field.
+ */
+function nc_document_update_7005() {
+  features_revert(
+    array(
+      'nc_document' => array(
+        'features_override_items',
+        'features_overrides',
+        'field_instance',
+      ),
+    )
+  );
+}
+
+/**
+ * Implements hook_update_N().
+ *
+ * ABT-730 Document display default.
+ */
+function nc_document_update_7006() {
+  features_revert(array('nc_document' => array('field_base')));
+}
+
+/**
+ * Implements hook_update_N().
+ *
+ * ABT-706 Sets the correct lable for the files group.
+ */
+function nc_document_update_7007() {
+  features_revert(array('nc_document' => array('field_group')));
+}
+
+/**
+ * ABT-792: Turn off node preview for all content types.
+ */
+function nc_document_update_7008() {
+  variable_set('node_preview_document', '0');
+}
+
+/**
+ * Implements hook_update_N().
+ *
+ * DC-494 - Update image upload requirements.
+ */
+function nc_document_update_7009() {
+  $thumb_image = field_info_instance('node', 'field_thumbnail_image', 'document');
+  $thumb_image['settings']['max_filesize'] = 52428800;
+  field_update_instance($thumb_image);
+
+  global $shortcode;
+
+  if (strpos($shortcode, 'ncosbm') !== false) {
+    $files = field_info_instance('node', 'field_document_attachment', 'document');
+    $files['settings']['file_extensions'] = 'pdf doc docx xls xlsx csv txt rtf html zip ppt pptx xml kmz mp3';
+    field_update_instance($files);
+  }
+  else {
+    $files = field_info_instance('node', 'field_document_attachment', 'document');
+    $files['settings']['file_extensions'] = 'pdf doc docx xls xlsx csv txt rtf zip ppt pptx xml kmz mp3';
+    field_update_instance($files);
+  }
+}
+
+/**
+ * Implements hook_update_N().
+ *
+ * DC-515 - Complete image upload requirements.
+ */
+function nc_document_update_7010() {
+  $files = field_info_instance('node', 'field_document_attachment', 'document');
+  $files['settings']['max_filesize'] = 34359738368;
+  field_update_instance($files);
+
+  $thumb_image = field_info_instance('node', 'field_thumbnail_image', 'document');
+  $thumb_image['settings']['max_filesize'] = 1048576;
+  field_update_instance($thumb_image);
+}

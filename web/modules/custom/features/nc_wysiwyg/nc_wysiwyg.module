@@ -1,0 +1,100 @@
+<?php
+/**
+ * @file
+ * Code for the NC WYSIWYG feature.
+ */
+
+include_once 'nc_wysiwyg.features.inc';
+
+/**
+ * Implements hook_admin_paths_alter().
+ */
+function nc_wysiwyg_admin_paths_alter(&$paths) {
+  // This prevent unwanted js files from loading.
+  $paths['imce'] = TRUE;
+  $path = current_path();
+  if ($path == 'imce') {
+    $GLOBALS['conf']['advagg_enabled'] = FALSE;
+    $GLOBALS['conf']['preprocess_css'] = FALSE;
+    $GLOBALS['conf']['preprocess_js'] = FALSE;
+  }
+}
+
+/**
+ * Implements hook_post_features_revert().
+ */
+function nc_wysiwyg_post_features_revert($component) {
+  if ('variable' == $component) {
+    _nc_wysiwyg_set_imce_role_profile();
+  }
+}
+
+/**
+ * Implements hook_post_features_enable_feature().
+ */
+function nc_wysiwyg_post_features_enable_feature($component) {
+  if ('variable' == $component) {
+    _nc_wysiwyg_set_imce_role_profile();
+  }
+}
+
+/**
+ * Util function to set IMCE role-profile assignments.
+ * 
+ * Using role name mapping instead of strongarm role-ID-based export as IDs 
+ * are dependent on how and when the roles are generated and not guaranteed 
+ * to be the same across installations.
+ */
+function _nc_wysiwyg_set_imce_role_profile() {
+  $roles = array_flip(user_roles());
+  $roles_profiles = array(
+    'editor' => array(
+      'weight' => '0',
+      's3_pid' => 2,
+      'public_pid' => 2,
+    ),
+    'publisher' => array(
+      'weight' => '0',
+      's3_pid' => 2,
+      'public_pid' => 2,
+    ),
+    'administrator' => array(
+      'weight' => '0',
+      's3_pid' => 1,
+      'public_pid' => 1,
+    ),
+    'site manager' => array(
+      'weight' => '0',
+      's3_pid' => 1,
+      'public_pid' => 1,
+    ),
+    'event creator' => array(
+      'weight' => '0',
+      's3_pid' => 2,
+      'public_pid' => 2,
+    ),
+    'authenticated user' => array(
+      'weight' => 11,
+      's3_pid' => 0,
+      'public_pid' => 0,
+    ),
+    'anonymous user' => array(
+      'weight' => 12,
+      's3_pid' => 0,
+      'public_pid' => 0,
+    ),
+    'site admin' => array(
+      'weight' => '0',
+      's3_pid' => 1,
+      'public_pid' => 1,
+    ),
+  );
+
+  $imce_roles_profiles = array();
+  foreach ($roles_profiles as $role => $settings) {
+    if (isset($roles[$role])) {
+      $imce_roles_profiles[$roles[$role]] = $settings;
+    }
+  }
+  variable_set('imce_roles_profiles', $imce_roles_profiles);
+}

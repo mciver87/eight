@@ -1,0 +1,4 @@
+name = North Carolina Honeypot module
+description = "Provides a honeypot link for bots/scrapers."
+core = 7.x
+package = North Carolina

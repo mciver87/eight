@@ -1,0 +1,17 @@
+name = NC Related Content
+description = Contains field instances for related content.
+core = 7.x
+package = North Carolina
+version = 7.x-1.0
+project = nc_related_content
+dependencies[] = advanced_link
+dependencies[] = features
+dependencies[] = link
+dependencies[] = nc_document
+dependencies[] = nc_fields
+dependencies[] = nc_press_release
+features[features_api][] = api:2
+features[field_instance][] = node-document-field_related_content
+features[field_instance][] = node-event-field_related_content
+features[field_instance][] = node-press_release-field_related_content
+features[field_instance][] = node-site_page-field_related_content

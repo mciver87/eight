@@ -1,0 +1,137 @@
+<?php
+/**
+ * @file
+ * Module file for NC 404.
+ */
+
+define('NC_404_VARS', 'nc_404_vars');
+define('NC_404_VAR_PAGE', 'nc_404_page');
+define('NC_404_VAR_HERO', 'nc_404_hero');
+define('NC_404_VAR_CTA_1', 'nc_404_cta_1');
+define('NC_404_VAR_CTA_2', 'nc_404_cta_2');
+define('NC_404_VAR_CTA_3', 'nc_404_cta_3');
+
+/**
+ * Creates the content needed for the 404 page.
+ */
+function _nc_404_create() {
+  global $user;
+  // Create the page.
+  $page_values = array(
+    'type'    => 'landing_page',
+    'uid'     => $user->uid,
+    'status'  => 1,
+    'comment' => 1,
+    'promote' => 0,
+  );
+  $page = entity_create('node', $page_values);
+  $page_wrapper = entity_metadata_wrapper('node', $page);
+  $page_wrapper->title->set('404 - Page not Found');
+  $page->field_hide_title = 1;
+  $page_wrapper->save();
+
+  // Add the hero image.
+  $hero = _nc_404_create_hero();
+  $hero_p = new ParagraphsItemEntity(array('field_name' => 'field_bands', 'bundle' => 'full_width'));
+  $hero_p->is_new = TRUE;
+  $hero_p->setHostEntity('node', $page);
+  $hero_p->field_full_width_block[LANGUAGE_NONE][0]['moddelta'] = 'bean:' . $hero->delta;
+  $hero_p->save();
+  $page_wrapper->save();
+
+  // Add the CTA Cards.
+  $bean_cta_1 = _nc_404_create_cta(
+    '404 CTA Card 1',
+    'icon-spellcheck',
+    'We understand typos happen! Double-check the URL to see if everything is spelled correctly.',
+    '<front>',
+    'Spell Check'
+  );
+  $bean_cta_2 = _nc_404_create_cta(
+    '404 CTA Card 2',
+    'icon-home',
+    'Sometimes it\'s just easier to start back at the beginning. Go to the home page and retrace your steps.',
+    '<front>',
+    'Go Home'
+  );
+  $bean_cta_3 = _nc_404_create_cta(
+    '404 CTA Card 3',
+    'icon-error',
+    'In a hurry or don\'t want to browse? Why not try a keyword search? If the page exists, we\'ll find it.',
+    '/search',
+    'Keyword Search'
+  );
+  $cards_p = new ParagraphsItemEntity(array('field_name' => 'field_bands', 'bundle' => 'three_column'));
+  $cards_p->is_new = TRUE;
+  $cards_p->setHostEntity('node', $page);
+  $cards_p->field_left_block[LANGUAGE_NONE][0]['moddelta'] = 'bean:' . $bean_cta_1->delta;
+  $cards_p->field_middle_block[LANGUAGE_NONE][0]['moddelta'] = 'bean:' . $bean_cta_2->delta;
+  $cards_p->field_right_block[LANGUAGE_NONE][0]['moddelta'] = 'bean:' . $bean_cta_3->delta;
+  $cards_p->save();
+  $page_wrapper->save();
+
+  // Save the ids, incase need to program updates.
+  $nc_404_vars = array(
+    NC_404_VAR_PAGE => $page->nid,
+    NC_404_VAR_HERO => $hero->bid,
+    NC_404_VAR_CTA_1 => $bean_cta_1->bid,
+    NC_404_VAR_CTA_2 => $bean_cta_2->bid,
+    NC_404_VAR_CTA_3 => $bean_cta_3->bid,
+  );
+  variable_set(NC_404_VARS, $nc_404_vars);
+
+  return $page->nid;
+}
+
+/**
+ * Creates the hero bean.
+ */
+function _nc_404_create_hero() {
+  $bean_hero = bean_create(array('type' => 'nc_carousel'));
+  $bean_hero->label = '404 - Page Not Found Hero';
+  $bean_hero->save();
+
+  $hero_item = entity_create('field_collection_item', array('field_name' => 'field_slide'));
+  $hero_item->setHostEntity('bean', $bean_hero);
+  $hero_item_wrapper = entity_metadata_wrapper('field_collection_item', $hero_item);
+
+  $hero_image = new stdClass();
+  $hero_image->uid = 1;
+  $hero_image->uri = drupal_get_path('module', 'nc_404') . '/assets/NC404.jpg';
+  $hero_image->filemime = file_get_mimetype($hero_image->uri);
+  $hero_image->status = 1;
+  $hero_image->display = 1;
+  $hero_image->description = "";
+  $hero_image->alt = "404 Page Not Found";
+  $hero_image->title = "404 Page Not Found";
+  $hero_image->width = 1280;
+  $hero_image->height = 496;
+  $hero_image = file_copy($hero_image, 'public://');
+
+  $hero_item_wrapper->field_slide_image->set((array) $hero_image);
+  $bean_hero->save();
+  return $bean_hero;
+}
+
+/**
+ * Creates a CTA Card Bean for the 404 page.
+ */
+function _nc_404_create_cta($label, $icon, $description, $link, $title) {
+  $bean_cta = bean_create(array('type' => 'nc_card_cta'));
+  $bean_cta->label = $label;
+  $bean_cta->accent = 'theme-core-gray';
+  $bean_cta->icon = $icon;
+  $bean_cta->field_card_description[LANGUAGE_NONE][0] = array(
+    'value'  => $description,
+    'format' => NULL,
+  );
+  $bean_cta->field_card_link[LANGUAGE_NONE][0] = array(
+    'url' => $link,
+  );
+  $bean_cta->field_card_title[LANGUAGE_NONE][0] = array(
+    'value'  => $title,
+    'format' => NULL,
+  );
+  $bean_cta->save();
+  return $bean_cta;
+}

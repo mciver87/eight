@@ -1,0 +1,39 @@
+<?php
+/**
+ * @file
+ * File for the nc_vrview module.
+ */
+
+/**
+ * Implements hook_bean_types_api_info().
+ */
+function nc_vrview_bean_types_api_info() {
+  return array('api' => 4);
+}
+
+/**
+ * Implements hook_bean_types().
+ */
+function nc_vrview_bean_types() {
+  $plugins = array();
+  $plugins['nc_vrview'] = array(
+    'label'       => t('NC Vr View'),
+    'description' => t('Used to create a VR viewer of a 3d photo or video.'),
+    'handler'     => array(
+      'class'  => 'NcVrViewerBean',
+      'parent' => 'bean',
+    ),
+    'path'        => drupal_get_path('module', 'nc_vrview') . '/plugins/bean',
+    'file'        => 'NCVrViewer.class.php',
+  );
+  return $plugins;
+}
+
+/**
+ * Implements hook_form_alter().
+ */
+function nc_vrview_form_bean_form_alter(&$form, &$form_state, $form_id) {
+  if ($form['#bundle'] == 'nc_vrview') {
+    // We don't use title for this bean, so set it to the label field.
+  }
+}

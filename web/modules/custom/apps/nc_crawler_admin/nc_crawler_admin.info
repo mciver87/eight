@@ -1,0 +1,9 @@
+name = NC Crawler Admin
+description = Provides an admin UI for the ElasticSearch River Web crawler.
+core = 7.x
+package = North Carolina
+version = 7.x-1.0
+project = nc_crawler_admin
+dependencies[] = nc_search
+features[features_api][] = api:2
+project path = profiles/north_carolina/modules/apps

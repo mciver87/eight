@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the NC Webform Deter feature.
+ */
+
+include_once 'nc_webform_deter.features.inc';

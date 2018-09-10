@@ -1,0 +1,8 @@
+name = NC File Table Formatter
+description = Display uploaded files as tables, customized for Digital Commons platform from File Table Formatter.
+core = 7.x
+dependencies[] = file
+version = "7.x-1.0"
+core = "7.x"
+project = "nc_file_table_formatter"
+

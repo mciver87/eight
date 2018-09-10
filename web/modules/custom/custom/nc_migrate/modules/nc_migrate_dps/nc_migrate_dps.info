@@ -1,0 +1,18 @@
+name = "North Carolina Migrate - DPS"
+description = "Module to migrate content into the NC Platform for DPS"
+package = "North Carolina Migrate"
+core = 7.x
+dependencies[] = nc_migrate
+dependencies[] = nc_document
+dependencies[] = nc_press_release
+dependencies[] = nc_site_page
+
+; Class files for this module
+files[] = includes/MigrateDPSBase.class.php
+files[] = includes/MigrateDPSDocument.class.php
+files[] = includes/MigrateDPSDocumentSource.class.php
+files[] = includes/MigrateDPSPages.class.php
+files[] = includes/MigrateDPSItemUrl.class.php
+files[] = includes/MigrateDPSNews.class.php
+files[] = includes/MigrateDPSPageMenu.class.php
+files[] = includes/MigrateDPSCSVSource.class.php

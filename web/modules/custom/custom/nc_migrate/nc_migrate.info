@@ -1,0 +1,12 @@
+name = "North Carolina Migrate Core"
+description = "Core module to migrate content into the NC Platform"
+package = "North Carolina Migrate"
+core = 7.x
+dependencies[] = migrate
+dependencies[] = migrate_ui
+dependencies[] = libraries
+
+; Static HTML migration base classes.
+files[] = includes/static_html/MigrateItemUrl.class.php
+files[] = includes/static_html/MigrateListUrl.class.php
+files[] = includes/static_html/MigrateItemFileUrl.class.php

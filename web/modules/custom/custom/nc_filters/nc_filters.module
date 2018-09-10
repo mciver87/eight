@@ -1,0 +1,70 @@
+<?php
+/**
+ * @file
+ * Contains main code for the North Carolina Input Filters module.
+ */
+
+/**
+ * Implements hook_filter_info().
+ */
+function nc_filters_filter_info() {
+  $filters = array();
+
+  $filters['nc_filters_node_card'] = array(
+    'title' => t('Embed card view of node'),
+    'description' => t('Allow users to embed a card view of a node in an editable content area'),
+    'process callback' => '_nc_filters_node_card_process',
+    'tips callback' => '_nc_filters_node_card_tips',
+  );
+
+  return $filters;
+}
+
+/**
+ * Implements process callback for nc_filters_node_card.
+ */
+function _nc_filters_node_card_process($text, $filter, $format, $langcode, $cache, $cache_id) {
+  // Locate any shortcodes like [card nid=NID NAME1=VALUE1 NAME2=VALUE2 ...].
+  $text = preg_replace_callback(
+    '/\[card((?:\s).*)]/i',
+    '_nc_filters_node_card_process_preg_callback',
+    $text
+  );
+
+  return $text;
+}
+
+/**
+ * Preg callback required since PHPCS doesn't allow anonymous functions >:(.
+ */
+function _nc_filters_node_card_process_preg_callback($matches) {
+  $retval = '';
+  if (isset($matches[1])) {
+    // Extract all NAME=VALUE params in the shortcode.
+    $attrs = explode(' ', trim($matches[1]));
+    foreach ($attrs as $attr) {
+      list($name, $val) = explode('=', trim($attr), 2);
+      $vars[$name] = $val;
+    }
+
+    // Try to load designated node and render.
+    if (!empty($vars['nid']) && $node = node_load($vars['nid'])) {
+      $node_view = node_view($node, 'basic_card');
+      $retval = drupal_render($node_view);
+    }
+  }
+  return $retval;
+}
+
+/**
+ * Implements tips callback for nc_filters_node_card.
+ */
+function _nc_filters_node_card_tips($filter, $format, $long) {
+  return t(
+    'Embed card display of a node using @embed. Value for %nid is required.',
+    array(
+      '@embed' => '[card nid=<nid>]',
+      '%nid' => 'nid',
+    )
+  );
+}

@@ -1,0 +1,318 @@
+<?php
+/**
+ * @file
+ * Code for the NC Permissions feature.
+ */
+
+define('NC_PERMISSIONS_PERMISSION_EXPORT', 'nc_permissions export');
+define('NC_PERMISSIONS_PERMISSION_IMPORT', 'nc_permissions import');
+define('NC_PERMISSIONS_PERMISSION_RESET', 'nc_permissions reset');
+
+/**
+ * Implements hook_permission().
+ */
+function nc_permissions_permission() {
+  return array(
+    NC_PERMISSIONS_PERMISSION_EXPORT => array(
+      'title' => t('NC Permissions Export'),
+      'description' => t('Allows user to export permissions to csv.'),
+    ),
+    NC_PERMISSIONS_PERMISSION_IMPORT => array(
+      'title' => t('NC Permissions Import'),
+      'description' => t('Allowed user to import permissions via csv.'),
+    ),
+    NC_PERMISSIONS_PERMISSION_RESET => array(
+      'title' => 'NC Permissions Reset',
+      'description' => t('Allows the user to reset the permissions to their default.'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function nc_permissions_menu() {
+  $items['admin/nc_permissions'] = array(
+    'title' => 'NC Permissions',
+    'page callback' => 'system_admin_menu_block_page',
+    'access arguments' => array('access administration pages'),
+    'file path' => drupal_get_path('module', 'system'),
+    'file' => 'system.admin.inc',
+  );
+
+  $items['admin/nc_permissions/reset'] = array(
+    'title' => 'Reset Permissions',
+    'description' => 'Resets the permissions to match the default permissions file.',
+    'page callback' => 'nc_permissions_reset',
+    'access arguments' => array(NC_PERMISSIONS_PERMISSION_RESET),
+    'type' => MENU_NORMAL_ITEM,
+  );
+
+  $items['admin/nc_permissions/export'] = array(
+    'title' => 'Export Permissions',
+    'description' => 'Exports all of the current permissions as a csv file.',
+    'page callback' => 'nc_permissions_export',
+    'access arguments' => array(NC_PERMISSIONS_PERMISSION_EXPORT),
+    'type' => MENU_NORMAL_ITEM,
+  );
+
+  $items['admin/nc_permissions/import'] = array(
+    'title' => 'Import Permissions',
+    'description' => 'Imports permissions by using a CSV file.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('nc_permissions_import_form'),
+    'access arguments' => array(NC_PERMISSIONS_PERMISSION_IMPORT),
+    'type' => MENU_NORMAL_ITEM,
+  );
+
+  return $items;
+}
+
+/**
+ * Menu call for resetting the permissions.
+ */
+function nc_permissions_reset() {
+  if (_nc_permissions_import_default_csv()) {
+    drupal_set_message('Default permissions have been set.');
+  }
+  else {
+    drupal_set_message('There was an error setting the permissions.', 'error');
+  }
+  drupal_goto('admin/nc_permissions');
+}
+
+/**
+ * Outputs all of the permissions in a CSV.
+ */
+function nc_permissions_export() {
+  drupal_add_http_header('Content-Type', 'text/csv');
+  drupal_add_http_header('Content-Disposition', 'attachment;filename=nc_permissions_' . date('Y-m-d') . '.csv');
+  // First, build array of permissions, keyed by the module.
+  $permissions = array();
+  $modules = module_implements('permission');
+  sort($modules);
+  foreach ($modules as $module) {
+    $module_perms = array();
+    $perms = module_invoke($module, 'permission');
+    foreach ($perms as $key => $value) {
+      $module_perms[$key] = strip_tags($value['title']);
+    }
+    $permissions[$module] = $module_perms;
+  }
+
+  // Get all roles the permissions the roles have.
+  $roles = user_roles();
+  $roles_permissions = user_role_permissions($roles);
+
+  // Create header row for csv.
+  $header = array('module','name', 'permission');
+  foreach ($roles as $role) {
+    $header[] = $role;
+  }
+  $rows = array($header);
+
+  // Loop through the permissions and create the CSV rows.
+  foreach ($permissions as $module => $perms) {
+    $mod_row = array_fill_keys($header, NULL);
+    $mod_row['module'] = $module;
+    $rows[] = $mod_row;
+    foreach ($perms as $permission => $title) {
+      $row = array_fill_keys($header, NULL);
+      $row['name'] = $title;
+      $row['permission'] = _nc_permissions_change_term_permission($permission);
+      // Check if permission is set for the role.
+      foreach ($roles as $id => $role) {
+        if (isset($roles_permissions[$id])
+          && isset($roles_permissions[$id][$permission])
+          && $roles_permissions[$id][$permission] == TRUE) {
+          $row[$role] = 1;
+        }
+      }
+      $rows[] = $row;
+    }
+  }
+
+  // Output the CSV.
+  $fp = fopen('php://output', 'w');
+  foreach ($rows as $line) {
+    fputcsv($fp, $line);
+  }
+  fclose($fp);
+  drupal_exit();
+}
+
+/**
+ * Creates the form for importing the permissions.
+ */
+function nc_permissions_import_form($form, $form_state) {
+  $markup = <<<EOT
+<div class="import-notes">
+  <p>The permissions CSV File should contain the following headings in the first
+  row of the file:</p>
+  <ul>
+    <li><strong>module</strong> (optional) - This is the name of the module the
+      permission belongs to.</li>
+    <li><strong>name</strong> (optional) - This is the "readable name" of the
+      permission.</li>
+    <li><strong>permission</strong> - This is the machine_name of the
+      permission.</li>
+    <li><strong>role columns</strong> - Each role should get its own column,
+      using the machine_name of the role. When the permission should be assigned
+      to the role, place a 1 in this column.</li>
+  </ul>
+  <p>If you <a href="/admin/nc_permissions/export">export</a> the permissions
+    you will get a properly formed CSV file.</p>
+</div>
+EOT;
+
+  $form['notes'] = array(
+    '#type' => 'markup',
+    '#markup' => $markup,
+  );
+
+  $form['import'] = array(
+    '#title' => t('Import CSV'),
+    '#type'  => 'file',
+    '#description' => t('CSV of permissions to be imported and set'),
+    '#upload_location' => 'temporary://',
+  );
+
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Import'),
+  );
+
+  return $form;
+}
+
+/**
+ * Submits the permissions import.
+ */
+function nc_permissions_import_form_submit($form, $form_state) {
+  $validators = array('file_validate_extensions' => array('csv'));
+  $file = file_save_upload('import', $validators);
+  if ($file && _nc_permissions_import_permissions_csv($file->uri)) {
+    drupal_set_message('Imported permissions!');
+  }
+  else {
+    drupal_set_message('Could not import permissions!', 'error');
+  }
+}
+
+/**
+ * Sets the permissions to the default file.
+ */
+function _nc_permissions_import_default_csv($suppress_warnings = FALSE) {
+  $path = drupal_get_path('module', 'nc_permissions') . '/permission_csvs/nc_permissions.csv';
+  drupal_alter('nc_permissions_import_default_csv_path', $path);
+  return _nc_permissions_import_permissions_csv($path, $suppress_warnings);
+}
+
+/**
+ * Imports permissions through CSV file.
+ */
+function _nc_permissions_import_permissions_csv($path, $suppress_warnings = FALSE) {
+  if (!file_exists($path)) {
+    drupal_set_message('Could not find file for permissions', 'error');
+    return FALSE;
+  }
+
+  $handle = fopen($path, 'r');
+  if (!$handle) {
+    drupal_set_message('Cannot read CSV file for permissions', 'error');
+    return FALSE;
+  }
+
+  $header = FALSE;
+  $permissions = user_permission_get_modules();
+  $roles = user_roles();
+
+  // Parse the CSV into the set_permissions array.
+  $set_permissions = array();
+  while (($row = fgetcsv($handle, 1000)) !== FALSE) {
+    if (!$header) {
+      $header = array_flip($row);
+      // Check that there is a permission header.
+      if (!isset($header['permission'])) {
+        drupal_set_message('CSV file must have a permission column!', 'error');
+        fclose($handle);
+        return FALSE;
+      }
+      // Remove roles that are not in the CSV.
+      foreach ($roles as $role_id => $role_name) {
+        if (!isset($header[$role_name])) {
+          unset($roles[$role_id]);
+        }
+      }
+      if (empty($roles)) {
+        drupal_set_message('No valid roles in CSV!', 'error');
+        fclose($handle);
+        return FALSE;
+      }
+      continue;
+    }
+    $permission = $row[$header['permission']];
+    if (!$permission) {
+      continue;
+    }
+
+    $permission = _nc_permissions_change_term_permission($permission, 'machine_name');
+
+    // Check if valid permission.
+    if (!isset($permissions[$permission])) {
+      if (!$suppress_warnings) {
+        drupal_set_message($permission . ' is not a valid permission. Cannot set.', 'warning');
+      }
+      continue;
+    }
+
+    // Loop through each role and check if the permission
+    // is marked in the CSV.
+    foreach ($roles as $role_id => $role_name) {
+      if (!isset($set_permissions[$role_id])) {
+        $set_permissions[$role_id] = array();
+      }
+      if ($row[$header[$role_name]] == 1) {
+        $set_permissions[$role_id][$permission] = TRUE;
+      }
+      else {
+        $set_permissions[$role_id][$permission] = FALSE;
+      }
+    }
+  }
+  fclose($handle);
+
+  // Save the permissions.
+  foreach ($set_permissions as $role_id => $permissions) {
+    user_role_change_permissions($role_id, $permissions);
+  }
+  return TRUE;
+}
+
+/**
+ * Change vocabularies permission, from vocab id to machine name and vice versa.
+ */
+function _nc_permissions_change_term_permission($perm, $type = 'vid') {
+  if (!module_exists('taxonomy')) {
+    return $perm;
+  }
+  // Export vocabulary permissions using the machine name, instead of vocabulary
+  // id.
+  if (strpos($perm, 'edit terms in ') !== FALSE || strpos($perm, 'delete terms in ') !== FALSE) {
+    preg_match("/(?<=\040)([^\s]+?)$/", trim($perm), $voc_id);
+    $vid = $voc_id[0];
+    if (is_numeric($vid) && $type == 'vid') {
+      if (function_exists('taxonomy_vocabulary_load')) {
+        if ($voc = taxonomy_vocabulary_load($vid)) {
+          $perm = str_replace($vid, $voc->machine_name, $perm);
+        }
+      }
+    }
+    elseif ($type == 'machine_name') {
+      if ($voc = taxonomy_vocabulary_machine_name_load($vid)) {
+        $perm = str_replace($vid, $voc->vid, $perm);
+      }
+    }
+  }
+  return $perm;
+}

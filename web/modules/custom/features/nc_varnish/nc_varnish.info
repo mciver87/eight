@@ -1,0 +1,14 @@
+name = NC Varnish
+description = Varnish configurations
+core = 7.x
+package = North Carolina
+version = 7.x-1.0
+dependencies[] = ctools
+dependencies[] = strongarm
+dependencies[] = varnish_tag_invalidate
+features[ctools][] = strongarm:strongarm:1
+features[features_api][] = api:2
+features[variable][] = purge_proxy_urls
+features[variable][] = varnish_tag_invalidate_entities_view
+features[variable][] = varnish_tag_invalidate_header
+features[variable][] = varnish_tag_invalidate_hosts

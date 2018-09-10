@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the NC Clientside Validation feature.
+ */
+
+include_once 'nc_clientside_validation.features.inc';

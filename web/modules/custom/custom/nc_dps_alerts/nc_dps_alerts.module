@@ -1,0 +1,103 @@
+<?php
+/**
+ * @file
+ * Code for the NC DPS Silver and Amber Alerts feature.
+ */
+
+// TODO: Caching & Performance.
+// TODO: Add settings - RSS URLs, enable/disable, etc.
+// TODO: Tie rendering to nc_alerts (if possible).
+// TODO: Overall error detection/correction/handling.
+// TODO: Test when no nc_alerts are available.
+// TODO: Test with no alerts.
+// TODO: Test with only 1 alert.
+
+/**
+ * Injects Silver, Amber, and Blue Alerts into the NC Alerts build array before.
+ *
+ * Implements hook_pre_build_alert_array_alter().
+ *
+ * @param array $build
+ *   Build array.
+ */
+function nc_dps_alerts_pre_build_alert_array_alter(&$build) {
+  $collector = new NcAlertsMissingPersonsAlertsCollectorPre();
+  _nc_dps_alerts_build_alert_array($collector, $build);
+}
+
+/**
+ * Injects Silver, Amber, and Blue Alerts into the NC Alerts build array.
+ *
+ * Implements hook_build_alert_array_alter().
+ *
+ * @param array $build
+ *   Build array.
+ */
+function nc_dps_alerts_build_alert_array_alter(&$build) {
+  $collector = new NcAlertsMissingPersonsAlertsCollectorPost();
+  _nc_dps_alerts_build_alert_array($collector, $build);
+}
+
+/**
+ * Collects the alerts and add them to the build array.
+ *
+ * @param AbstractNcAlertsMissingPersonsAlertsCollector $collector
+ *   The alert collector.
+ * @param array $build
+ *   Build array.
+ */
+function _nc_dps_alerts_build_alert_array(AbstractNcAlertsMissingPersonsAlertsCollector $collector, &$build) {
+  // Covering the bases, we need an array to push the alerts into.
+  if (!is_array($build)) {
+    $build = array();
+  }
+
+  $alerts_data = $collector->getAlerts();
+
+  if ($alerts_data && is_array($alerts_data) && count($alerts_data)) {
+    array_push($build, $alerts_data);
+  }
+}
+
+/**
+ * Add configuration entry for settings page(s).
+ *
+ * Implements hook_admin.
+ *
+ * @return mixed
+ *   Returns form render array.
+ */
+function nc_dps_alerts_admin() {
+  $form = new NcAlertsMissingPersonsForm(array());
+  return system_settings_form($form->getForm());
+}
+
+/**
+ * Add the menu for missing persons feeds.
+ *
+ * Implements hook_menu.
+ *
+ * @return array
+ *   Menu render array.
+ */
+function nc_dps_alerts_menu() {
+  $menu = new NcAlertsMissingPersonsMenu();
+  return $menu->getItems();
+}
+
+/**
+ * Add form validation for missing persons feeds settings.
+ *
+ * Implements hook_admin_validate.
+ *
+ * @param array $form
+ *   Form.
+ * @param array $form_state
+ *   Returns form state.
+ */
+function nc_dps_alerts_admin_validate($form, &$form_state) {
+  // Doesn't do anything yet.
+  $silver_url = $form_state['values'][NcAlertsMissingPersonsForm::URL_VARIABLE_SILVER];
+  $amber_url = $form_state['values'][NcAlertsMissingPersonsForm::URL_VARIABLE_AMBER];
+  $blue_url = $form_state['values'][NcAlertsMissingPersonsForm::URL_VARIABLE_BLUE];
+}

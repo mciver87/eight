@@ -1,0 +1,5 @@
+<?php
+/**
+ * @file
+ * Contains all install, uninstall, schema and update hooks for module.
+ */

@@ -1,0 +1,9 @@
+name = "Milvets Catalog Item migration"
+description = "Module to migrate NC4Vets catalogs to digital commons"
+package = "Migration"
+core = 7.x
+
+dependencies[] = migrate
+
+files[] = nc_milvets_migrate.migrate.inc
+files[] = node.inc

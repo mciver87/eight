@@ -1,0 +1,55 @@
+<?php
+/**
+ * @file
+ * Install file for nc_carousel
+ */
+
+/**
+ * Update to add new banner type options.
+ */
+function nc_carousel_update_7000() {
+  features_revert(array('nc_carousel' => array('field_instance')));
+}
+
+/**
+ * Update to reorder carousel options.
+ */
+function nc_carousel_update_7001() {
+  features_revert(array('nc_carousel' => array('field_instance')));
+}
+
+/**
+ * Update to add additional descriptions for carousel types.
+ */
+function nc_carousel_update_7002() {
+  features_revert(array('nc_carousel' => array('field_instance')));
+}
+
+/**
+ * ABT-718 Updated to add the hide slide checkbox.
+ */
+function nc_carousel_update_7003() {
+  features_revert(array('nc_carousel' => array('field_base', 'field_instance')));
+}
+
+/**
+ * Implements hook_update_N().
+ *
+ * DC-494 - Update image upload requirements.
+ */
+function nc_carousel_update_7004() {
+  $main_image = field_info_instance('bean', 'field_slide', 'nc_carousel');
+  $main_image['settings']['max_filesize'] = 52428800;
+  field_update_instance($main_image);
+}
+
+/**
+ * Implements hook_update_N().
+ *
+ * DC-515 - Complete image upload requirements (corrected field name).
+ */
+function nc_carousel_update_7005() {
+  $main_image = field_info_instance('field_collection_item', 'field_slide_image', 'field_slide');
+  $main_image['settings']['max_filesize'] = 52428800;
+  field_update_instance($main_image);
+}

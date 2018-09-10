@@ -1,0 +1,93 @@
+.text-format-wrapper .filter-wrapper {
+      display: none;
+}
+#ncstatemap {
+      -moz-user-select: none;
+      fill: rgba(255, 255, 255, 0);
+}
+#ncstatemap g.outline {
+      stroke: #FFFFFF;
+      stroke-width: 4px;
+      display: none;
+}
+.county-hover {
+      opacity: 0;
+}
+#ncstatemap g {
+      stroke: #FFFFFF;
+      stroke-width: 2px;
+      fill-opacity: 1 !important;
+}
+.map-wrapper {
+      display: inline-block;
+      position: relative;
+      width: 100%;
+      padding-bottom: 42%;
+      vertical-align: middle;
+}
+.nc-map-links {
+      display: block;
+      margin: 0 auto;
+      text-align: center;
+      border: 1px solid #397aac;
+      padding-bottom: 2px;
+}
+.map-wrapper svg {
+      margin: 0 auto;
+      text-align: center;
+      display: inline-block;
+      width: 100% !important;
+      position: absolute;
+}
+.ui-tooltip {
+      font-size: 0.8em !important;
+}
+.ui-tooltip p {
+      margin: 0px !important;
+}
+.back-to-regions {
+      border-radius: 4px;
+      display: inline-block;
+      text-align: left;
+      padding: 10px 15px;
+      line-height: 1.5;
+      background-color: #397aac;
+      border: 2px solid #397aac;
+      color: #fff;
+      text-decoration: none;
+      vertical-align: top;
+      position: relative;
+      -webkit-transition: all .15s ease-in-out;
+      transition: all .15s ease-in-out;
+}
+.nc-map-info-toggle {
+      display: block;
+      position: absolute !important;
+      bottom: 0px;
+}
+.county-display {
+      max-height: 450px;
+      width: 100%;
+      margin-top: 5px;
+      color: black !important;
+      overflow-y: hidden;
+      transition: 1s;
+      padding: 10px;
+      background-color: white;
+      border-radius: 5px;
+      position: absolute;
+      display: none;
+      border: 3px solid #092940;
+      z-index: 99;
+}
+.nc-map-details {
+      overflow-y: scroll;
+      height: 100%;
+      max-height: 449px;
+}
+.nc-map-info-close {
+      display: block;
+      right: 5px;
+      top: 5px;
+      position: absolute !important;
+}

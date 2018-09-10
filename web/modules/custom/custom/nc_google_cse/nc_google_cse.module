@@ -1,0 +1,128 @@
+<?php
+/**
+ * @file
+ * Code for the NC Google CSE module.
+ */
+
+define('NC_GOOGLE_CSE_VAR_SEARCH_ID', 'nc_google_cse_search_id');
+define('NC_GOOGLE_CSE_VAR_PAGE_TITLE', 'nc_google_cse_page_title');
+define('NC_GOOGLE_CSE_VAR_BUTTON_LABEL', 'nc_google_cse_button_label');
+define('NC_GOOGLE_CSE_PERM_ADMINISTER_NC_GOOGLE_CSE', 'administer nc_google_cse');
+
+/**
+ * Implements hook_permission().
+ */
+function nc_google_cse_permission() {
+  return array(
+    NC_GOOGLE_CSE_PERM_ADMINISTER_NC_GOOGLE_CSE => array(
+      'title' => t('Administer NC Google SCE'),
+      'description' => t('Set up configuration options for NC Google SCE.'),
+      ),
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function nc_google_cse_menu() {
+  $items = array();
+  $items['admin/config/search/nc_google_cse'] = array(
+    'title' => 'NC Google Search CSE',
+    'description' => 'Configuration for NC Google Search CSE',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('_nc_google_cse_admin_form'),
+    'access arguments' => array(NC_GOOGLE_CSE_PERM_ADMINISTER_NC_GOOGLE_CSE),
+    'type' => MENU_NORMAL_ITEM,
+  );
+
+  $items['advanced-search'] = array(
+    'title' => variable_get(NC_GOOGLE_CSE_VAR_PAGE_TITLE, 'Search All NC Government Sites'),
+    'title callback' => '_nc_google_cse_advanced_search_title',
+    'description' => 'Search All NC Government Sites',
+    'page callback' => '_nc_google_cse_advanced_search',
+    'access arguments' => array('access content'),
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function nc_google_cse_theme($existing, $type, $theme, $path) {
+  return array(
+    'nc_google_cse_advanced_search' => array(
+      'template' => 'nc-google-cse-advanced-search',
+      'path' => $path . '/templates',
+      'variables' => array('search_id' => NULL),
+    ),
+  );
+}
+
+/**
+ * Creates the admin config form for NC Google CSE.
+ */
+function _nc_google_cse_admin_form($form, &$form_state) {
+  $form[NC_GOOGLE_CSE_VAR_SEARCH_ID] = array(
+    '#type'          => 'textfield',
+    '#title'         => t('Search ID'),
+    '#default_value' => variable_get(NC_GOOGLE_CSE_VAR_SEARCH_ID),
+    '#size'          => 100,
+    '#maxlength'     => 86,
+    '#required'      => TRUE,
+  );
+
+  $form[NC_GOOGLE_CSE_VAR_PAGE_TITLE] = array(
+    '#type' => 'textfield',
+    '#title' => t('Page Title'),
+    '#default_value' => variable_get(NC_GOOGLE_CSE_VAR_PAGE_TITLE, 'Search All NC Government Sites'),
+    '#size'          => 100,
+    '#maxlength'     => 86,
+    '#required'      => TRUE,
+  );
+
+  $form[NC_GOOGLE_CSE_VAR_BUTTON_LABEL] = array(
+    '#type' => 'textfield',
+    '#title' => t('Button Label'),
+    '#default_value' => variable_get(NC_GOOGLE_CSE_VAR_BUTTON_LABEL, 'Advanced Search'),
+    '#size'          => 100,
+    '#maxlength'     => 86,
+    '#required'      => TRUE,
+  );
+
+  $form['nc_google_cse_return_to_elastic'] = array(
+    '#type' => 'radios',
+    '#title' => t('Allow Site-Only Search from Google CSE Results'),
+    '#options' => array(
+      FALSE => t('No'),
+      TRUE => t('Yes'),
+      ),
+    '#description' => t('Allows the user to return to site-only search from the Google CSE results page.'),
+    '#default_value' => variable_get('nc_google_cse_return_to_elastic', FALSE),
+    '#required' => TRUE,
+  );
+
+  return system_settings_form($form);
+}
+
+/**
+ * Title call back for advance search page.
+ */
+function _nc_google_cse_advanced_search_title() {
+  return variable_get(NC_GOOGLE_CSE_VAR_PAGE_TITLE, 'Search All NC Government Sites');
+}
+
+/**
+ * Theme function for the advanced search page.
+ */
+function _nc_google_cse_advanced_search() {
+  $variables = array(
+    'search_id' => variable_get(NC_GOOGLE_CSE_VAR_SEARCH_ID),
+  );
+
+  drupal_add_js(array(
+    'elasticReturn' => variable_get('nc_google_cse_return_to_elastic', FALSE),
+    ), 'setting');
+  drupal_add_js(drupal_get_path('module', 'nc_google_cse') . '/js/nc-google-cse-return-to-elastic.js');
+
+  return theme('nc_google_cse_advanced_search', $variables);
+}

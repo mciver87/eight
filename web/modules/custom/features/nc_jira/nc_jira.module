@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the NC JIRA Issue Collector feature.
+ */
+
+include_once 'nc_jira.features.inc';

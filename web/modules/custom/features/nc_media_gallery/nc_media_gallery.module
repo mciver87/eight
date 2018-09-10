@@ -1,0 +1,55 @@
+<?php
+/**
+ * @file
+ * Code for the NC Media Gallery feature.
+ */
+
+include_once 'nc_media_gallery.features.inc';
+
+/**
+ * Implements hook_preprocess_node().
+ */
+function nc_media_gallery_preprocess_node(&$variables) {
+  if ($variables['type'] === 'media_gallery') {
+    $photo_entities = field_get_items('node', $variables['node'], 'field_media_gallery_media', $variables['language']);
+    $mcount = count($photo_entities);
+    $mcount_text = '';
+    if ($mcount > 1) {
+      $mcount_text = "$mcount " . t('Photos');
+    }
+    else {
+      $mcount_text = "$mcount" . t('Photo');
+    }
+    if ($mcount && $mcount_text) {
+      $variables['mcount'] = $mcount;
+      $variables['mcount_text'] = $mcount_text;
+    }
+    if ($mcount > 0) {
+      $photo_node = node_load($photo_entities[0]['nid']);
+      $photos = field_get_items('node', $photo_node, 'field_photo_image', $photo_node->language);
+      if (count($photos) > 0) {
+        $vars = array(
+          'style_name' => 'media_gallery',
+          'path' => $photos[0]['filename'],
+          'height' => NULL,
+          'attributes' => array(
+            'itemprop' => "thumbnailUrl",
+          ),
+        );
+        $variables['media_photo'] = theme('image_style', $vars);
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_form_alter().
+ */
+function nc_media_gallery_form_alter(&$form, &$form_state, $form_id) {
+  if (module_exists('maxlength')) {
+    if ($form_id == "media_gallery_node_form") {
+      $form['title']['#maxlength'] = 20;
+      $form['title']['#maxlength_js'] = TRUE;
+    }
+  }
+}

@@ -1,0 +1,444 @@
+<?php
+/**
+ * @file
+ * Sets up the staticmap module
+ */
+
+/**
+ * Implements hook_permission().
+ */
+function nc_addressfield_staticmap_permission() {
+  return array(
+    'administrator addressfield nc_addressfield_staticmap' => array(
+      'title'       => t('Administer NC Address Field Static Map'),
+      'description' => t('Change Google Static Map and other settings'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function nc_addressfield_staticmap_menu() {
+  $items = array();
+
+  $items['admin/config/system/nc_addressfield_staticmap'] = array(
+    'title'            => 'NC Address Field Static Map',
+    'description'      => 'Configure settings for the address field static map.',
+    'page callback'    => 'drupal_get_form',
+    'page arguments'   => array('_nc_addressfield_staticmap_admin_form'),
+    'access arguments' => array('administrator addressfield nc_addressfield_staticmap'),
+    'type'             => MENU_NORMAL_ITEM,
+    'file'             => 'nc_addressfield_staticmap.admin.inc',
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_field_info().
+ *
+ * Sets up the field's basic information.
+ */
+function nc_addressfield_staticmap_field_info() {
+  return array(
+    'nc_addressfield_staticmap' => array(
+      'label'             => t('Address Field Static Map'),
+      'description'       => t('Displays a Google static map, using an addressfield within the fieldset.'),
+      'default_widget'    => 'nc_addressfield_staticmap_field',
+      'default_formatter' => 'nc_addressfield_staticmap_default',
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_widget_info().
+ *
+ * Defines the widget to be used for the custom field.
+ */
+function nc_addressfield_staticmap_field_widget_info() {
+  return array(
+    'nc_addressfield_staticmap_field' => array(
+      'label'       => t('Text field'),
+      'field types' => array('nc_addressfield_staticmap'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_widget_form().
+ *
+ * Defines the form to be used by the widget.
+ */
+function nc_addressfield_staticmap_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
+  switch ($instance['widget']['type']) {
+    case 'nc_addressfield_staticmap_field':
+      $element['addressfield'] = array(
+        '#type'          => 'textfield',
+        '#title'         => t('Static Map Address Field'),
+        '#default_value' => isset($items[$delta]['addressfield']) ? $items[$delta]['addressfield'] : '',
+        '#required'      => $element['#required'],
+        '#attributes'    => array('maxlength' => 255),
+        '#description'   => t('The name of of the address field that contains the address information to be displayed as a static map.'),
+      );
+      break;
+  }
+  return $element;
+}
+
+/**
+ * Implements hook_field_is_empty().
+ */
+function nc_addressfield_staticmap_field_is_empty($item, $field) {
+  return empty($item['addressfield']);
+}
+
+/**
+ * Implements hook_field_formatter_info().
+ *
+ * Defines the field formatter.
+ */
+function nc_addressfield_staticmap_field_formatter_info() {
+  return array(
+    'nc_addressfield_staticmap_default' => array(
+      'label'       => t('Default Address Field Static Map'),
+      'field types' => array('nc_addressfield_staticmap'),
+      'settings'    => array(
+        'zoom_level'     => 12,
+        'map_width'      => 356,
+        'map_height'     => 200,
+        'type'           => 'roadmap',
+        'display_marker' => 1,
+        'marker_size'    => 'normal',
+        'marker_color'   => 'blue',
+      ),
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_formatter_view().
+ *
+ * Formats the display for the field.
+ */
+function nc_addressfield_staticmap_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+  $element = array();
+  switch ($display['type']) {
+    case 'nc_addressfield_staticmap_default':
+      foreach ($items as $delta => $item) {
+        if (empty($item['addressfield'])) {
+          continue;
+        }
+        // Get the address field that has the address information.
+        $addressfields = field_get_items($entity_type, $entity, $item['addressfield'], $entity->language);
+        if (empty($addressfields) || !isset($addressfields[$delta])) {
+          continue;
+        }
+        $addressfield = $addressfields[$delta];
+        $address = nc_addressfield_staticmap_clean_addressfield($addressfield);
+
+        $settings = array(
+          'zoom_level'     => $display['settings']['zoom_level'],
+          'map_width'      => $display['settings']['map_width'],
+          'map_height'     => $display['settings']['map_height'],
+          'type'           => $display['settings']['type'],
+          'display_marker' => $display['settings']['display_marker'],
+          'marker_size'    => $display['settings']['marker_size'],
+          'marker_color'   => $display['settings']['marker_color'],
+        );
+        $element[$delta]['#markup'] = _nc_addressfield_staticmap_render_google_maps_image($address, $settings);
+      }
+      break;
+  }
+  return $element;
+}
+
+/**
+ * Implements hook_field_formatter_prepare_view().
+ */
+function nc_addressfield_staticmap_field_formatter_prepare_view($entity_type, $entities, $field, $instances, $langcode, &$items, $displays) {
+  foreach ($instances as $instance_id => $instance) {
+    if (isset($displays[$instance_id])) {
+      switch ($displays[$instance_id]['type']) {
+        case 'nc_addressfield_staticmap_default':
+          /* If the there is not an item for the instance,
+          make one using the instance's default value. */
+          if ((!isset($items[$instance_id]) || empty($items[$instance_id]))  && isset($instance['default_value'])) {
+            $items[$instance_id][] = array('addressfield' => $instance['default_value'][0]['addressfield']);
+          }
+          break;
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_field_formatter_settings_form().
+ *
+ * Creates the settings form for the formatter.
+ */
+function nc_addressfield_staticmap_field_formatter_settings_form($field, $instance, $view_mode, $form, &$form_state) {
+  $display = $instance['display'][$view_mode];
+  $settings = $display['settings'];
+  $form = array();
+
+  if ($display['type'] == 'nc_addressfield_staticmap_default') {
+    $zoom_options = array();
+    for ($i = 0; $i <= 21; $i++) {
+      $zoom_options[$i] = $i;
+    }
+    $form['zoom_level'] = array(
+      '#title'         => t('Zoom Level'),
+      '#type'          => 'select',
+      '#description'   => t('How close the map should be zoomed in.'),
+      '#default_value' => $settings['zoom_level'],
+      '#options'       => $zoom_options,
+    );
+
+    $form['map_width'] = array(
+      '#title'            => t('Map Width'),
+      '#type'             => 'textfield',
+      '#description'      => t('The width, in pixels, the map should be displayed in.'),
+      '#size'             => 4,
+      '#default_value'    => $settings['map_width'],
+      '#element_validate' => array('element_validate_integer_positive'),
+      '#required'         => TRUE,
+    );
+
+    $form['map_height'] = array(
+      '#title'            => t('Map Height'),
+      '#type'             => 'textfield',
+      '#description'      => t('The height, in pixels, the map should be displayed in.'),
+      '#size'             => 4,
+      '#default_value'    => $settings['map_height'],
+      '#element_validate' => array('element_validate_integer_positive'),
+      '#required'         => TRUE,
+    );
+
+    $form['type'] = array(
+      '#title' => t('Type'),
+      '#type'  => 'select',
+      '#description' => t('The type of map to be displayed.'),
+      '#default_value' => $settings['type'],
+      '#options'       => array(
+        'roadmap'   => t('Road Map'),
+        'satellite' => t('Satellite'),
+        'hybrid'    => t('Hybrid'),
+        'terrain'   => t('Terrain'),
+      ),
+    );
+
+    $form['display_marker'] = array(
+      '#title'         => t('Display marker for address'),
+      '#type'          => 'checkbox',
+      '#default_value' => $settings['display_marker'],
+    );
+
+    $form['marker_size'] = array(
+      '#title'         => t('Marker Size'),
+      '#type'          => 'select',
+      '#default_value' => $settings['marker_size'],
+      '#options'       => array(
+        'tiny'   => t('Tiny'),
+        'mid'    => t('Mid'),
+        'small'  => t('Small'),
+        'normal' => t('Normal'),
+      ),
+    );
+
+    $form['marker_color'] = array(
+      '#title'            => t('Marker Color'),
+      '#type'             => 'textfield',
+      '#description'      => t('Valid values are black, brown, green, purple, yellow, blue, gray, orange, red, white, or any 24-bit valid hex value.'),
+      '#size'             => 8,
+      '#default_value'    => $settings['marker_color'],
+      '#element_validate' => array('nc_addressfield_staticmap_marker_color_validate'),
+    );
+  }
+
+  return $form;
+}
+
+/**
+ * Implements hook_field_formatter_settings_summary().
+ *
+ * Changes what is displayed for the display settings summary.
+ */
+function nc_addressfield_staticmap_field_formatter_settings_summary($field, $instance, $view_mode) {
+  $display = $instance['display'][$view_mode];
+  $settings = $display['settings'];
+
+  $summary = '';
+
+  if ($display['type'] == 'nc_addressfield_staticmap_default') {
+    $types = array(
+      'roadmap'   => t('Road Map'),
+      'satellite' => t('Satellite'),
+      'hybrid'    => t('Hybrid'),
+      'terrain'   => t('Terrain'),
+    );
+    $summary = t('Zoom Level: @zoom_level', array('@zoom_level' => $settings['zoom_level']));
+    $summary .= '</br>';
+    $summary .= t(
+      'Map Size: @map_width x @map_height',
+      array('@map_width' => $settings['map_width'], '@map_height' => $settings['map_height'])
+    );
+    $summary .= '</br>';
+    $summary .= t('Map Type: @type', array('@type' => $types[$settings['type']]));
+    $summary .= '</br>';
+    $summary .= t(
+      'Display map marker: @display_marker',
+      array('@display_marker' => ($settings['display_marker']) ? t('Yes') : t('No'))
+    );
+    if ($settings['display_marker']) {
+      $marker_sizes = array(
+        'tiny'   => t('Tiny'),
+        'mid'    => t('Mid'),
+        'small'  => t('Small'),
+        'normal' => t('Normal'),
+      );
+      $summary .= '<br />';
+      $summary .= t('Marker Size: @marker_size', array('@marker_size' => $marker_sizes[$settings['marker_size']]));
+      $summary .= '<br />';
+      $summary .= t('Marker Color: @marker_color', array('@marker_color' => $settings['marker_color']));
+    }
+  }
+
+  return $summary;
+}
+
+/**
+ * Validates the marker color value.
+ */
+function nc_addressfield_staticmap_marker_color_validate($element, &$form_state, $form) {
+  $value = $element['#value'];
+  $valid = TRUE;
+  if (!empty($value)) {
+    $predefined_values = array(
+      'black',
+      'brown',
+      'green',
+      'purple',
+      'yellow',
+      'blue',
+      'gray',
+      'orange',
+      'red',
+      'white',
+    );
+    $valid = in_array($element['#value'], $predefined_values);
+    if (!$valid) {
+      $valid = preg_match('/^[a-f0-9]{6}$/i', $value);
+    }
+  }
+
+  if (!$valid) {
+    form_error($element, t('Invalid marker color value.  The value must be one of the predefined values or a valid hex color code'));
+  }
+}
+
+/**
+ * Returns the addressfield as a Google friendly address string.
+ */
+function nc_addressfield_staticmap_clean_addressfield($addressfield) {
+  $address = _nc_addressfield_staticmap_render_address($addressfield);
+  // Bugfix to remove address line 2 from inclusion in the address for the embedded map.
+  $address = preg_replace('/(<\/[^>]+?>)(<[^>\/][^>]*?>)/', '$1, $2', $address);
+  $address = strip_tags($address);
+  return $address;
+}
+
+/**
+ * Implements hook_theme().
+ *
+ * Registers the templates for the theme calls.
+ */
+function nc_addressfield_staticmap_theme($existing, $type, $theme, $path) {
+  return array(
+    'nc_addressfield_staticmap_static_map' => array(
+      'variables' => array(
+        'address'        => NULL,
+        'settings'       => NULL,
+        'map_url'        => NULL,
+        'directions_url' => NULL,
+      ),
+      'template' => 'nc-addressfield-staticmap-static-map',
+    ),
+  );
+}
+
+/**
+ * Renders out the address field as a string.
+ */
+function _nc_addressfield_staticmap_render_address($addressfield) {
+  $handlers = array('address' => 'address');
+  $context = array('mode' => 'render');
+  $address = addressfield_generate($addressfield, $handlers, $context);
+  if (strlen($address['#address']['premise']) > 0) {
+    unset($address['#address']['premise']);
+  }
+  return drupal_render($address);
+}
+
+/**
+ * Gets the markup for the formatter.
+ */
+function _nc_addressfield_staticmap_render_google_maps_image($address, $settings) {
+  global $is_https;
+
+  $map_url_settings = array(
+    'external' => TRUE,
+    'https'    => $is_https,
+    'query'    => array(
+      'center'  => $address,
+      'zoom'    => $settings['zoom_level'],
+      'size'    => $settings['map_width'] . 'x' . $settings['map_height'],
+      'maptype' => $settings['type'],
+    ),
+  );
+
+  $map_url_settings_esri = array(
+    'external' => TRUE,
+    'query'    => array(
+      'center'  => $address,
+      'size'    => $settings['map_width'] . 'x' . $settings['map_height'],
+    ),
+  );
+
+  if ($settings['display_marker']) {
+    $marker = 'color:' . (preg_match('/^[a-f0-9]{6}$/i', $settings['marker_color']) ? '0x' . $settings['marker_color'] : $settings['marker_color']);
+    if ($settings['marker_size'] != 'normal') {
+      $marker .= '|size:' . $settings['marker_size'];
+    }
+    $marker .= '|' . $address;
+    $map_url_settings['query']['markers'] = $marker;
+  }
+
+  $endpoint = variable_get('nc_addressfield_staticmap_endpoint', 'https://nonprod-staticmapgen.dc.nc.gov');
+
+  $map_url = url($endpoint,
+    strpos($endpoint, 'google') ? $map_url_settings : $map_url_settings_esri
+    );
+
+  $directions_url_settings = array(
+    'query'      => array(
+      'daddr' => $address
+    ),
+    'external'   => TRUE,
+    'https'      => $is_https,
+    'html'       => TRUE,
+  );
+
+  $directions_url = url(($is_https ? 'https' : 'http') . '://maps.google.com/maps', $directions_url_settings);
+
+  // Renders the HTML using the template file.
+  return theme(
+    'nc_addressfield_staticmap_static_map',
+     array(
+       'address'        => $address,
+       'settings'       => $settings,
+       'map_url'        => $map_url,
+       'directions_url' => $directions_url,
+     )
+  );
+}

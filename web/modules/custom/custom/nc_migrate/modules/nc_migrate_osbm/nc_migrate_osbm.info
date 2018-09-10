@@ -1,0 +1,12 @@
+name = "North Carolina Migrate - OSBM"
+description = "Module to migrate content into the NC Platform for OSBM"
+package = "North Carolina Migrate"
+core = 7.x
+dependencies[] = nc_migrate
+dependencies[] = nc_document
+
+; Class files for this module
+files[] = includes/MigrateOSBMBase.class.php
+files[] = includes/MigrateOSBMDocument.class.php
+files[] = includes/MigrateOSBMFileCatalog.class.php
+files[] = includes/MigrateOSBMDocumentSource.class.php

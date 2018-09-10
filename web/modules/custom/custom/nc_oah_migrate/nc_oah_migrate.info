@@ -1,0 +1,8 @@
+name = "OAH content migration"
+description = "Module to migrate OAH files and documents to digital commons"
+package = "Migration"
+core = 7.x
+
+dependencies[] = migrate
+
+files[] = register.inc

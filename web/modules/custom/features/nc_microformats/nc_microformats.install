@@ -1,0 +1,21 @@
+<?php
+/**
+ * @file
+ * Install, uninstall, schema and update hooks.
+ */
+
+/**
+ * Implements hook_enable().
+ */
+function nc_microformats_enable() {
+  // Refresh cached vocabs.
+  module_load_include('inc', 'microdata', 'microdata.admin');
+  $vocabulary_info = microdata_get_vocabulary_info();
+  foreach ($vocabulary_info as $name => $info) {
+    // Ensure that there was some content.
+    if ($data = microdata_update_vocabulary_schema($info['import_url'])) {
+      $schema = json_decode($data);
+      cache_set($name, $schema, 'cache_microdata_vocabulary');
+    }
+  }
+}

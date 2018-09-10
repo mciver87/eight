@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the OpenPublic Agency feature.
+ */
+
+include_once 'openpublic_agency.features.inc';

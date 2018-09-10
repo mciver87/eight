@@ -1,0 +1,7 @@
+; Accessibility Web Tool integration.
+name = NC Accessibility Web Tool
+description = Provides Accessibility Web Tool integration.
+core = 7.x
+package = North Carolina
+version = 7.x-1.0
+project = nc_a_web

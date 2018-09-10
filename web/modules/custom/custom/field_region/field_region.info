@@ -1,0 +1,6 @@
+name = Field Region
+description = "Allows placing fields directly into regions as blocks."
+core = 7.x
+package = Fields
+dependencies[] = field
+dependencies[] = block

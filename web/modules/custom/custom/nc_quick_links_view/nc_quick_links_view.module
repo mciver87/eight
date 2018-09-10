@@ -1,0 +1,14 @@
+<?php
+/**
+ * @file
+ * Module file for NC Quick Links View.
+ */
+
+/**
+ * Implements hook_views_api().
+ */
+function nc_quick_links_view_views_api() {
+  return array(
+    'api' => 3,
+  );
+}

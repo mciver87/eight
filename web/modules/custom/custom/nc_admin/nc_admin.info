@@ -1,0 +1,5 @@
+name = NC Admin
+description = Custom alterations for admin
+core = 7.x
+package = North Carolina
+version = 7.x-1.0

@@ -1,0 +1,132 @@
+<?php
+/**
+ * @file
+ * Module file for the NC User Messages module.
+ */
+
+define('NC_USER_MESSAGES_VAR_PATH', 'nc_user_messages_path');
+define('NC_USER_MESSAGES_VAR_PATH_DEFAULT', 'https://www.nc.gov');
+define('NC_USER_MESSAGES_VAR_KEY', 'nc_user_messages_key');
+define('NC_USER_MESSAGES_VAR_KEY_DEFAULT', 'c92ZOhp4f1ODilje');
+define('NC_USER_MESSAGES_PERM_CONFIG', 'administrator nc_user_messages config');
+
+/**
+ * Implements hook_permission().
+ */
+function nc_user_messages_permission() {
+  return array(
+    NC_USER_MESSAGES_PERM_CONFIG => array(
+      'title' => t('Set config settings for NC User Messages'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_theme().
+ */
+function nc_user_messages_theme($existing, $type, $theme, $path) {
+  $items = array();
+
+  $items['nc_user_messages_user_page'] = array(
+    'variables' => array('messages' => array()),
+    'template' => 'nc-user-messages--user-page',
+    'path' => drupal_get_path('module', 'nc_user_messages') . '/theme',
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_menu().
+ */
+function nc_user_messages_menu() {
+  $items = array();
+
+  $items['admin/config/system/nc-user-messages'] = array(
+    'title'            => 'NC User Messages Settings',
+    'description'      => 'Set the settings for NC User Messages',
+    'page callback'    => 'drupal_get_form',
+    'page arguments'   => array('_nc_user_messages_admin_form'),
+    'access arguments' => array(NC_USER_MESSAGES_PERM_CONFIG),
+    'type'             => MENU_NORMAL_ITEM,
+  );
+
+  $items['admin/config/system/nc-user-messages/settings'] = array(
+    'title' => 'NC User Messages Settings',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+  );
+
+  return $items;
+}
+
+/**
+ * Admin form.
+ */
+function _nc_user_messages_admin_form($form, &$form_state) {
+  $form = array();
+
+  $form[NC_USER_MESSAGES_VAR_PATH] = array(
+    '#type' => 'textfield',
+    '#title' => t('NC User Messages Path'),
+    '#description' => t('URL where the messages are being served from.'),
+    '#required' => TRUE,
+    '#default_value' => variable_get(NC_USER_MESSAGES_VAR_PATH, NC_USER_MESSAGES_VAR_PATH_DEFAULT),
+  );
+
+  $form[NC_USER_MESSAGES_VAR_KEY] = array(
+    '#type'          => 'textfield',
+    '#title'         => t('Messages Key'),
+    '#description'   => t('Key needed to receive the messages.'),
+    '#required'      => TRUE,
+    '#default_value' => variable_get(NC_USER_MESSAGES_VAR_KEY, NC_USER_MESSAGES_VAR_KEY_DEFAULT),
+  );
+
+  return system_settings_form($form);
+}
+
+/**
+ * Validation for the settings form.
+ */
+function _nc_user_messages_admin_form_validate($form, &$form_state) {
+  $path = $form_state['values'][NC_USER_MESSAGES_VAR_PATH];
+  if (!valid_url($path, TRUE)) {
+    form_set_error(NC_USER_MESSAGES_VAR_PATH, t('The path must be a valid url.'));
+  }
+}
+
+/**
+ * Implements hook_user_view().
+ */
+function nc_user_messages_user_view($account, $view_mode, $langcode) {
+  $messages = _nc_user_messages_get_messages();
+  if (count($messages)) {
+    $account->content['messages'] = array(
+      '#type' => 'markup',
+      '#markup' => theme('nc_user_messages_user_page', array('messages' => $messages)),
+      '#weight' => 0,
+    );
+  }
+}
+
+/**
+ * Returns all user messages.
+ */
+function _nc_user_messages_get_messages() {
+  $messages = array();
+
+  $path = sprintf(
+    '%s/nc-user-messages/messages/%s',
+    variable_get(NC_USER_MESSAGES_VAR_PATH, NC_USER_MESSAGES_VAR_PATH_DEFAULT),
+    variable_get(NC_USER_MESSAGES_VAR_KEY, NC_USER_MESSAGES_VAR_KEY_DEFAULT)
+  );
+  $result = drupal_http_request($path);
+  if (!isset($result->error)) {
+    $data = json_decode($result->data);
+    if ($data !== FALSE && !isset($data->error)) {
+      foreach ($data as $message) {
+          $messages[] = $message;
+      }
+    }
+  }
+  return $messages;
+}

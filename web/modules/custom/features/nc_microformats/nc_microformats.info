@@ -1,0 +1,13 @@
+name = NC Microformats
+description = Provides microformat / microdata integration
+core = 7.x
+package = North Carolina
+version = 7.x-1.0
+project = nc_microformats
+dependencies[] = ctools
+dependencies[] = microdata
+dependencies[] = strongarm
+features[ctools][] = strongarm:strongarm:1
+features[features_api][] = api:2
+features[variable][] = microdata_enabled_vocabularies
+project path = profiles/north_carolina/modules/features

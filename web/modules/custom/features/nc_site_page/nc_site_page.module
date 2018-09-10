@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the NC Site Page feature.
+ */
+
+include_once 'nc_site_page.features.inc';

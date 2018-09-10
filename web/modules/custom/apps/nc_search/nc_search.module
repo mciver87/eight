@@ -1,0 +1,410 @@
+<?php
+/**
+ * @file
+ * Required for module.
+ */
+
+include_once 'nc_search.features.inc';
+
+/**
+ * Implements hook_theme().
+ */
+function nc_search_theme() {
+  return array(
+    'nc_search_block_form' => array(
+      'render element' => 'form',
+      'template' => 'nc-search-block-form',
+    ),
+    'nc_search_featured_results' => array(
+      'file' => 'nc_search.theme.inc',
+      'arguments' => array('row' => NULL, 'row_index', 'view' => NULL),
+    ),
+  );
+}
+
+/**
+ * Implements hook_permission().
+ */
+function nc_search_permission() {
+  return array(
+    'administer nc search' => array(
+      'title' => t('Administer search'),
+    ),
+    'search nc content' => array(
+      'title' => t('Use search'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function nc_search_block_info() {
+  $blocks['form']['info'] = t('NC Search form');
+  // Not worth caching.
+  $blocks['form']['cache'] = DRUPAL_NO_CACHE;
+  $blocks['form']['properties']['administrative'] = TRUE;
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function nc_search_block_view($delta = '') {
+  if (user_access('search nc content')) {
+    $block['content'] = drupal_get_form('nc_search_block_form');
+    return $block;
+  }
+}
+
+/**
+ * Output a search form for the search block's search box.
+ */
+function nc_search_box($form, &$form_state, $form_id) {
+  $form[$form_id] = array(
+    '#type' => 'textfield',
+    '#title' => t('Search'),
+    '#title_display' => 'invisible',
+    '#size' => 15,
+    '#default_value' => '',
+    '#attributes' => array(
+      'title' => t('Enter the terms you wish to search for.'),
+      'placeholder' => t('Search') . '...',
+    ),
+  );
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Search'),
+    '#weight' => 15,
+    '#submit' => array('nc_search_box_form_submit'),
+  );
+  // We should handle the form differently, depending on whether or not we are
+  // defaulting to google custom search.
+  $nc_search_default_to_google = variable_get('nc_search_default_to_google', FALSE);
+
+  // If the default is google:
+  if ($nc_search_default_to_google) {
+    // Set the method to "Get."
+    $form['#method'] = 'get';
+    $form['#action'] = url('advanced-search');
+  }
+
+  return $form;
+}
+
+/**
+ * Process a block search form submission.
+ */
+function nc_search_box_form_submit($form, &$form_state) {
+  // The search form relies on control of the redirect destination for its
+  // functionality, so we override any static destination set in the request,
+  // for example by drupal_access_denied() or drupal_not_found()
+  // (see http://drupal.org/node/292565).
+  if (isset($_GET['destination'])) {
+    unset($_GET['destination']);
+  }
+
+  // Check to see if the form was submitted empty.
+  // If it is empty, display an error message.
+  // (This method is used instead of setting #required to TRUE for this field
+  // because that results in a confusing error message.  It would say a plain
+  // "field is required" because the search keywords field has no title.
+  // The error message would also complain about a missing #title field.)
+  if ($form_state['values']['nc_search_block_form'] == '') {
+    form_set_error('keys', t('Please enter some keywords.'));
+  }
+
+  $form_id = $form['form_id']['#value'];
+  $form_state['redirect'] = array(
+    'search', array(
+      'query' => array(
+        'search_api_views_fulltext' => trim($form_state['values'][$form_id]),
+      ),
+    ),
+  );
+}
+
+/**
+ * Implements hook_forms().
+ */
+function nc_search_forms() {
+  $forms['nc_search_block_form'] = array(
+    'callback' => 'nc_search_box',
+    'callback arguments' => array('nc_search_block_form'),
+  );
+  return $forms;
+}
+
+/**
+ * Process variables for nc-search-block-form.tpl.php.
+ *
+ * The $variables array contains the following arguments:
+ * - $form
+ */
+function nc_search_preprocess_nc_search_block_form(&$variables) {
+  $variables['search'] = array();
+  $hidden = array();
+  // Provide variables named after form keys so themers can print each element
+  // independently.
+  foreach (element_children($variables['form']) as $key) {
+    $type = isset($variables['form'][$key]['#type']) ? $variables['form'][$key]['#type'] : '';
+    if ($type == 'hidden' || $type == 'token') {
+      $hidden[] = drupal_render($variables['form'][$key]);
+    }
+    else {
+      $variables['search'][$key] = drupal_render($variables['form'][$key]);
+    }
+  }
+  // Hidden form elements have no value to themers. No need for separation.
+  $variables['search']['hidden'] = implode($hidden);
+  // Collect all form elements to make it easier to print the whole form.
+  $variables['search_form'] = implode($variables['search']);
+  // Add additional variables.
+  // Determine if we are defaulting to google site search.
+  $nc_search_default_to_google = variable_get('nc_search_default_to_google', FALSE);
+  $nc_search_name = 'nc_search_block_form';
+  if ($nc_search_default_to_google) {
+    $nc_search_name = 's';
+  }
+  $variables['nc_search_name'] = $nc_search_name;
+  $variables['search_text_placeholder'] = t('!placeholder', array('!placeholder' => check_plain(variable_get('nc_search_placeholder_text', 'Search...'))));
+  $variables['search_text_title'] = t('!title', array('!title' => check_plain(variable_get('nc_search_title_text', 'Enter the terms you wish to search for.'))));
+}
+
+/**
+ * Implements hook_preprocess_page().
+ */
+function nc_search_preprocess_page(&$variables) {
+  $block = module_invoke('nc_search', 'block_view', 'content');
+  $variables['nc_search'] = $block;
+}
+
+/**
+ * Implements hook_views_pre_render().
+ */
+function nc_search_views_pre_render(&$view) {
+  if ($view->name == 'search_results') {
+    $featured_results = array();
+    $search_text = '';
+    // If the search text matches a 'key search topic' term value, its a
+    // featured result.
+    if (!empty($view->filter['search_api_views_fulltext']->value)) {
+      $search_text = $view->filter['search_api_views_fulltext']->value;
+    }
+
+    foreach ($view->result as $id => $result) {
+      // Give landing pages a snippet because they don't have a body.
+      if (isset($result->_entity_properties['type']) && $result->_entity_properties['type'] == 'landing_page') {
+        $wrapper = entity_metadata_wrapper('node', $result->_entity_properties['nid']);
+        if (module_exists('metatag')) {
+          $metatags = metatag_metatags_load('node', $result->_entity_properties['nid']);
+          if (!empty($metatags)) {
+            // The metatag_metatags_load func returns weird-structured array.
+            // Take off first two layers before we get to the values we want.
+            $mt1 = array_pop($metatags);
+            $mt2 = array_pop($mt1);
+            if (isset($mt2['description']) && isset($mt2['description']['value']) && $mt2['description']['value']) {
+              $view->result[$id]->_entity_properties['search_api_excerpt'] = check_plain($mt2['description']['value']);
+            }
+          }
+        }
+      }
+
+      // Note: Featured results currently disabled per client request.
+      if (!empty($result->_entity_properties['field_key_search_topics'])) {
+        $wrapper = entity_metadata_wrapper('node', $result->_entity_properties['nid']);
+        if (isset($wrapper->field_key_search_topics)) {
+          $terms = $wrapper->field_key_search_topics->value();
+          foreach ($terms as $term) {
+            if ($term->name == $search_text) {
+              // Ding ding we have a winner.
+              if (variable_get('display_featured_results', FALSE)) {
+                array_push($featured_results, $result);
+                unset($view->result[$id]);
+              }
+            }
+          }
+        }
+      }
+    }
+    $view->featured_results = $featured_results;
+  }
+}
+
+/**
+ * Implements hook_preprocess_views_view().
+ */
+function nc_search_preprocess_views_view(&$variables) {
+  $view = $variables['view'];
+  $variables['featured_results'] = FALSE;
+  if ($view->name == 'search_results') {
+    // Only process featured results if using the type filter term value of "".
+    if (isset($view->filter['type']) && !is_array($view->filter['type']->value)) {
+      return;
+    }
+    $variables['featured_results_label'] = t('Featured Results');
+    if (!empty($view->featured_results)) {
+      foreach ($view->featured_results as $index => $row) {
+        $output = theme('nc_search_featured_results', array(
+          'row' => $row,
+          'row_index' => $index,
+          'view' => $view)
+        );
+        $variables['featured_results'] .= render($output);
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_views_post_execute().
+ */
+function nc_search_views_post_execute(&$view) {
+  if ($view->name == 'search_results') {
+    foreach ($view->result as $id => $result) {
+      // Fix URLs that have incorrect base paths.
+      if (!empty($result->_entity_properties['nid']) && isset($result->_entity_properties['search_api_site_hash'])) {
+        // Check that the result is coming from the current site .
+        $site_hash = search_api_site_hash();
+        if ($site_hash == $result->_entity_properties['search_api_site_hash']) {
+          // The url() ensures the use of base_url.
+          $view->result[$id]->_entity_properties['url'] = url('node/' . $result->_entity_properties['nid'], array('absolute' => TRUE));
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_form_FORMID_alter().
+ */
+function nc_search_form_views_exposed_form_alter(&$form, &$form_state) {
+  // Make sure this is the search results page exposed form.
+  if (isset($form['#id']) && 'views-exposed-form-search-results-page' == $form['#id']) {
+    // Check to see if this is a site showing federated search.
+    if (variable_get('nc_search_enable_all_sites', FALSE)) {
+      // Handle anything specific to federated search.
+    }
+    else {
+      // Disable "within" field and hardcode value to "this site only" option.
+      $form['search_api_site_hash'] = array(
+        '#type' => 'value',
+        '#value' => 1,
+      );
+      $form['#info']['filter-search_api_site_hash']['label'] = '';
+    }
+  }
+}
+
+/**
+ * Ensures that the elasticsearch cluster has a cluster id.
+ */
+function nc_search_reset() {
+  static $reset;
+  if (!$reset) {
+    // We need to make sure our clusters get written to the db.
+    require_once 'nc_search.elasticsearch_connector_defaults.inc';
+    $clusters = nc_search_default_elasticsearch_connector_cluster();
+    foreach ($clusters as $cluster) {
+      $cluster->export_type = 1;
+      elasticsearch_connector_cluster_save($cluster);
+    }
+    // Ensure there is a default elastic cluster.
+    $default = elasticsearch_connector_get_default_connector();
+    if (!empty($clusters['nc_cluster']->cluster_id) && empty($default)) {
+      elasticsearch_connector_set_default_connector($clusters['nc_cluster']->cluster_id);
+    }
+    $reset = TRUE;
+  }
+}
+
+/**
+ * Implements hook_post_features_revert().
+ */
+function nc_search_pre_features_revert($component) {
+  if ($component == 'search_api_index' || $component == 'search_api_server') {
+    nc_search_reset();
+  }
+}
+
+
+/**
+ * Refreshes the local search api.
+ */
+function nc_search_reindex() {
+
+  /* SELECT t.nid AS item_id, :index_id AS index_id, 1 AS changed FROM{node}   */
+  $selectquery = db_select('search_api_index', 'sai');
+  $selectquery->addField('sai', 'id');
+  $selectquery->condition('sai.enabled', 1);
+  $indexes = $selectquery->execute();
+
+  foreach ($indexes as $index) {
+    db_delete('search_api_item')
+        ->condition('index_id', $index->id)
+        ->execute();
+
+    $query = db_select('node', 't');
+    $query->addField('t', 'nid', 'item_id');
+    $query->addExpression(':index_id', 'index_id', array(':index_id' => $index->id));
+    $query->addExpression('1', 'changed');
+
+    // INSERT ... SELECT ...
+    db_insert('search_api_item')
+        ->from($query)
+        ->execute();
+  }
+}
+/**
+ * Implements elasticsearch_connector_search_api_query_alter().
+ */
+function nc_search_elasticsearch_connector_search_api_query_alter(&$query, &$params) {
+  if ($query->getOption('parse mode') == 'single' && isset($params['body']['query'])) {
+    $splice_id = NULL;
+    foreach ($params['body']['query']['filtered']['query']['bool']['should'] as $bool_id => $bool_options) {
+      if (isset($bool_options['multi_match'])) {
+        $splice_id = $bool_id;
+      }
+      if (isset($bool_options['query_string'])) {
+        $params['body']['query']['filtered']['query']['bool']['should'][$bool_id]['query_string']['phrase_slop'] = 5;
+      }
+    }
+    if (isset($splice_id) && ($splice_id !== NULL)) {
+      array_splice($params['body']['query']['filtered']['query']['bool']['should'], $splice_id, 1);
+    }
+  }
+}
+
+/**
+ * Function elasticsearch_connector_search_api_results().
+ */
+function nc_search_elasticsearch_connector_search_api_results_alter(&$results, &$query, &$response) {
+  if (!empty($results)) {
+    foreach ($results as $result => $data) {
+      if (!empty($data)) {
+        foreach ($data as $elt_key => $elt) {
+          if (!empty($results[$result][$elt_key]['highlight']['title'])) {
+            foreach ($results[$result][$elt_key]['highlight']['title'] as $t_key => $title) {
+              $results[$result][$elt_key]['highlight']['title'][$t_key] = strip_tags($title);
+            }
+          }
+          if (!empty($results[$result][$elt_key]['highlight']['search_api_viewed'])) {
+            foreach ($results[$result][$elt_key]['highlight']['search_api_viewed'] as $v_key => $viewed) {
+              $results[$result][$elt_key]['highlight']['search_api_viewed'][$v_key] = strip_tags($viewed);
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_views_api().
+ */
+function nc_search_views_api() {
+  return array(
+    'api' => 3,
+    'template path' => drupal_get_path('module', 'nc_search') . '/templates',
+  );
+}

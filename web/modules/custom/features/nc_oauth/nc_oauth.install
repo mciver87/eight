@@ -1,0 +1,17 @@
+<?php
+/**
+ * @file
+ * Install file for the nc_oauth module.
+ */
+
+/**
+ * Implements hook_enable().
+ */
+function nc_oauth_enable() {
+  $admin_role = user_role_load_by_name('administrator');
+  if ($admin_role) {
+    // No role gets permissions to new contexts by default, so we add them here.
+    user_role_grant_permissions($admin_role->rid, array('oauth register consumers in filebrowser'));
+    user_role_grant_permissions($admin_role->rid, array('oauth authorize consumers in filebrowser'));
+  }
+}

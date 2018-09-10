@@ -1,0 +1,33 @@
+<?php
+/**
+ * @file
+ * Contains install, uninstall, schema and update hooks for module
+ */
+
+/**
+ * ABT#736 - Configure Google CSE content type when enabled.
+ */
+function nc_google_cse_update_7100() {
+  // No longer a feature.  No need to revert.
+}
+
+/**
+ * ABT-748 - Moves advanced search page from content type to menu.
+ */
+function nc_google_cse_update_7101() {
+  // Delete the google cse content type.
+  $type = 'google_cse';
+  $node_type = node_type_load($type);
+  if ($node_type) {
+    $result = db_select('node', 'n')
+      ->fields('n', array('nid'))
+      ->condition('type', $type)
+      ->execute();
+    $nids = array();
+    foreach ($result as $row) {
+      $nids[] = $row->nid;
+    }
+    node_delete_multiple($nids);
+    node_type_delete($type);
+  }
+}

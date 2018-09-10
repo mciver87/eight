@@ -1,0 +1,231 @@
+<?php
+/**
+ * @file
+ * This module provides an integration point with the State of NC's BEACON HRMS.
+ * It is the canonical system for all staff directories and organizational
+ * listings.
+ */
+
+include_once 'nc_beacon.features.inc';
+
+/**
+ * Implements hook_menu().
+ */
+function nc_beacon_menu() {
+  $items = array();
+
+  $items['employee/%nc_beacon_employee'] = array(
+    'title' => 'Employee Directory',
+    'page callback' => '_nc_beacon_employee',
+    'page arguments' => array(1),
+    'access callback' => TRUE,
+  );
+
+  return $items;
+}
+
+/**
+ * Argument callback for '%nc_beacon_employee'.
+ */
+function nc_beacon_employee_load($pkid) {
+  $data = new stdClass();
+  $req_url = url('http://uat.empdirws.nc.gov/index.php', array(
+    'query' => array(
+      'pkemployee' => $pkid,
+    ),
+  ));
+  $resp = drupal_http_request($req_url);
+
+  // Process response into Views rows.
+  if (200 == $resp->code) {
+    $resp_data = json_decode($resp->data, TRUE);
+    if (NULL !== $resp_data) {
+      $data = array_pop($resp_data);
+    }
+  }
+
+  return $data;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function nc_beacon_theme($existing, $type, $theme, $path) {
+  $items = array();
+
+  $items['nc_beacon_employee'] = array(
+    'template' => 'nc_beacon_employee',
+    'path' => $path . '/theme',
+  );
+
+  return $items;
+}
+
+/**
+ * Implements page callback for 'employee/%nc_beacon_employee'.
+ */
+function _nc_beacon_employee($employee) {
+  return theme('nc_beacon_employee', $employee);
+}
+
+/**
+ * Implements hook_views_plugins().
+ */
+function nc_beacon_views_plugins() {
+  $plugins = array(
+    'module' => 'nc_beacon',
+    'query' => array(
+      'nc_beacon_query' => array(
+        'title' => t('North Carolina BEACON Query'),
+        'help' => t('Query will be run using the BEACON JSON API.'),
+        'handler' => 'nc_beacon_views_query_plugin',
+        'parent' => 'views_plugin_query',
+      ),
+    ),
+  );
+
+  return $plugins;
+}
+
+/**
+ * Implements hook_views_data().
+ */
+function nc_beacon_views_data() {
+  $tables = array();
+
+  // Define table.
+  $tables['nc_beacon']['table'] = array(
+    'group' => 'North Carolina BEACON',
+    'base' => array(
+      'title' => 'North Carolina BEACON',
+      'help' => 'North Carolina BEACON',
+      'query class' => 'nc_beacon_query',
+    ),
+  );
+
+  // Define the Views data source using the Views field handlers.
+  $fields = array(
+    'pkEmployee' => array(
+      'field' => 'views_handler_field',
+    ),
+    'NameLast' => array(
+      'field' => 'views_handler_field',
+      'filter' => 'nc_beacon_views_handler_filter_text',
+    ),
+    'NameFirst' => array(
+      'field' => 'views_handler_field',
+      'filter' => 'nc_beacon_views_handler_filter_text',
+    ),
+    'NameMiddle' => array(
+      'field' => 'views_handler_field',
+    ),
+    'Agency' => array(
+      'field' => 'views_handler_field',
+      'filter' => 'nc_beacon_views_handler_filter_agency',
+    ),
+    'Division' => array(
+      'field' => 'views_handler_field',
+    ),
+    'Section' => array(
+      'field' => 'views_handler_field',
+    ),
+    'Branch' => array(
+      'field' => 'views_handler_field',
+    ),
+    'Phone' => array(
+      'field' => 'views_handler_field',
+    ),
+    'PhoneExt' => array(
+      'field' => 'views_handler_field',
+    ),
+    'MailAddress' => array(
+      'field' => 'views_handler_field',
+    ),
+    'MailCity' => array(
+      'field' => 'views_handler_field',
+    ),
+    'MailState' => array(
+      'field' => 'views_handler_field',
+    ),
+    'MailZip' => array(
+      'field' => 'views_handler_field',
+    ),
+    'Email' => array(
+      'field' => 'nc_beacon_views_handler_field_email',
+    ),
+  );
+  foreach ($fields as $name => $handlers) {
+    $tables['nc_beacon'][$name] = array(
+      'title' => $name,
+      'help' => 'Field in North Carolina BEACON',
+    );
+    if (!empty($handlers['field'])) {
+      $tables['nc_beacon'][$name]['field'] = array(
+        'handler' => $handlers['field'],
+        'click sortable' => TRUE,
+      );
+    }
+    if (!empty($handlers['filter'])) {
+      $tables['nc_beacon'][$name]['filter'] = array(
+        'handler' => $handlers['filter'],
+      );
+    }
+    if (!empty($handlers['sort'])) {
+      $tables['nc_beacon'][$name]['sort'] = array(
+        'handler' => $handlers['sort'],
+      );
+    }
+  }
+
+  return $tables;
+}
+
+/**
+ * Util function to query service for agencies.
+ */
+function nc_beacon_get_agencies() {
+  $agencies = array();
+  $req_url = 'http://uat.empdirws.nc.gov/agencies.php';
+  $resp = drupal_http_request($req_url);
+
+  // Process response into Views rows.
+  if (200 == $resp->code) {
+    $resp_data = json_decode($resp->data);
+    if (NULL !== $resp_data) {
+      foreach ($resp_data as $agency) {
+        $agencies[] = $agency;
+      }
+    }
+  }
+
+  return $agencies;
+}
+
+/**
+ * Implements hook_preprocess_views_view().
+ */
+function nc_beacon_preprocess_views_view(&$vars) {
+  if ($vars['name'] == 'empdir' && $vars['display_id'] == 'empdir_full_page' && isset($vars['empty'])) {
+    // NC-742: only show empty message if filtering has been applied.
+    $params = drupal_get_query_parameters();
+    if (empty($params)) {
+      $vars['empty'] = preg_replace('/<p class="no-results">.+?<\/p>/i', '', $vars['empty']);
+    }
+    else {
+      $vars['empty'] = preg_replace('/<p class="use-filters">.+?<\/p>/i', '', $vars['empty']);
+    }
+  }
+}
+
+/**
+ * Implements hook_preprocess_theme().
+ *
+ * Preprocess for nc_beacon_employee theme function.
+ */
+function nc_beacon_preprocess_nc_beacon_employee(&$vars) {
+  $theme = variable_get('theme_default', 'nc_base_theme');
+  $theme_path = drupal_get_path('theme', $theme);
+  $image_path = variable_get('nc_beacon_employee_image', 'img/l_ncgov-color.svg');
+  $image_path = $theme_path . '/' . $image_path;
+  $vars['background_image'] = url($image_path);
+}

@@ -1,0 +1,130 @@
+<?php
+/**
+ * @file
+ * Contains install, uninstall, schema and update hooks for module
+ */
+
+/**
+ * ABT#620 - Add Press Release Contact Information To Sidebar.
+ */
+function nc_press_release_update_7100() {
+  features_revert_module('nc_press_release');
+
+  // Because features doesn't seem to work for contexts correctly,
+  // I'm manually enabling the press release context.
+  $contexts = variable_get('context_status', array());
+  unset($contexts['press_release']);
+  variable_set('context_status', $contexts);
+}
+
+/**
+ * ABT#645 - Various Press Release Updates.
+ *
+ * ABT#645 - Make Press Releases Appear In Chronological Order.
+ * ABT#606 - Change Messaging.
+ * ABT#603 - Make taxonomy links clickable.
+ */
+function nc_press_release_update_7101() {
+  features_revert_module('nc_press_release');
+
+  // Enable the new formatter for ABT#603.
+  module_enable(array('views_term_link_formatter'));
+
+  // This is to change teaser settings. This is exported as part of the
+  // nc_press_release overrides, but it doesn't appear to apply on any
+  // site. So we'll just set it this way unless/until we can figure out
+  // why Features doesn't appear to be able to revert this.
+  $instance_info = field_info_instance('node', 'field_release_date', 'press_release');
+  $instance_info['display']['teaser']['settings']['format_type'] = 'nc_event_calendar_day';
+  $instance_info['display']['default']['type'] = 'nc_fields_date_formatter';
+  field_update_instance($instance_info);
+
+  // Update terms field.
+  $instance_info = field_info_instance('node', 'field_press_release_terms', 'press_release');
+  $instance_info['display']['default']['type'] = 'views_term_link_formatter_term_link';
+  $instance_info['display']['default']['settings']['style_settings']['wrapper']['element'] = 'div';
+  $instance_info['display']['default']['settings']['style_settings']['wrapper']['class'] = 'nc-term-field';
+  field_update_instance($instance_info);
+
+  // Update division/department field.
+  $instance_info = field_info_instance('node', 'field_agency_department', 'press_release');
+  $instance_info['display']['default']['type'] = 'views_term_link_formatter_term_link';
+  $instance_info['display']['default']['settings']['style_settings']['wrapper']['element'] = 'div';
+  $instance_info['display']['default']['settings']['style_settings']['wrapper']['class'] = 'nc-term-field';
+  field_update_instance($instance_info);
+}
+
+/**
+ * ABT#713 - Set language to neutral.
+ */
+function nc_press_release_update_7102() {
+  features_revert(array('nc_press_release' => array('variable')));
+}
+
+/**
+ * ABT#717 - adding imce filefield.
+ */
+function nc_press_release_update_7103() {
+  features_revert_module('nc_press_release');
+}
+
+/**
+ * Implements hook_update_N().
+ *
+ * ABT-706 updated to set the correct label for the field group.
+ */
+function nc_press_release_update_7104() {
+  features_revert(array('nc_press_release' => array('field_group')));
+}
+
+/**
+ * Implements hook_update_N().
+ *
+ * ABT-706 updated to set the correct label for the field group.
+ */
+function nc_press_release_update_7105() {
+  features_revert(array('nc_press_release' => array('field_group')));
+}
+
+/**
+ * ABT-792: Turn off node preview for all content types.
+ */
+function nc_press_release_update_7106() {
+  variable_set('node_preview_press_release', '0');
+}
+
+/**
+ * Implements hook_update_N().
+ *
+ * DC-494 - Update image upload requirements.
+ */
+function nc_press_release_update_7107() {
+  $main_image = field_info_instance('node', 'field_main_image', 'press_release');
+  $main_image['description'] = 'Larger images will be scaled and cropped automatically to 740 x 416 pixels.';
+  $main_image['settings']['max_filesize'] = 52428800;
+  field_update_instance($main_image);
+
+  global $shortcode;
+
+  if (strpos($shortcode, 'ncosbm') !== false) {
+    $files = field_info_instance('node', 'field_files', 'press_release');
+    $files['settings']['file_extensions'] = 'pdf doc docx xls xlsx csv txt rtf html zip ppt pptx xml kmz mp3';
+    field_update_instance($files);
+  }
+  else {
+    $files = field_info_instance('node', 'field_files', 'press_release');
+    $files['settings']['file_extensions'] = 'pdf doc docx xls xlsx csv txt rtf zip ppt pptx xml kmz mp3';
+    field_update_instance($files);
+  }
+}
+
+/**
+ * Implements hook_update_N().
+ *
+ * DC-515 - Complete image upload requirements.
+ */
+function nc_press_release_update_7108() {
+  $thumb_image = field_info_instance('node', 'field_thumbnail_image', 'press_release');
+  $thumb_image['settings']['max_filesize'] = 1048576;
+  field_update_instance($thumb_image);
+}

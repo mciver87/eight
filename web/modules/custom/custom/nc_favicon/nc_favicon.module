@@ -1,0 +1,94 @@
+<?php
+/**
+ * @file
+ * Code for the NC Favicon feature.
+ */
+
+// Adds necessary image styles to render the favicons we need.
+include_once 'nc_favicon.features.inc';
+
+function nc_favicon_style_list() {
+  return array(
+    'favicon57' => 'apple-touch-icon',
+    'favicon60' => 'apple-touch-icon',
+    'favicon72' => 'apple-touch-icon',
+    'favicon76' => 'apple-touch-icon',
+    'favicon114' => 'apple-touch-icon',
+    'favicon120' => 'apple-touch-icon',
+    'favicon144' => 'apple-touch-icon',
+    'favicon152' => 'apple-touch-icon',
+    'favicon180' => 'apple-touch-icon',
+    'favicon192' => 'icon',
+    'favicon32' => 'icon',
+    'favicon96' => 'icon',
+    'favicon16' => 'icon',
+  );
+}
+
+/**
+ * Implements hook_html_head_alter().
+ */
+function nc_favicon_html_head_alter(&$head_elements) {
+  // Array of favicon variants with which to generate links.
+  $favicon_variants = nc_favicon_style_list();
+  // Search the head elements for the favicon
+  if (theme_get_setting('toggle_favicon') === 1) {
+    foreach ($head_elements as $key => $element) {
+      if (!empty($element['#attributes'])) {
+        if (array_key_exists('href', $element['#attributes'])) {
+          if ($element['#attributes']['rel'] === 'shortcut icon') {
+
+            // We need the path of the custom favicon.
+            $favicon_url = theme_get_setting('favicon_path');
+
+            // Remove original favicon entirely
+            unset($head_elements[$key]);
+
+            // Create a url for each of the variants to add to <head>
+            foreach($favicon_variants as $variant => $favicon_type) {
+              $styled_url = str_replace('.png', '-' . $variant . '.png', $favicon_url);
+              $styled_url_final = file_create_url($styled_url);
+
+              $dim = str_replace('favicon', '', $variant);
+              $dims = $dim . 'x' . $dim;
+
+              $head_elements[$variant] = array(
+                '#type' => 'html_tag',
+                '#tag' => 'link',
+                '#attributes' => array(
+                  'rel' => $favicon_type,
+                  'href' => $styled_url_final,
+                  'sizes' => $dims,
+                ),
+              );
+            }
+          }
+        }
+      }
+    }
+  }
+  // No custom favicon set, so show the default NC favicons.
+  else {
+    foreach($favicon_variants as $variant => $favicon_type) {
+      $dim = str_replace('favicon', '', $variant);
+      $dims = $dim . 'x' . $dim;
+
+      if (strpos($favicon_type, 'apple') !== false) {
+        $styled_url = '/apple-icon-' . $dims . '.png';
+      }
+      else {
+        $styled_url = '/favicon-' . $dims . '.png';
+      }
+
+      $head_elements[$variant][] = array(
+        '#type' => 'html_tag',
+        '#tag' => 'link',
+        '#attributes' => array(
+          'rel' => $favicon_type,
+          'href' => $styled_url,
+          'sizes' => $dims,
+        ),
+      );
+    }
+  }
+}

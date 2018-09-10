@@ -1,0 +1,25 @@
+<?php
+/**
+ * @file
+ * Code for the NC Tax Type feature.
+ */
+
+include_once 'nc_tax_type.features.inc';
+
+/**
+ * Implements hook_preprocess_page().
+ *
+ * Forces Drupal to use our custom page template for tax type.
+ */
+function nc_tax_type_preprocess_page(&$variables, $hook) {
+  $type = isset($variables['node']) ? $variables['node']->type : FALSE;
+  // The markup required for the press release deviates considerably from
+  // what standard Drupal and views markup would/could ever generate.
+  // Additionally the node-type templates are not sufficient since we have
+  // to customize markup that's generated outside of that template's
+  // scope. Therefore, this adds the ability to specify a press release
+  // page template.
+  if ($type && $type == 'tax_type') {
+    $variables['theme_hook_suggestions'][] = 'page__type__' . $type;
+  }
+}

@@ -1,0 +1,11 @@
+name = "SHP migration"
+description = "Module to migrate SHP content and documents to digital commons"
+package = "Migration"
+core = 7.x
+
+dependencies[] = migrate
+
+files[] = documents.inc
+files[] = pages.inc
+files[] = hbr.inc
+files[] = memberfocus.inc

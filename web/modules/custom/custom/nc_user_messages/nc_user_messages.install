@@ -1,0 +1,26 @@
+<?php
+/**
+ * @file
+ * Install file for NC User Messages.
+ */
+
+/**
+ * Implements hook_enable().
+ */
+function nc_user_messages_enable() {
+  module_invoke_all('permission');
+  $role = user_role_load_by_name('administrator');
+  if ($role) {
+    $permissions = array(
+      NC_USER_MESSAGES_PERM_CONFIG,
+    );
+    user_role_grant_permissions($role->rid, $permissions);
+  }
+}
+
+/**
+ * ABT-792: Turn off node preview for all content types.
+ */
+function nc_user_messages_update_7000() {
+  variable_set('node_preview_nc_user_message', '0');
+}

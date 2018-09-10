@@ -1,0 +1,15 @@
+name = "North Carolina Migrate - DENR"
+description = "Module to migrate content into the NC Platform for DENR"
+package = "North Carolina Migrate"
+core = 7.x
+dependencies[] = nc_migrate
+dependencies[] = nc_document
+
+; Class files for this module
+files[] = includes/MigrateDENRBase.class.php
+files[] = includes/MigrateDENRPages.class.php
+files[] = includes/MigrateDENRPageMenu.class.php
+files[] = includes/MigrateDENRCSVSource.class.php
+files[] = includes/MigrateDENRFiles.class.php
+files[] = includes/MigrateDENRDocuments.class.php
+files[] = includes/MigrateDENRDocumentSource.class.php

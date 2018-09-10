@@ -1,0 +1,118 @@
+<?php
+/**
+ * @file
+ * Code for the NC Event feature.
+ */
+
+include_once 'nc_event.features.inc';
+
+/**
+ * Implements hook_entity_info_alter().
+ */
+function nc_event_entity_info_alter(&$entity_info) {
+  $entity_info['node']['view modes']['block_feature'] = array(
+    'label' => t('Block feature'),
+    'custom settings' => TRUE,
+  );
+}
+
+/**
+ * Implements hook_preprocess_views_view().
+ */
+function nc_event_preprocess_views_view(&$vars) {
+  if ($vars['name'] == 'event_list' && $vars['display_id'] == 'page') {
+    // Add our javascript and css to the events page.
+    drupal_add_js(drupal_get_path('module', 'nc_event') . '/event.js');
+    drupal_add_css(drupal_get_path('module', 'nc_event') . '/nc_event.css');
+    drupal_add_library('system', 'ui.datepicker');
+  }
+}
+
+/**
+ * Implements hook_preprocess_views_exposed_form().
+ */
+function nc_event_preprocess_views_exposed_form(&$vars) {
+  $vars['show_hr']  = FALSE;
+  if ($vars['form']['#id'] == 'views-exposed-form-event-list-page') {
+    $vars['show_hr'] = TRUE;
+  }
+}
+
+/**
+ * Implements hook_date_format_types().
+ */
+function nc_event_date_format_types() {
+  return array(
+    'nc_event_calendar_day' => t('Calendar Day'),
+    'nc_event_detail' => t('Event Detail'),
+  );
+}
+
+/**
+ * Implements hook_date_formats().
+ */
+function nc_event_date_formats() {
+  return array(
+    array(
+      'type' => 'nc_event_calendar_day',
+      'format' => 'l, F j, Y',
+      'locales' => array('en'),
+    ),
+    array(
+      'type' => 'nc_event_detail',
+      'format' => 'l, M j, Y g:i A',
+      'locales' => array('en'),
+    ),
+  );
+}
+
+/**
+ * Implements template_process_field().
+ */
+function nc_event_process_field(&$vars, $hook) {
+  $element = $vars['element'];
+  if (!empty($element['#field_name']) && 'field_event_dates' == $element['#field_name'] && !empty($element['#microdata_field_id'])) {
+    // Add microdata ID tag required to link this field with the event object.
+    $attrs['id'] = $element['#microdata_field_id'];
+    $vars['item_attributes'][0] .= ' ' . drupal_attributes($attrs);
+  }
+}
+
+/**
+ * Implements hook_preprocess_node().
+ */
+function nc_event_preprocess_node(&$variables) {
+  // Add the 'related-to' variable to Event nodes and hide the related terms.
+  if ($variables['type'] == 'event') {
+    // Add our css.
+    drupal_add_css(drupal_get_path('module', 'nc_event') . '/nc_event.css');
+  }
+}
+
+/**
+ * Implements hook_date_formatter_dates_alter().
+ */
+function nc_event_date_formatter_dates_alter(&$dates, $context) {
+  // Replace am with a.m. and pm with p.m. We need to do this here because the .
+  // is not available natively with the php date functions.
+  if ($context['entity_type'] == 'node') {
+    if ($context['entity']->type == 'event') {
+      foreach ($dates as &$date) {
+        $date['formatted'] = str_replace('pm', 'p.m.', $date['formatted']);
+        $date['formatted'] = str_replace('am', 'a.m.', $date['formatted']);
+        $date['formatted_time'] = str_replace('pm', 'p.m.', $date['formatted_time']);
+        $date['formatted_time'] = str_replace('am', 'a.m.', $date['formatted_time']);
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_form_alter().
+ */
+function nc_event_form_views_exposed_form_alter(&$form, &$form_state, $form_id) {
+  if ($form_state['view']->name == 'event_list') {
+    $form['field_agency_department_tid']['#options']['All'] = t('All Agencies');
+    $form['field_event_terms_tid']['#options']['All'] = t('All Topics');
+  }
+}

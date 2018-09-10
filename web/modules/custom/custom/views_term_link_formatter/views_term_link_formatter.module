@@ -1,0 +1,369 @@
+<?php
+/**
+ * @file
+ * Views term link formatter.
+ */
+
+/**
+ * Implements hook_field_formatter_info().
+ */
+function views_term_link_formatter_field_formatter_info() {
+  // This defines the field formatter.
+  return array(
+    'views_term_link_formatter_term_link' => array(
+      'label'       => t('Views Term Link'),
+      'field types' => array('taxonomy_term_reference'),
+      'description' => t('Displays the term link for Views displays with supported exposed filter(s).'),
+      'settings'    => array(
+        'anchor_enabled' => TRUE,
+        'views_view'     => NULL,
+        'wrapper'        => 'span',
+        'wrapper_class'  => 'label tag',
+        'anchor_class'   => 'link',
+      ),
+    ),
+  );
+}
+
+/**
+ * Implements hook_theme().
+ */
+function views_term_link_formatter_theme() {
+  return array(
+    'views_term_link' => array(
+      'variables' => array(
+        'term'     => NULL,
+        'entity'   => NULL,
+        'field'    => NULL,
+        'instance' => NULL,
+        'language' => NULL,
+        'settings' => NULL,
+      ),
+    ),
+  );
+}
+
+/**
+ * Theme function.
+ *
+ * @param array $variables
+ *   Options and inputs.
+ *
+ * @return array
+ *   Built render array.
+ */
+function theme_views_term_link($variables) {
+  return views_term_link_formatter_term_link($variables);
+}
+
+/**
+ * Implements hook_field_formatter_view().
+ */
+function views_term_link_formatter_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+  // Create element.
+  $element = array();
+
+  // Define the element.
+  switch ($display['type']) {
+    case 'views_term_link_formatter_term_link':
+      foreach ($items as $delta => $item) {
+        $term = taxonomy_term_load($item['tid']);
+        // TODO: Switch to theme('views_term_link_formatter_term_link', ...).
+        $element[$delta] = theme('views_term_link',
+          array(
+            'term'     => $term,
+            'entity'   => $entity,
+            'field'    => $field,
+            'instance' => $instance,
+            'language' => $langcode,
+            'settings' => $display['settings'],
+          )
+        );
+      }
+      break;
+  }
+
+  return $element;
+}
+
+/**
+ * This generates the render array for this element.
+ *
+ * @param array $variables
+ *   Options & inputs.
+ *
+ * @return array
+ *   Render array.
+ */
+function views_term_link_formatter_term_link($variables) {
+  $term           = isset($variables['term']) ? $variables['term'] : NULL;
+  $settings       = isset($variables['settings']) ? $variables['settings'] : array();
+  $wrapper        = isset($variables['wrapper']) ? trim($variables['wrapper']) : 'span';
+  $wrapper_class  = isset($variables['wrapper_class']) ? trim($variables['wrapper_class']) : 'label tag';
+  $anchor_class   = isset($variables['anchor_class']) ? trim($variables['anchor_class']) : 'link';
+  $prefix         = '<' . check_plain($wrapper) . ' class="' . check_plain($wrapper_class) . '" itemprop="keywords">';
+  $suffix         = '</' . check_plain($wrapper) . '>';
+  $anchor_enabled = isset($settings['anchor_enabled']) ? $settings['anchor_enabled'] : FALSE;
+
+  // Add anchor if this setting is enabled.
+  if ($anchor_enabled && ($href = views_term_link_formatter_generate_term_url($variables))) {
+    $prefix = format_string(
+        '<a href="@href" class="@class">',
+        array(
+          '@href'  => $href,
+          '@class' => check_plain($anchor_class),
+        )
+      ) .
+      $prefix;
+    $suffix .= '</a>';
+  }
+
+  // Build the render array for this item.
+  $build = array(
+    '#markup' => t('!term_name', array('!term_name' => $term->name)),
+    '#prefix' => $prefix,
+    '#suffix' => $suffix,
+  );
+
+  return $build;
+}
+
+/**
+ * Based on settings and field values, returns the url to the view.
+ *
+ * @param array $variables
+ *   Options & Input.
+ *
+ * @return string
+ *   Computed url.
+ */
+function views_term_link_formatter_generate_term_url($variables) {
+  // Initialize options.
+  $options = array();
+
+  // Settings.
+  $settings   = $variables['settings'];
+  $views_view = isset($settings['views_view']) && strlen(trim($settings['views_view'])) ? $settings['views_view'] : '|';
+
+  // This assumes that the $views_view is of the format view_name|display_id.
+  $views_view_display = explode('|', $views_view);
+
+  // Extract view name & display id.
+  $view_name    = isset($views_view_display[0]) ? trim($views_view_display[0]) : FALSE;
+  $display_name = isset($views_view_display[1]) ? trim($views_view_display[1]) : FALSE;
+
+  // Leave now. No need to continue.
+  if (!isset($view_name) || !$view_name || !isset($display_name) || !$display_name) {
+    return FALSE;
+  }
+
+  // Term related variables.
+  $term            = isset($variables['term']) ? $variables['term'] : NULL;
+  $term_id         = isset($term) ? $term->tid : NULL;
+  $term_vocabulary = isset($term) ? $term->vocabulary_machine_name : NULL;
+
+  /* @var view $view */
+  $view = views_get_view($view_name, TRUE);
+
+  // If the view ain't set, you must acquit. I mean quit.
+  if (!isset($view) || !$view) {
+    return FALSE;
+  }
+
+  // Get the display.
+  $display = $view->display[$display_name];
+
+  // Display options.
+  $display_options = $display->display_options;
+  $display_path    = $display_options['path'];
+
+  // Filter related stuff.
+  $filters     = isset($display_options['filters']) ? $display_options['filters'] : FALSE;
+  $filter_name = NULL;
+
+  // If the filters are empty, need to look in the default display.
+  if (empty($filters) || !$filters) {
+    // Get the display.
+    $display = $view->display['default'];
+
+    // Display options.
+    $display_options = $display->display_options;
+
+    // Filter related stuff.
+    $filters     = isset($display_options['filters']) ? $display_options['filters'] : FALSE;
+    $filter_name = NULL;
+  }
+
+  // Find the matching filter.
+  // Looking for a filter with the same vocabulary as the term's vocabulary.
+  foreach ($filters as $key => $filter) {
+    $filter_vocabulary = isset($filter['vocabulary']) ? $filter['vocabulary'] : FALSE;
+    if ($filter_vocabulary && $filter_vocabulary == $term_vocabulary) {
+      $filter_name = $key;
+      // We've acquired a matching filter, so no need to continue.
+      break;
+    }
+  }
+
+  // Extract the selected filter value (if a match was found).
+  $filter            = isset($filters[$filter_name]) ? $filters[$filter_name] : FALSE;
+  $filter_exposed    = isset($filter['exposed']) ? $filter['exposed'] : FALSE;
+  $filter_identifier = isset($filter['expose']) && isset($filter['expose']['identifier']) ? $filter['expose']['identifier'] : FALSE;
+  $filter_operator   = isset($filter['expose']) && isset($filter['expose']['operator']) ? $filter['expose']['operator'] : FALSE;
+
+  // Setup options.
+  if ($filter && $filter_exposed && $filter_identifier && $term_id) {
+    $options['query'] = array($filter_identifier => $term_id);
+  }
+
+  // Attempt to add the operator. For this purpose, it should be OR.
+  if ($filter && $filter_exposed && $filter_operator && isset($options['query'])) {
+    $options['query'][$filter_operator] = 'or';
+  }
+
+  return url($display_path, $options);
+}
+
+/**
+ * Implements hook_field_formatter_settings_summary().
+ */
+function views_term_link_formatter_field_formatter_settings_summary($field, $instance, $view_mode) {
+  // Extract settings from view mode on the display.
+  $display  = $instance['display'][$view_mode];
+  $settings = $display['settings'];
+
+  // Main Settings.
+  $anchor_enabled = isset($settings['anchor_enabled']) ? $settings['anchor_enabled'] : FALSE;
+  $views_view     = isset($settings['views_view']) && strlen(trim($settings['views_view'])) ? $settings['views_view'] : 'none';
+
+  // Display settings.
+  $wrapper       = isset($variables['wrapper']) ? trim($variables['wrapper']) : 'span';
+  $wrapper_class = isset($variables['wrapper_class']) ? trim($variables['wrapper_class']) : 'label tag';
+  $anchor_class  = isset($variables['anchor_class']) ? trim($variables['anchor_class']) : 'link';
+
+  // Generate a summary.
+  $summary = t(
+    '<strong>Anchor</strong>: @enabled for @views_view <br/>
+    <strong>Anchor Class(es)</strong>: @anchor_class <br/>
+    <strong>Term Wrapper</strong>: &lt;@wrapper class="@wrapper_class"&gt;&hellip;&lt;/@wrapper&gt; <br/>',
+    array(
+      '@enabled'       => $anchor_enabled ? 'Enabled' : 'Disabled',
+      '@views_view'    => $views_view,
+      '@wrapper'       => check_plain($wrapper),
+      '@wrapper_class' => check_plain($wrapper_class),
+      '@anchor_class'  => check_plain($anchor_class),
+    )
+  );
+
+  return $summary;
+}
+
+/**
+ * Implements hook_field_formatter_settings_form().
+ */
+function views_term_link_formatter_field_formatter_settings_form($field, $instance, $view_mode, $form, &$form_state) {
+  // Extract settings from view mode on the display.
+  $display  = $instance['display'][$view_mode];
+  $settings = $display['settings'];
+
+  // Get settings.
+  $anchor_enabled = isset($settings['anchor_enabled']) ? $settings['anchor_enabled'] : FALSE;
+  $views_view     = isset($settings['views_view']) ? $settings['views_view'] : NULL;
+
+  // Views.
+  $views              = views_get_all_views();
+  $views_view_options = array(' ' => 'Choose A View');
+
+  // Generate the list of View & displays.
+  foreach ($views as $view) {
+    $key     = $view->name;
+    $value   = isset($view->human_name) && strlen(trim($view->human_name)) ? $view->human_name : $view->name;
+    $enabled = !$view->disabled;
+
+    // If the View isn't enabled, no need to continue.
+    if ($enabled) {
+      /* @var view $view */
+      $displays = $view->display;
+      // Iterate over displays for this view.
+      foreach ($displays as $display) {
+        /* @var view_display $display */
+        $id      = $display->id;
+        $title   = $display->display_title;
+        $enabled = !$display->disabled;
+        $plugin  = $display->display_plugin;
+
+        // Only process enabled displays using the page display plugin.
+        // 2016-04-28: I'm unable to determine how to match up the display's
+        // filters'vocabularies to the field's term/taxonomy/vocabulary so
+        // I cannot further filter the results. For instance, in
+        // views_term_link_formatter_generate_term_url we are automatically
+        // and dynamically able to select the appropriate filter for the
+        // given term based on its vocabulary and the filter's vocabulary.
+        // Eventually, we should filter this list in a similar fashion.
+        if ($enabled && $plugin === 'page') {
+          // Key is of the form view_name|display_id.
+          $views_view_options[$key . '|' . $id] = $value . ' => ' . $title;
+        }
+      }
+    }
+  }
+
+  asort($views_view_options, SORT_STRING);
+
+  // Display settings.
+  $wrapper       = isset($variables['wrapper']) ? trim($variables['wrapper']) : 'span';
+  $wrapper_class = isset($variables['wrapper_class']) ? trim($variables['wrapper_class']) : 'label tag';
+  $anchor_class  = isset($variables['anchor_class']) ? trim($variables['anchor_class']) : 'link';
+
+  // Generate form.
+  $element = array();
+
+  // Views view.
+  $element['views_view'] = array(
+    '#type'          => 'select',
+    '#title'         => t('Views View'),
+    '#description'   => t('Choose a View Display. Currenly only enabled Page displays are supported.'),
+    '#default_value' => $views_view,
+    '#options'       => $views_view_options,
+  );
+
+  // Enable Link.
+  $element['anchor_enabled'] = array(
+    '#type'          => 'checkbox',
+    '#title'         => t('Enable Link'),
+    '#description'   => t('This will enable the link to the specified view.'),
+    '#default_value' => $anchor_enabled,
+  );
+
+  // Anchor class(es).
+  $element['anchor_class'] = array(
+    '#type'          => 'textfield',
+    '#title'         => t('Anchor Class(es)'),
+    '#description'   => t('Enter classes for the anchor element. Add a space between classes if specifying multiple.'),
+    '#size'          => 32,
+    '#maxlength'     => 128,
+    '#default_value' => $anchor_class,
+  );
+
+  // Term wrapper HTML element.
+  $element['wrapper'] = array(
+    '#type'          => 'textfield',
+    '#title'         => t('Term Wrapper Element'),
+    '#description'   => t('Specify the HTML element to wrap the term. Default is span.'),
+    '#size'          => 32,
+    '#maxlength'     => 128,
+    '#default_value' => $wrapper,
+  );
+
+  // Term wrapper class(es).
+  $element['wrapper_class'] = array(
+    '#type'          => 'textfield',
+    '#title'         => t('Term Wrapper Class(es)'),
+    '#description'   => t('Enter classes for the term wrapper element. Add a space between classes if specifying multiple.'),
+    '#size'          => 32,
+    '#maxlength'     => 128,
+    '#default_value' => $wrapper_class,
+  );
+
+  return $element;
+}

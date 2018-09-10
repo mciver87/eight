@@ -1,0 +1,99 @@
+<?php
+/**
+ * @file
+ * Contains install, uninstall, schema and update hooks for module
+ */
+
+/**
+ * Imports the permissions using the default csv file.
+ */
+function _nc_permissions_update_import_default_csv($suppress_warnings = FALSE) {
+  module_invoke_all('permission');
+  if (!_nc_permissions_import_default_csv($suppress_warnings)) {
+    throw new DrupalUpdateException('Could not update permissions.');
+  }
+  return TRUE;
+}
+
+/**
+ * Implements hook_install().
+ */
+function nc_permissions_install() {
+  _nc_permissions_update_import_default_csv(TRUE);
+}
+
+/**
+ * Updated to add video card.
+ */
+function nc_permissions_update_7100() {
+
+}
+
+/**
+ * ABT#648: Editor permissions to view administrative theme.
+ */
+function nc_permissions_update_7101() {
+  // This is because features revert doesn't work, and
+  // even a default installation will have overridden
+  // permissions because Features doesn't seem to work
+  // very well on features like nc permissions.
+  $role = user_role_load_by_name('editor');
+  user_role_change_permissions($role->rid, array('view the administration theme' => TRUE));
+}
+
+/**
+ * Updated to add role delegation.
+ */
+function nc_permissions_update_7102() {
+
+}
+
+/**
+ * ABT-723 - updating permissions.
+ */
+function nc_permissions_update_7103() {
+
+}
+
+/**
+ * ABT-723 - updating permissions.
+ */
+function nc_permissions_update_7104() {
+
+}
+
+/**
+ * ABT-723 - updating permissions.
+ */
+function nc_permissions_update_7105() {
+
+}
+
+/**
+ * ABT-723 - update permissions using csv.
+ */
+function nc_permissions_update_7106() {
+  _nc_permissions_update_import_default_csv();
+}
+
+
+/**
+ * ABT-723 - update permissions using csv.
+ */
+function nc_permissions_update_7107() {
+  _nc_permissions_update_import_default_csv();
+}
+
+/**
+ * ABT-723 - update permissions using csv.
+ */
+function nc_permissions_update_7108() {
+  _nc_permissions_update_import_default_csv();
+}
+
+/**
+ * ABT-748 - added NC Google CSE permissions.
+ */
+function nc_permissions_update_7109() {
+  _nc_permissions_update_import_default_csv();
+}

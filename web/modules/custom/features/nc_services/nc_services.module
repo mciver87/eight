@@ -1,0 +1,175 @@
+<?php
+/**
+ * @file
+ * Code for the North Carolina Services feature.
+ */
+
+include_once 'nc_services.features.inc';
+
+/**
+ * Implements hook_preprocess_node().
+ */
+function nc_services_preprocess_node(&$vars) {
+  if ($vars['type'] == 'services') {
+    // Check if the online service field has a value and add template variable.
+    $node = $vars['node'];
+    $wrapper = entity_metadata_wrapper('node', $node);
+    $vars['online_icon'] = $wrapper->field_online_service->value();
+    $vars['classes_array'][] = 'service';
+  }
+}
+
+/**
+ * Implements hook_form_views_exposed_form_alter().
+ */
+function nc_services_form_views_exposed_form_alter(&$form, $form_state, $form_id) {
+  // For the services list, if a user has selected some filter values,
+  // then we want to scroll down to the results.
+  if (isset($form_state['view']->current_display) && $form_state['view']->current_display == 'page_1') {
+    // The first thing we want to do is determine if the user has made
+    // some filter selections. This will be determined by the
+    // presence of exposed filter variables in the url GET
+    // parameters.
+    $inputs = $form_state['input'];
+    $query_params = drupal_get_query_parameters();
+    $goto_results = FALSE;
+
+    // Search through the GET params for exposed filter params.
+    // If a match is found, assume we need to scroll to results.
+    if (count($inputs)) {
+      foreach ($inputs as $key => $input) {
+        if (isset($query_params[$key])) {
+          $goto_results = TRUE;
+          break;
+        }
+      }
+    }
+
+    // We found exposed form parameters, assume the user has made a selection
+    // so include the Javascript file that handles the scroll.
+    if ($goto_results) {
+      $form['#attached']['js'][] = drupal_get_path('module', 'nc_services') . '/js/nc_services.js';
+    }
+  }
+
+  if (!empty($form_state['view']->args[0]) && $form_state['view']->name == 'services_list' && !empty($form['content'])) {
+    // Limit the exposed filter option values to child terms of the View
+    // taxonomy argument.
+    $keys = array_keys($form_state['view']->argument);
+    $argument = clone $form_state['view']->argument[$keys[0]];
+    $argument->validate_argument($form_state['view']->args[0]);
+    $parent_term = taxonomy_term_load($argument->argument);
+    if (!empty($parent_term->vid) && !empty($parent_term->tid)) {
+      $tree = taxonomy_get_tree($parent_term->vid, $parent_term->tid);
+      $children_keys[t('All')] = t('-Any-');
+      foreach ($tree as $child) {
+        $children_keys[$child->tid] = $child->tid;
+      }
+    }
+    if (!empty($children_keys)) {
+      $form['content']['#options'] = array_intersect_key($form['content']['#options'], $children_keys);
+    }
+  }
+}
+
+/**
+ * Implements hook_preprocess_views_view_field().
+ */
+function nc_services_preprocess_views_view_field(&$vars) {
+  if ($vars['view']->name == 'nc_services_services') {
+    if ($vars['field']->field_alias == 'taxonomy_term_data_name' && $vars['field']->options['id'] == 'name_1') {
+      // Output as /services/taxnonomy-term-name
+      $output = strtolower($vars['output']);
+      $output = str_replace(' ', '-', $output);
+      $output = htmlspecialchars_decode($output);
+      $vars['output'] = "/services/{$output}";
+    }
+  }
+  // Pre-process the field_service_icon value for the services_list View. The
+  // value comes from the argument tid supplied in the View.
+  if ($vars['view']->name == 'services_list') {
+    if ($vars['field']->real_field == 'field_service_icon_value') {
+      // Check the argument, which contains the tid of the icon term.
+      $icon_term = taxonomy_term_load($vars['view']->argument['term_node_tid_depth']->argument);
+      if (!empty($icon_term->field_service_icon)) {
+        $wrapper = entity_metadata_wrapper('taxonomy_term', $icon_term);
+        $vars['output'] = $wrapper->field_service_icon->value(array('sanitize' => TRUE));
+      }
+      else {
+        $vars['output'] = 'icon-check2';
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_preprocess_views_view().
+ */
+function nc_services_preprocess_views_view(&$vars) {
+  if ($vars['view']->name == 'services_list' && !empty($vars['view']->argument['term_node_tid_depth']->validated_title)) {
+    // ABT#631 - We're injecting a span into the title that we can selectively
+    // hide using css to remove the term name from the main title
+    // but retain it in the breadcrumbs.
+    $vars['view']->set_title(t('Services and Information') .
+      '<span class="ignoreme">' .
+      t(': !term', array('!term' => $vars['view']->argument['term_node_tid_depth']->validated_title)) .
+      '</span>'
+    );
+  }
+  elseif ($vars['view']->name == 'nc_services_services' && $vars['view']->argument['parent']->value[0] == 'NULL') {
+    $vars['view']->set_title(t('Services'));
+  }
+}
+
+/**
+ * Provides an array of allowed icon classes for Services.
+ */
+function nc_services_icons() {
+  $icons = nc_fields_icons();
+  return $icons;
+}
+
+/**
+ * Implements hook_views_query_alter().
+ */
+function nc_services_views_query_alter(&$view, &$query) {
+  if ($view->name == 'services_list') {
+    // Make sure the title is always the first thing we sort on. Features was
+    // not helpful here.
+    foreach ($query->orderby as $index) {
+      if ($index['field'] == 'node_title') {
+        $orderby[] = $index;
+      }
+      else {
+        $_orderby[] = $index;
+      }
+    }
+    if (!empty($_orderby) && !empty($orderby)) {
+      $query->orderby = array_merge($orderby, $_orderby);
+    }
+  }
+}
+
+/**
+ * Implements hook_field_group_pre_render().
+ */
+function nc_services_field_group_pre_render(&$element, $group, &$form) {
+  // Hide some field groups on Services nodes conditionally depending on
+  // field values.
+  if (strstr($group->identifier, 'node|services|default')) {
+    $wrapper = entity_metadata_wrapper('node', $form['#node']);
+    if (!$wrapper->field_service_category->value()) {
+      $detail_group = array(
+        'group_related',
+        'group_details',
+      );
+      field_group_hide_field_groups($form, $detail_group);
+    }
+    if (!$wrapper->field_files->value()) {
+      $files_group = array(
+        'group_files',
+      );
+      field_group_hide_field_groups($form, $files_group);
+    }
+  }
+}

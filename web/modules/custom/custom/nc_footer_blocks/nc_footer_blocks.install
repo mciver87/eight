@@ -1,0 +1,50 @@
+<?php
+/**
+ * @file
+ * Install file for the NC Footer Blocks feature.
+ */
+
+/**
+ * Add default box content.
+ */
+function nc_footer_blocks_install() {
+  // Create placeholder boxes.
+  $box = boxes_factory('simple', array(
+    'delta' => 'contact_information',
+    'title' => 'Contact Information',
+    'description' => 'Contact Information',
+    'options' => array(
+      'body' => array(
+        'value' => '<div itemscope="" itemtype="http://schema.org/Organization"><span itemprop="name">North Carolina Department of Cultural Resources</span><div itemprop="address" itemscope="" itemtype="http://schema.org/PostalAddress"><span itemprop="streetAddress">301 N. Wilmington Street</span>, <span itemprop="addressLocality">Raleigh</span>, <span itemprop="addressRegion">NC</span> <span itemprop="postalCode">27601-1058</span></div><span itemprop="telephone">(919) 807-7300</span></div>',
+        'format' => 'full_html',
+      ),
+    ),
+  ));
+  $box->save();
+
+  $box_2 = boxes_factory('simple', array(
+    'delta' => 'footer_box_2',
+    'title' => 'Sample Custom Box',
+    'description' => 'Footer Box 2',
+    'options' => array(
+      'body' => array(
+        'value' => '<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris mattis efficitur viverra. Interdum et malesuada fames ac ante ipsum primis in faucibus. Morbi vitae sollicitudin ipsum. Integer aliquet elit placerat ex iaculis euismod. Vestibulum nec quam luctus, tempus lectus sed, aliquet massa.</p>',
+        'format' => 'full_html',
+      ),
+    ),
+  ));
+  $box_2->save();
+
+  $box_3 = boxes_factory('simple', array(
+    'delta' => 'footer_box_3',
+    'title' => 'Sample Photos',
+    'description' => 'Footer Box 3',
+    'options' => array(
+      'body' => array(
+        'value' => '<ul style="list-style:none;padding-left:0;"><li><a href="#"><img src="https://placeimg.com/180/75/animals" /></a></li><li><a href="#"><img src="https://placeimg.com/180/75/arch" /></a></li><li><a href="#"><img src="https://placeimg.com/180/75/nature" /></a></li></ul>',
+        'format' => 'full_html',
+      ),
+    ),
+  ));
+  $box_3->save();
+}

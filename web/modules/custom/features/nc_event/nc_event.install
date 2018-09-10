@@ -1,0 +1,273 @@
+<?php
+
+/**
+ * @file
+ * nc_event installation and update hooks.
+ */
+
+// Include complex update routine implementations.
+include_once 'includes/nc_event.update.functions.inc';
+
+/**
+ * Implements hook_install().
+ */
+function nc_event_install() {
+  _nc_event_block_featured_bean();
+}
+
+/**
+ * Add bean_entity_view block for custom view mode of Events.
+ */
+function _nc_event_block_featured_bean() {
+  // Check if our bean has already been created.
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', 'bean');
+  $query->propertyCondition('delta', 'nc_event_node_block_featured');
+  $query->propertyCondition('type', 'bean_entity_view', '=');
+  $result = $query->execute();
+  if (empty($result['bean'])) {
+    // Create the 'Block featured' node block (bean).
+    $bean = bean_create(array('type' => 'bean_entity_view'));
+    $bean->label = 'Node featured block';
+    $bean->uid = 1;
+    $bean->title = '';
+    $bean->delta = 'nc_event_node_block_featured';
+    $bean->data = array(
+      'entity_type' => 'node',
+      'entity_view_mode' => 'block_feature',
+      'entity_id' => '',
+      'entity_id_position' => 1,
+      'view_mode' => 'default',
+    );
+    $bean->save();
+  }
+}
+
+/**
+ * NC-108: Add bean_entity_view block for custom view mode of Events.
+ */
+function nc_event_update_7001() {
+  _nc_event_block_featured_bean();
+}
+
+/**
+ * Adds functionality with NC Addressfield Staticmap module.
+ */
+function nc_event_update_7002() {
+  features_revert_module('nc_event');
+}
+
+/**
+ * Updates to display the entire date range in the events page.
+ */
+function nc_event_update_7003() {
+  features_revert_module('nc_event');
+}
+
+/**
+ * ABT-680: Update to add clickable terms.
+ */
+function nc_event_update_7004() {
+  // Since there are apparently locks on random
+  // Feature components, let's get rid of those
+  // for this update.
+  $locks = variable_get('features_feature_locked', array());
+  variable_set('features_feature_locked', array());
+
+  // Going to revert the feature, in case it
+  // works, but knowing that it won't in
+  // all cases.
+  features_revert(
+    array(
+      'nc_event' => array(
+        'features_override', 'field_group', 'field_instance', 'field_base',
+      ),
+      'nc_fields' => array(
+        'field_base',
+      ),
+      'nc_taxonomy' => array(
+        'field_instance',
+      ),
+    )
+  );
+
+  // Since feature reverts
+  // normally do not work
+  // let's follow some
+  // additional steps to
+  // implement this update.
+  $entity_type = 'node';
+  $field_name = 'field_event_terms';
+  $bundle_name = 'event';
+
+  // Get the event terms field instance.
+  $instance_info = field_info_instance($entity_type, $field_name, $bundle_name);
+
+  // Update the formatter & display settings.
+  // This is a minimal set of updates.
+  $instance_info['display']['default']['type'] = 'views_term_link_formatter_term_link';
+  $instance_info['display']['default']['settings']['views_view'] = 'event_list|page';
+
+  // Save instance.
+  field_update_instance($instance_info);
+
+  // Restore locks, in case the
+  // were setup for a reason.
+  variable_set('features_feature_locked', $locks);
+}
+
+/**
+ * ABT-675: Change the file formatter type to address document icons.
+ */
+function nc_event_update_7005() {
+  // Since there are apparently locks on random
+  // Feature components, let's get rid of those
+  // for this update.
+  $locks = variable_get('features_feature_locked', array());
+  variable_set('features_feature_locked', array());
+
+  // Going to revert the feature, in case it
+  // works, but knowing that it won't in
+  // all cases.
+  features_revert(
+    array(
+      'nc_event' => array(
+        'features_override', 'field_group', 'field_instance', 'field_base',
+      ),
+      'nc_fields' => array(
+        'field_base',
+      ),
+      'nc_taxonomy' => array(
+        'field_instance',
+      ),
+    )
+  );
+
+  // Since feature reverts
+  // normally do not work
+  // let's follow some
+  // additional steps to
+  // implement this update.
+  $entity_type = 'node';
+  $field_name = 'field_files';
+  $bundle_name = 'event';
+
+  // Get the event files field instance.
+  $instance_info = field_info_instance($entity_type, $field_name, $bundle_name);
+
+  // Update the formatter & display settings.
+  // This is a minimal set of updates.
+  $instance_info['display']['default']['type'] = 'nc_fields_file_formatter_detail';
+
+  // Save instance.
+  field_update_instance($instance_info);
+
+  // Restore locks, in case the
+  // were setup for a reason.
+  variable_set('features_feature_locked', $locks);
+}
+
+/**
+ * Updates markup for clickable terms.
+ */
+function nc_event_update_7006() {
+  // Since there are apparently locks on random
+  // Feature components, let's get rid of those
+  // for this update.
+  $locks = variable_get('features_feature_locked', array());
+  variable_set('features_feature_locked', array());
+
+  features_revert_module('nc_event');
+}
+
+/**
+ * ABT-680: Additional updates to the event feature block sidebar.
+ */
+function nc_event_update_7007() {
+  // Since there are apparently locks on random
+  // Feature components, let's get rid of those
+  // for this update.
+  $locks = variable_get('features_feature_locked', array());
+  variable_set('features_feature_locked', array());
+
+  // Revert feature.
+  features_revert_module('nc_event');
+
+  nc_event_update_abt_680_block_feature();
+}
+
+/**
+ * ABT#713 - Set the language to neutral.
+ */
+function nc_event_update_7008() {
+  features_revert(array('nc_event' => array('variable')));
+}
+
+/**
+ * ABT-717 - Updated for IMCE FileField.
+ */
+function nc_event_update_7009() {
+  features_revert(
+    array(
+      'nc_event' => array(
+        'features_override_items',
+        'features_overrides',
+        'field_base',
+        'field_instance',
+      ),
+    )
+  );
+}
+
+/**
+ * Implements hook_update_N().
+ *
+ * ABT-706 updated to set the correct label for the field group.
+ */
+function nc_event_update_7010() {
+  features_revert(array('nc_event' => array('field_group')));
+}
+
+/**
+ * Implements hook_update_N().
+ *
+ * ABT-782 upadated available countries to include only US.
+ * Revert does not work, so setting fields in includes/nc_event.update.functions.inc.
+ */
+function nc_event_update_7011() {
+  // Revert feature.
+  features_revert_module('nc_event');
+  nc_event_update_abt_862_block_feature();
+}
+
+/**
+ * ABT-792: Turn off node preview for all content types.
+ */
+function nc_event_update_7012() {
+  variable_set('node_preview_event', '0');
+}
+
+/**
+ * Implements hook_update_N().
+ *
+ * DC-494 - Update image upload requirements.
+ */
+function nc_event_update_7013() {
+  $main_image = field_info_instance('node', 'field_main_image', 'event');
+  $main_image['description'] = 'Larger images will be scaled and cropped automatically to 740 x 416 pixels.';
+  $main_image['settings']['max_filesize'] = 52428800;
+  field_update_instance($main_image);
+
+  global $shortcode;
+
+  if (strpos($shortcode, 'ncosbm') !== false) {
+    $files = field_info_instance('node', 'field_files', 'event');
+    $files['settings']['file_extensions'] = 'pdf doc docx xls xlsx csv txt rtf html zip ppt pptx xml kmz mp3';
+    field_update_instance($files);
+  }
+  else {
+    $files = field_info_instance('node', 'field_files', 'event');
+    $files['settings']['file_extensions'] = 'pdf doc docx xls xlsx csv txt rtf zip ppt pptx xml kmz mp3';
+    field_update_instance($files);
+  }
+}

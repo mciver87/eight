@@ -1,0 +1,4 @@
+name = North Carolina Theme - External Links Customization
+description = Contains customizations to the extlink module.
+core = 7.x
+dependencies[] = extlink

@@ -1,0 +1,239 @@
+<?php
+/**
+ * @file
+ * Module file foe the NC User Messages Admin module.
+ */
+
+define('NC_USER_MESSAGES_ADMIN_PERM_MANAGE_MESSAGES', 'manage nc_user_messages');
+define('NC_USER_MESSAGES_ADMIN_THEME_CLEAN_UP', 'nc_user_messages_admin_clean_up');
+
+/**
+ * Implements hook_node_info().
+ */
+function nc_user_messages_admin_node_info() {
+  return array(
+    'nc_user_message' => array(
+      'name'         => t('NC User Message'),
+      'base'         => 'nc_user_message',
+      'description'  => t('Used to send messages to users across the NC sites.'),
+      'has_title'    => TRUE,
+      'title_label'  => t('Message Title'),
+      'locked'       => TRUE,
+      'node-options' => array('status'),
+      'comment'      => array('status' => 0),
+    ),
+  );
+}
+
+/**
+ * Implements hook_form().
+ */
+function nc_user_message_form($node, &$form_state) {
+  return node_content_form($node, $form_state);
+}
+
+/**
+ * Implements hook_permission().
+ */
+function nc_user_messages_admin_permission() {
+  return array(
+    NC_USER_MESSAGES_ADMIN_PERM_MANAGE_MESSAGES => array(
+      'title' => t('Manage NC User Messages'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_node_access().
+ */
+function nc_user_messages_admin_node_access($node, $op, $account) {
+  if ($node->type == 'nc_user_message') {
+    return user_access(NC_USER_MESSAGES_ADMIN_PERM_MANAGE_MESSAGES, $account) ?
+      NODE_ACCESS_ALLOW : NODE_ACCESS_DENY;
+  }
+  return NODE_ACCESS_IGNORE;
+}
+
+/**
+ * Implements hook_menu().
+ */
+function nc_user_messages_admin_menu() {
+  $items = array();
+  $items['admin/config/system/nc-user-messages/messages'] = array(
+    'title' => 'NC User Messages',
+    'page callback' => '_nc_user_messages_messages_list',
+    'access arguments' => array(NC_USER_MESSAGES_ADMIN_PERM_MANAGE_MESSAGES),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 1
+  );
+
+  $items['admin/config/system/nc-user-messages/clean-up'] = array(
+    'title' => 'NC User Messages Clean Up',
+    'page callback' => '_nc_user_messages_admin_clean_up',
+    'access arguments' => array(NC_USER_MESSAGES_ADMIN_PERM_MANAGE_MESSAGES),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 2
+  );
+
+  $items['nc-user-messages/messages/%'] = array(
+    'title' => 'NC User Messages',
+    'page callback' => '_nc_user_messages_page_callback',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+  );
+  return $items;
+}
+
+function _nc_user_messages_messages_list() {
+  $header = array(
+    array('data' => t('Title'), 'field' => 'n.title'),
+    array('data' => t('Message')),
+    array('data' => t('Live Date'), 'field' => 'live.field_nc_message_live_date_value', 'sort' => 'desc'),
+    array('data' => t('End Date'), 'field' => 'end.field_nc_message_end_date_value'),
+    array('data' => t('Published'), 'field' => 'n.status'),
+    array('data' => t('Edit/Delete'))
+  );
+  $query = db_select('node', 'n');
+  $message = $query->join('field_data_field_nc_message', 'message', 'n.nid = message.entity_id');
+  $live = $query->join('field_data_field_nc_message_live_date', 'live', 'n.nid = live.entity_id');
+  $end = $query->join('field_data_field_nc_message_end_date', 'end', 'n.nid = end.entity_id');
+  $query->condition('n.type', 'nc_user_message', '=')
+        ->fields('n', array('nid', 'title', 'status'))
+        ->fields($message, array('field_nc_message_value', 'field_nc_message_format'))
+        ->fields($live, array('field_nc_message_live_date_value'))
+        ->fields($end, array('field_nc_message_end_date_value'))
+        ->extend('PagerDefault')
+        ->extend('TableSort')
+        ->limit(25)
+        ->orderByHeader($header);
+  $results = $query->execute();
+  $rows = array();
+  foreach ($results as $result){
+    $rows[] = array(
+      $result->title,
+      $result->field_nc_message_value,
+      format_date($result->field_nc_message_live_date_value, 'long'),
+      format_date($result->field_nc_message_end_date_value, 'long'),
+      ($result->status) ? t('Yes') : t('No'),
+      l(t('edit'), 'node/'. $result->nid . '/edit') . '<br>' . l(t('delete'), 'node/'. $result->nid . '/delete'),
+    );
+  }
+  $items['table'] = array(
+    '#theme' => 'table',
+    '#header' => $header,
+    '#rows' => $rows,
+  );
+  $items['pager'] = array('#theme' => 'pager');
+  return $items;
+}
+
+/**
+ * Implements hook_menu_local_tasks_alter().
+ */
+function nc_user_messages_admin_menu_local_tasks_alter(&$data, $router_item, $root_path) {
+  switch ($root_path) {
+    // Add local action links for NC User Messages list page.
+    case 'admin/config/system/nc-user-messages/messages':
+      $item = menu_get_item('node/add/nc-user-message');
+      $item['title'] = t('Add User Message');
+      $data['actions']['output'][] = array(
+        '#theme' => 'menu_local_action',
+        '#link' => $item,
+      );
+      $item2 = menu_get_item('admin/config/system/nc-user-messages/clean-up');
+      $item2['title'] = t('Delete Expired Messages');
+      $data['actions']['output'][] = array(
+        '#theme' => 'menu_local_action',
+        '#link' => $item2,
+      );
+      break;
+  }
+}
+
+/**
+ * Page callback for cleanup page.
+ */
+function _nc_user_messages_admin_clean_up() {
+  if (count(_nc_user_messages_admin_get_expired_messages())) {
+    return drupal_get_form('_nc_user_messages_admin_clean_up_form');
+  }
+  drupal_set_message(t('There are currently no expired messages.'), 'status');
+  drupal_goto('admin/config/system/nc-user-messages/messages');
+}
+
+/**
+ * Returns the confirmation form for deleting the expired messages.
+ */
+function _nc_user_messages_admin_clean_up_form($form, &$form_state) {
+  $messages_count = count(_nc_user_messages_admin_get_expired_messages());
+  return confirm_form(
+    $form,
+    t('Are you sure you want to delete the %count expired messages?', array('%count' => $messages_count)),
+    'admin/config/system/nc-user-messages/messages',
+    t('By clicking on delete, all messages that are passed their end date will be deleted.'),
+    t('Delete'),
+    t('Cancel'),
+    'nc_user_messages_admin_clean_up_confirm'
+  );
+}
+
+/**
+ * Deletes the expired messages on form submit.
+ */
+function _nc_user_messages_admin_clean_up_form_submit($form, &$form_state) {
+  $expired = _nc_user_messages_admin_get_expired_messages();
+  $count = count($expired);
+  if ($count) {
+    node_delete_multiple(array_keys($expired));
+  }
+  drupal_set_message(t('%count expired messages deleted!', array('%count' => $count)), 'status');
+  drupal_goto('admin/config/system/nc-user-messages/messages');
+}
+
+/**
+ * Get expired messages nodes.
+ */
+function _nc_user_messages_admin_get_expired_messages() {
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', 'node')
+    ->entityCondition('bundle', 'nc_user_message')
+    ->fieldCondition('field_nc_message_end_date', 'value', time(), '<=');
+  $result = $query->execute();
+  if (isset($result['node'])) {
+    return $result['node'];
+  }
+  return array();
+}
+
+/**
+ * Callback for the user messages page.
+ */
+function _nc_user_messages_page_callback() {
+  drupal_page_is_cacheable(FALSE);
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', 'node')
+  ->entityCondition('bundle', 'nc_user_message')
+  ->propertyCondition('status', NODE_PUBLISHED)
+  ->fieldCondition('field_nc_message_live_date', 'value', time(), '<=')
+  ->fieldCondition('field_nc_message_end_date', 'value', time(), '>=')
+  ->fieldOrderBy('field_nc_message_live_date', 'value', 'DESC');
+
+  $result = $query->execute();
+
+  $messages = array();
+  if (isset($result['node'])) {
+    $nodes = entity_load('node', array_keys($result['node']));
+    foreach ($nodes as $node) {
+      $messages[] = array(
+        'title'     => $node->title,
+        'message'   => $node->field_nc_message[LANGUAGE_NONE][0]['value'],
+        'live_date' => $node->field_nc_message_live_date[LANGUAGE_NONE][0]['value'],
+        'end_date'  => $node->field_nc_message_end_date[LANGUAGE_NONE][0]['value'],
+      );
+    }
+  }
+
+  drupal_add_http_header('Content-Type', 'application/json');
+  echo drupal_json_encode($messages);
+  die();
+}

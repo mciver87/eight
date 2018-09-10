@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the NC Gov Press Releases Block feature.
+ */
+
+include_once 'nc_gov_press_releases_block.features.inc';

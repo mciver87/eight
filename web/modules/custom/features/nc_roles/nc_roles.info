@@ -1,0 +1,14 @@
+name = NC Roles
+description = Defines Default North Carolina Roles
+core = 7.x
+package = North Carolina
+version = 7.x-1.0
+project = nc_roles
+dependencies[] = features
+features[features_api][] = api:2
+features[user_role][] = administrator
+features[user_role][] = editor
+features[user_role][] = event creator
+features[user_role][] = site admin
+features[user_role][] = site manager
+project path = profiles/north_carolina/modules/features

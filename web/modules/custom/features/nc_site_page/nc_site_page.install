@@ -1,0 +1,95 @@
+<?php
+/**
+ * @file
+ * Contains install, uninstall, schema and update hooks for module
+ */
+
+/**
+ * Updated to add tabs/accordion.
+ */
+function nc_site_page_update_7100() {
+  features_revert(array('nc_site_page' => array('field_base', 'field_instance')));
+}
+
+/**
+ * ABT-697: Add sidebar to accordions.
+ */
+function nc_site_page_update_7101() {
+  features_revert(array('nc_site_page' => array('field_base', 'field_instance')));
+}
+
+/**
+ * ABT-717 - Updated for IMCE FileFields.
+ */
+function nc_site_page_update_7102() {
+  features_revert(
+    array(
+      'nc_site_page' => array(
+        'features_override_items',
+        'features_overrides',
+        'field_base',
+        'field_instance',
+      ),
+    )
+  );
+}
+
+/**
+ * ABT-706: Format related items and files.
+ */
+function nc_site_page_update_7103() {
+  features_revert(
+    array(
+      'nc_site_page' => array(
+        'features_override_items',
+        'features_overrides',
+        'field_base',
+        'field_instance',
+        'field_group',
+      ),
+    )
+  );
+}
+
+/**
+ * ABT-792: Turn off node preview for all content types.
+ */
+function nc_site_page_update_7104() {
+  variable_set('node_preview_site_page', '0');
+}
+
+/**
+ * Implements hook_update_N().
+ *
+ * DC-494 - Update image upload requirements.
+ */
+function nc_site_page_update_7105() {
+  $main_image = field_info_instance('node', 'field_main_image', 'site_page');
+  $main_image['description'] = 'Larger images will be scaled and cropped automatically to 740 x 416 pixels.';
+  $main_image['settings']['max_filesize'] = 52428800;
+  field_update_instance($main_image);
+
+  global $shortcode;
+
+  if (strpos($shortcode, 'ncosbm') !== false) {
+    $files = field_info_instance('node', 'field_files', 'site_page');
+    $files['settings']['file_extensions'] = 'pdf doc docx xls xlsx csv txt rtf html zip ppt pptx xml kmz mp3';
+    field_update_instance($files);
+  }
+  else {
+    $files = field_info_instance('node', 'field_files', 'site_page');
+    $files['settings']['file_extensions'] = 'pdf doc docx xls xlsx csv txt rtf zip ppt pptx xml kmz mp3';
+    field_update_instance($files);
+  }
+}
+
+/**
+ * Implements hook_update_N().
+ *
+ * DC-515 - Complete image upload requirements.
+ */
+function nc_site_page_update_7106() {
+  $thumb_image = field_info_instance('node', 'field_thumbnail_image', 'site_page');
+  $thumb_image['settings']['max_filesize'] = 1048576;
+  field_update_instance($thumb_image);
+}

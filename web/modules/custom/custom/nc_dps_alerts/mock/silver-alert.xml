@@ -1,0 +1,53 @@
+<rss xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:taxo="http://purl.org/rss/1.0/modules/taxonomy/" version="2.0">
+    <channel>
+        <title>N.C. Silver Alerts</title>
+        <link>http://www.ncdps.gov</link>
+        <description>NC Silver Alerts RSS Feed</description>
+        <pubDate>Wed, 13 Jan 2016 15:18:18 GMT</pubDate>
+        <item>
+            <title>
+                A Silver Alert has been issued for BRRRRAAAAAAAAAIIIIIIIINNNNNNSSSSSSSSSS by the N.C. Center for Missing Persons
+            </title>
+            <link>
+                https://en.wikipedia.org/wiki/Deergha_Sewa_Padakkama
+            </link>
+            <description>
+                The Deergha Sewa Padakkama ("Long Service Medal") is awarded to police officers in Sri Lanka of and below the rank of Chief Inspector in Sri Lanka Police for completing 18 years of unblemished service. The medal replaced the Ceylon Police Long Service Medal which was awarded until Ceylon became a Republic in 1972.
+            </description>
+            <pubDate>Tue, 05 Jan 2016 20:40:00 GMT</pubDate>
+            <guid>
+                https://en.wikipedia.org/wiki/Deergha_Sewa_Padakkama
+            </guid>
+        </item>
+        <item>
+            <title>
+                A Silver Alert has been issued for Reginald Eugene Crawsforth by the N.C. Center for Missing Persons
+            </title>
+            <link>
+                https://en.wikipedia.org/wiki/Cardiorenal_syndrome
+            </link>
+            <description>
+                Cardiorenal syndrome (CRS) is an umbrella term used in the medical field that defines disorders of the heart and kidneys whereby “acute or chronic dysfunction in one organ may induce acute or chronic dysfunction of the other”.[1]
+            </description>
+            <pubDate>Wed, 02 Dec 2015 02:08:00 GMT</pubDate>
+            <guid>
+                https://en.wikipedia.org/wiki/Cardiorenal_syndrome
+            </guid>
+        </item>
+        <item>
+            <title>
+                A Silver Alert has been issued for Amelia Earhart by the N.C. Center for Missing Persons
+            </title>
+            <link>
+                https://en.wikipedia.org/wiki/Amelia_Earhart
+            </link>
+            <description>
+                Amelia Mary Earhart (/ˈɛərhɑrt/; July 24, 1897 – disappeared July 2, 1937) was an American aviation pioneer and author.
+            </description>
+            <pubDate>Thu, 08 Oct 2015 05:08:00 GMT</pubDate>
+            <guid>
+                https://en.wikipedia.org/wiki/Amelia_Earhart
+            </guid>
+        </item>
+    </channel>
+</rss>

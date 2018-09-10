@@ -1,0 +1,17 @@
+name = NC JIRA Issue Collector
+description = Enables and configures the JIRA Issue Collector module
+core = 7.x
+package = North Carolina
+version = 7.x-1.0
+project = nc_jira
+dependencies[] = ctools
+dependencies[] = jira_issue_collector
+dependencies[] = strongarm
+features[ctools][] = strongarm:strongarm:1
+features[features_api][] = api:2
+features[variable][] = jira_issue_collector_code
+features[variable][] = jira_issue_collector_pages
+features[variable][] = jira_issue_collector_roles
+features[variable][] = jira_issue_collector_url
+features[variable][] = jira_issue_collector_visibility
+project path = profiles/north_carolina/modules/features

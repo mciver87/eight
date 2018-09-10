@@ -1,0 +1,181 @@
+<?php
+/**
+ * @file
+ * Contains install, uninstall, schema and update hooks for module
+ */
+
+/**
+ * NC-458: Remove old field_use_accent_colors from Paragraph bundles.
+ */
+function nc_landing_page_update_7100() {
+  field_delete_field('field_use_accent_colors');
+  field_purge_batch(9999);
+}
+
+/**
+ * NC-852: Revert to pick up removal of image size minimums on band backgrounds.
+ */
+function nc_landing_page_update_7101() {
+  features_revert_module('nc_landing_page');
+}
+
+/**
+ * NC-931: Update the band color scheme options.
+ */
+function nc_landing_page_update_7102() {
+  features_revert(array('nc_landing_page' => array('field_base')));
+}
+
+/**
+ * NC-998: Flush the band_background_image image style, Revert field instances.
+ */
+function nc_landing_page_update_7103() {
+  image_style_flush(array('band_background_image'));
+  features_revert(array('nc_landing_page' => array('field_instance')));
+}
+
+/**
+ * Updated to add remove wrapper checkbox.
+ */
+function nc_landing_page_update_7104() {
+  features_revert(array('nc_landing_page' => array('field_base', 'field_instance')));
+}
+
+/**
+ * Updated to add language option.
+ */
+function nc_landing_page_update_7105() {
+  features_revert_module('nc_landing_page');
+}
+
+/**
+ * NC-226 Revert to add accordion/tab paragraph fields.
+ */
+function nc_landing_page_update_7106() {
+  features_revert(
+   array(
+     'nc_landing_page' => array(
+       'paragraphs',
+       'field_base',
+       'field_instance',
+     ),
+   )
+  );
+}
+
+/**
+ * Revert to add accordion paragraph fields.
+ */
+function nc_landing_page_update_7107() {
+  features_revert(
+    array(
+      'nc_landing_page' => array(
+        'paragraphs',
+        'field_base',
+        'field_instance',
+      ),
+    )
+  );
+}
+
+/**
+ * Revert to add accordion paragraph fields.
+ */
+function nc_landing_page_update_7108() {
+  features_revert(
+    array(
+      'nc_landing_page' => array(
+        'field_base',
+        'field_instance',
+      ),
+    )
+  );
+}
+
+/**
+ * Updated to add language option.
+ */
+function nc_landing_page_update_7109() {
+  features_revert_module('nc_landing_page');
+}
+
+/**
+ * Revert to add sidebar block.
+ */
+function nc_landing_page_update_7110() {
+  features_revert(
+    array(
+      'nc_landing_page' => array(
+        'field_base',
+        'field_instance',
+      ),
+    )
+  );
+}
+
+/**
+ * Reverts to add title to accordions.
+ */
+function nc_landing_page_update_7111() {
+  features_revert_module('nc_landing_page');
+}
+
+/**
+ * ABT-673: Remove the item limit display setting (was 5) on tabs.
+ */
+function nc_landing_page_update_7112() {
+  features_revert(
+      array(
+        'nc_landing_page' => array(
+          'field_instance',
+        ),
+      )
+    );
+}
+
+/**
+ * ABT-697: Add sidebar block to accordions.
+ */
+function nc_landing_page_update_7113() {
+  features_revert(array('nc_landing_page' => array('field_base', 'field_instance')));
+}
+
+/**
+ * ABT-792: Turn off node preview for all content types.
+ */
+function nc_landing_page_update_7114() {
+  variable_set('node_preview_landing_page', '0');
+}
+
+/**
+ * ABT-757: Add field classes to four column band.
+ */
+function nc_landing_page_update_7115() {
+  features_revert(array('nc_landing_page' => array('field_group')));
+}
+
+/**
+ * ABT-800: Set block preview to title only for paragraph bundles.
+ */
+function nc_landing_page_update_7116() {
+  features_revert(array('nc_landing_page' => array('field_instance')));
+}
+
+/**
+ * Implements hook_update_N().
+ *
+ * DC-515 - Complete image upload requirements.
+ */
+function nc_landing_page_update_7117() {
+  $bundles = array(
+    'full_width',
+    'two_column',
+    'three_column',
+    'four_column',
+  );
+  foreach($bundles as $bundle) {
+    $card_image = field_info_instance('paragraphs_item', 'field_band_background_image', $bundle);
+    $card_image['settings']['max_filesize'] = 52428800;
+    field_update_instance($card_image);
+  }
+}

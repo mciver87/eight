@@ -1,0 +1,22 @@
+<?php
+/**
+ * @file
+ * Customizes extlink module for NC.GOV specific needs.
+ */
+
+/**
+ * Include our Javascript.
+ */
+function nc_extlink_page_build() {
+  // Include our Javascript update.
+  $path = drupal_get_path('module', 'nc_extlink');
+  drupal_add_js(
+    $path . '/nc_extlink.js',
+    array(
+      'every_page' => TRUE,
+      // The weight is important. The ncExtLink behaviors must fire before
+      // the extlink behaviors.
+      'weight' => -10,
+    )
+  );
+}

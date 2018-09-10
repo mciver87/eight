@@ -1,0 +1,4 @@
+name = North Carolina Input Filters
+description = "Provides input filters for use on the North Carolina platform."
+core = 7.x
+package = North Carolina

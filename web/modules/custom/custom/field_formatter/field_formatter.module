@@ -1,0 +1,347 @@
+<?php
+
+/**
+ * @file
+ * Provide for custom wrappers and classes on field formatters in the display.
+ */
+
+/**
+ * Implements hook_file_url_alter().
+ *
+ * Added for ABT-631.
+ *
+ * Images that are being rendered with the image theme (theme_image hook)
+ * are being converted to absolute urls, as expected. However, the
+ * production sites use Varnish, which connects to the application via
+ * HTTP. So, when visitors come to the site using HTTPS, Drupal does not
+ * detect the HTTPS connection, instead it sees the HTTP connection between
+ * it and Varnish. As a result, the image rendering outputs absolute
+ * urls using HTTP.
+ *
+ * This is a solution taken from (bare with me, the code sniffer won't allow
+ * long comment lines so this url is broken into multiple lines) ...
+ * http://drupal.stackexchange.com/questions/105932/
+ * how-do-i-modify-drupal-so-that-only-relative-urls-
+ * are-used-through-the-whole-sit.
+ *
+ * The original implementation negatively impacted the use of S3, so
+ * I've refined this further to ignore items using the public scheme, or
+ * any other scheme, and am applying it only to schemeless file.
+ *
+ * Further, the urls are still absolute, but they will have no specified
+ * protocol.
+ */
+function field_formatter_file_url_alter(&$uri) {
+  global $base_path, $base_url;
+
+  $scheme = file_uri_scheme($uri);
+
+  // If the scheme is empty, this update shold be applicable.
+  if (!$scheme) {
+    // Re-write to absolute url sans protocol (i.e. //nc.gov/public/pic.png.
+    $path = $uri;
+    // Clean up Windows paths.
+    $path = str_replace('\\', '/', $path);
+    $uri = preg_replace("(^https?:)", "", $base_url . $base_path . ltrim($path, '/'));
+  }
+}
+
+/**
+ * Implements hook_field_formatter_info_alter().
+ */
+function field_formatter_field_formatter_info_alter(&$info) {
+  foreach ($info as &$formatter) {
+    $formatter['settings']['style_settings'] = array(
+      'title' => array(
+        'element' => 'div',
+        'class' => 'field-label',
+        'suffix' => ':',
+      ),
+      'content' => array(
+        'element' => 'div',
+        'class' => 'field-items',
+      ),
+      'item' => array(
+        'element' => 'div',
+        'class' => 'field-item',
+      ),
+      'wrapper' => array(
+        'element' => 'div',
+        'class' => '',
+      ),
+      'default_classes' => TRUE,
+      'prefix_markup' => '',
+      'item_limit' => '',
+    );
+  }
+}
+
+/**
+ * Implements hook_field_formatter_settings_summary_alter().
+ */
+function field_formatter_field_formatter_settings_summary_alter(&$summary, $context) {
+  $display = $context['instance']['display'][$context['view_mode']];
+  $settings = $display['settings'];
+
+  $parts = array(
+    'wrapper' => 'Wrapper',
+    'title' => 'Title',
+    'content' => 'Content',
+    'item' => 'Item',
+  );
+
+  if (isset($settings['style_settings'])) {
+    foreach ($parts as $key => $title) {
+      if ($settings['style_settings'][$key]['element']) {
+        $summary .= '<br />';
+        $summary .= t('@title: &lt@element class="@class"&gt', array(
+          '@title' => $title,
+          '@element' => filter_xss($settings['style_settings'][$key]['element'], array()),
+          '@class' => filter_xss($settings['style_settings'][$key]['class'], array()))
+        );
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_field_formatter_settings_form_alter().
+ */
+function field_formatter_field_formatter_settings_form_alter(&$settings_form, $context) {
+  $display = $context['instance']['display'][$context['view_mode']];
+  $field = $context['field'];
+  $settings = $display['settings'];
+
+  $settings_form['style_settings'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Style settings'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#tree' => TRUE,
+    '#weight' => 99,
+  );
+
+  $settings_form['style_settings']['title'] = array(
+    '#title' => t('Title HTML'),
+    '#type' => 'fieldset',
+    '#collapsible' => FALSE,
+    '#collapsed' => FALSE,
+    '#tree' => TRUE,
+  );
+  $settings_form['style_settings']['title']['element'] = array(
+    '#title' => t('Title HTML element'),
+    '#options' => field_formatter_get_elements(),
+    '#type' => 'select',
+    '#default_value' => $settings['style_settings']['title']['element'],
+    '#description' => t('Choose the HTML element to wrap around this title, e.g. H1, H2, etc.'),
+  );
+  $settings_form['style_settings']['title']['class'] = array(
+    '#title' => t('CSS class'),
+    '#type' => 'textfield',
+    '#default_value' => $settings['style_settings']['title']['class'],
+  );
+  $settings_form['style_settings']['title']['suffix'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Title suffix'),
+    '#default_value' => isset($settings['style_settings']['title']['suffix']) ? $settings['style_settings']['title']['suffix'] : ':',
+  );
+
+  $settings_form['style_settings']['content'] = array(
+    '#title' => t('Content HTML'),
+    '#type' => 'fieldset',
+    '#collapsible' => FALSE,
+    '#collapsed' => FALSE,
+    '#tree' => TRUE,
+  );
+  $settings_form['style_settings']['content']['element'] = array(
+    '#title' => t('HTML element'),
+    '#options' => field_formatter_get_elements(),
+    '#type' => 'select',
+    '#default_value' => $settings['style_settings']['content']['element'],
+    '#description' => t('Choose the HTML element to wrap around this field, e.g. H1, H2, etc.'),
+  );
+  $settings_form['style_settings']['content']['class'] = array(
+    '#title' => t('CSS class'),
+    '#type' => 'textfield',
+    '#default_value' => $settings['style_settings']['content']['class'],
+  );
+
+  $settings_form['style_settings']['item'] = array(
+    '#title' => 'Item HTML',
+    '#type' => 'fieldset',
+    '#collapsible' => FALSE,
+    '#collapsed' => FALSE,
+    '#tree' => TRUE,
+  );
+  $settings_form['style_settings']['item']['element'] = array(
+    '#title' => t('HTML element'),
+    '#options' => field_formatter_get_elements(),
+    '#type' => 'select',
+    '#default_value' => $settings['style_settings']['item']['element'],
+    '#description' => t('Choose the HTML element to wrap around this field, e.g. H1, H2, etc.'),
+  );
+  $settings_form['style_settings']['item']['class'] = array(
+    '#title' => t('CSS class'),
+    '#type' => 'textfield',
+    '#default_value' => $settings['style_settings']['item']['class'],
+  );
+
+  $settings_form['style_settings']['wrapper'] = array(
+    '#title' => 'Wrapper HTML',
+    '#type' => 'fieldset',
+    '#collapsible' => FALSE,
+    '#collapsed' => FALSE,
+    '#tree' => TRUE,
+  );
+  $settings_form['style_settings']['wrapper']['element'] = array(
+    '#title' => t('HTML element'),
+    '#options' => field_formatter_get_elements(),
+    '#type' => 'select',
+    '#default_value' => $settings['style_settings']['wrapper']['element'],
+    '#description' => t('Choose the HTML element to wrap around this field and title, e.g. H1, H2, etc.'),
+  );
+  $settings_form['style_settings']['wrapper']['class'] = array(
+    '#title' => t('CSS class'),
+    '#type' => 'textfield',
+    '#default_value' => $settings['style_settings']['wrapper']['class'],
+  );
+
+  $settings_form['style_settings']['default_classes'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Add default classes'),
+    '#default_value' => $settings['style_settings']['default_classes'],
+  );
+  $settings_form['style_settings']['prefix_markup'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Markup to add before the entire field'),
+    '#description' => t('The markup will be filtered for XSS. Example usage: @example', array('@example' => '<a name="help-by-topic"></a>')),
+    '#default_value' => $settings['style_settings']['prefix_markup'],
+  );
+  $settings_form['style_settings']['item_limit'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Limit the number of items'),
+    '#description' => t('Enter a positive number to limit the number of items to output. Leave blank to output all items.'),
+    '#default_value' => isset($settings['style_settings']['item_limit']) ? $settings['style_settings']['item_limit'] : '',
+    '#size' => 10,
+    '#element_validate' => array('element_validate_integer_positive'),
+  );
+}
+
+/**
+ * Implements hook_preprocess_field().
+ *
+ * Adds a custom field settings to variables
+ * according to the field formatter settings.
+ */
+function field_formatter_preprocess_field(&$variables, $hook) {
+  $entity_type = $variables['element']['#entity_type'];
+  $field_name  = $variables['element']['#field_name'];
+  $bundle      = $variables['element']['#bundle'];
+  $view_mode   = $variables['element']['#view_mode'];
+  $variables['label_suffix'] = ':';
+  $variables['prefix_markup'] = '';
+
+  $formatter_info = field_formatter_settings_get_instance_display_settings($entity_type, $field_name, $bundle, $view_mode);
+
+  if (isset($formatter_info['style_settings'])) {
+    $style_settings = $formatter_info['style_settings'];
+    if (isset($style_settings['title'])) {
+      if (isset($style_settings['title']['element']) && $style_settings['title']['element']) {
+        $variables['title_element'] = $style_settings['title']['element'];
+        $variables['title_classes'] = filter_xss($style_settings['title']['class'], array());
+      }
+      if (isset($style_settings['title']['suffix'])) {
+        $variables['label_suffix'] = filter_xss($style_settings['title']['suffix']);
+      }
+    }
+
+    if (isset($style_settings['content']) && isset($style_settings['content']['element']) && $style_settings['content']['element']) {
+      $variables['content_element'] = $style_settings['content']['element'];
+      $variables['content_classes'] = filter_xss($style_settings['content']['class'], array());
+    }
+
+    if (isset($style_settings['item']) && isset($style_settings['item']['element']) && $style_settings['item']['element']) {
+      $variables['item_element'] = $style_settings['item']['element'];
+      $variables['item_classes'] = filter_xss($style_settings['item']['class'], array());
+    }
+
+    if (isset($style_settings['wrapper']) && isset($style_settings['wrapper']['element']) && $style_settings['wrapper']['element']) {
+      $variables['wrapper_element'] = $style_settings['wrapper']['element'];
+      if (!isset($style_settings['default_classes']) || !$style_settings['default_classes']) {
+        $variables['classes_array'] = array();
+      }
+      $wrapper_classes = explode(' ', filter_xss($style_settings['wrapper']['class'], array()));
+      $variables['classes_array'] = array_merge($variables['classes_array'], $wrapper_classes);
+    }
+
+    if (isset($style_settings['prefix_markup']) && !empty($style_settings['prefix_markup'])) {
+      $variables['prefix_markup'] = filter_xss($style_settings['prefix_markup']);
+    }
+
+    if (isset($style_settings['item_limit']) && !empty($style_settings['item_limit']) &&
+      count($variables['items']) > $style_settings['item_limit']
+    ) {
+      $variables['items'] = array_slice($variables['items'], 0, intval($style_settings['item_limit']), TRUE);
+    }
+  }
+}
+
+/**
+ * Implements hook_process_field().
+ *
+ * Combine item_delta_classes_array into item_delta_classes.
+ */
+function field_formatter_process_field(&$variables, $hook) {
+  $variables['item_delta_classes'] = array();
+
+  foreach ($variables['items'] as $delta => $item) {
+    $variables['item_delta_classes'][$delta] = '';
+    $glue = '';
+    if (!empty($variables['item_classes'])) {
+      $variables['item_delta_classes'][$delta] = $variables['item_classes'];
+      $glue = ' ';
+    }
+    if (!empty($variables['item_delta_classes_array'][$delta])) {
+      $variables['item_delta_classes'][$delta] .= $glue . implode(' ', $variables['item_delta_classes_array'][$delta]);
+    }
+  }
+}
+
+/**
+ * Implements hook_theme_registry_alter().
+ */
+function field_formatter_theme_registry_alter(&$theme_registry) {
+  // Override the default field rendering to get rid of all the extra stuff.
+  unset($theme_registry['field']['function']);
+  $theme_registry['field']['template'] = 'field';
+  $theme_registry['field']['path'] = drupal_get_path('module', 'field_formatter') . '/templates';
+}
+
+/**
+ * Get a list of available elements.
+ */
+function field_formatter_get_elements() {
+  static $elements = NULL;
+  if (!isset($elements)) {
+    $elements = variable_get('field_formatter_elements', array(
+      '' => t('- None -'),
+      'div' => 'DIV',
+      'span' => 'SPAN',
+      'h1' => 'H1',
+      'h2' => 'H2',
+      'h3' => 'H3',
+      'h4' => 'H4',
+      'h5' => 'H5',
+      'h6' => 'H6',
+      'p' => 'P',
+      'strong' => 'STRONG',
+      'em' => 'EM',
+      'ul' => 'UL',
+      'ol' => 'OL',
+      'li' => 'LI',
+      'time' => 'TIME',
+    ));
+  }
+
+  return $elements;
+}

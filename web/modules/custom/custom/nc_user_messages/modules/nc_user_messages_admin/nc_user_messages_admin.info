@@ -1,0 +1,6 @@
+name = NC User Messages Admin
+description = Used to administer the messages to be sent to the users on the NC Digital Commons platform.
+core = 7.x
+package = NC User Messages
+version = 7.x-1.0
+dependencies[] = nc_user_messages

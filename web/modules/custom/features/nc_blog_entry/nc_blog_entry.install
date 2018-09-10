@@ -1,0 +1,188 @@
+<?php
+/**
+ * @file
+ * Install file for the NC Blog Entry feature.
+ */
+
+/**
+ * Implements hook_install().
+ */
+function nc_blog_entry_install() {
+  // Create placeholder boxes.
+  $box = boxes_factory('simple', array(
+    'delta' => 'blog_about',
+    'title' => 'About the Blog',
+    'description' => 'About the Blog',
+    'options' => array(
+      'body' => array(
+        'value' => 'Placeholder text.',
+        'format' => 'full_html',
+      ),
+    ),
+  ));
+  $box->save();
+
+  $bean = bean_create(array('type' => 'nc_quicklinks'));
+  $bean->label = 'Blog Categories Quick Links';
+  $bean->title = 'Categories';
+  $bean->delta = 'blog_categories';
+  $bean->field_quick_link = array(
+    LANGUAGE_NONE => array(array(
+      'url' => 'blogs/cat1',
+      'title' => 'Blog Category 1',
+      )),
+  );
+  $bean->save();
+
+  $box = boxes_factory('simple', array(
+    'delta' => 'blog_follow',
+    'title' => 'Follow Us',
+    'description' => 'Follow Us - Blogs',
+    'options' => array(
+      'body' => array(
+        'value' => '<a class="follow-link follow-link-feed" href="/blogs/feed" title="Follow our Blog"><span>Blog Feed (RSS)</span></a>',
+        'format' => 'full_html',
+      ),
+    ),
+  ));
+  $box->save();
+}
+
+/**
+ * NC-976: Enable new nc_field_formatters module.
+ */
+function nc_blog_entry_update_7002() {
+  module_enable(array('nc_field_formatters'));
+  features_revert_module('nc_blog_entry');
+}
+
+/**
+ * NC-50: Revert feature module to add BlogPosting microformat.
+ */
+function nc_blog_entry_update_7003() {
+  features_revert_module('nc_blog_entry');
+}
+
+/**
+ * Update for ABT-668, ABT-674, ABT-681.
+ *
+ * ABT-668: Revert feature module to remove sidebar blocks.
+ * ABT-674: Remove Main image from list view, added thumbnail.
+ * ABT-681: Made author field simple text.
+ */
+function nc_blog_entry_update_7004() {
+  features_revert_module('nc_blog_entry');
+}
+
+/**
+ * ABT#686 - Revert doesn't revert, so remove field_author manually.
+ */
+function nc_blog_entry_update_7005() {
+  $instance = field_info_instance('node', 'field_author', 'blog_entry');
+  field_delete_instance($instance, TRUE);
+}
+
+/**
+ * ABT#686 - Setup for clickable terms on Blog entries.
+ */
+function nc_blog_entry_update_7006() {
+  // Enable the new module required for formatting.
+  module_enable(array('views_term_link_formatter'), TRUE);
+
+  // Revert the feature so that changes take effect.
+  features_revert_module('nc_blog_entry');
+
+  // Revert the view so the exposed form & filters are added.
+  $views = views_get_all_views();
+  foreach ($views as $view) {
+    $view_name = $view->name;
+    if ($view_name === 'blog_entry_list') {
+      views_revert_view($view);
+      break;
+    }
+  }
+}
+
+/**
+ * ABT#686 - Add class for clickable terms style.
+ */
+function nc_blog_entry_update_7007() {
+
+  // Revert the feature so that changes take effect.
+  features_revert_module('nc_blog_entry');
+}
+
+/**
+ * ABT#681 - Add author to display at top of blog article.
+ */
+function nc_blog_entry_update_7008() {
+
+  // Revert the feature so that changes take effect.
+  features_revert_module('nc_blog_entry');
+}
+
+/**
+ * ABT#717 - Added IMCE File Field.
+ */
+function nc_blog_entry_update_7009() {
+
+  features_revert_module('nc_blog_entry');
+}
+
+/**
+ * Implements hook_update_N().
+ *
+ * ABT-706 updated to set the correct label for the field group.
+ */
+function nc_blog_entry_update_7010() {
+  features_revert(array('nc_blog_entry' => array('field_group')));
+}
+
+/**
+ * ABT#706 - Set file formatter an field group style.
+ */
+function nc_blog_entry_update_7011() {
+  features_revert_module('nc_blog_entry');
+}
+
+/**
+ * ABT-792: Turn off node preview for all content types.
+ */
+function nc_blog_entry_update_7012() {
+  variable_set('node_preview_blog_entry', '0');
+}
+
+/**
+ * DC-494 - Update image upload requirements.
+ */
+function nc_blog_entry_update_7013() {
+  $main_image = field_info_instance('node', 'field_main_image', 'blog_entry');
+  $main_image['description'] = 'Larger images will be scaled and cropped automatically to 740 x 416 pixels.';
+  $main_image['settings']['max_filesize'] = 52428800;
+  field_update_instance($main_image);
+
+  global $shortcode;
+
+  if (strpos($shortcode, 'ncosbm') !== false) {
+    $files = field_info_instance('node', 'field_files', 'blog_entry');
+    $files['settings']['file_extensions'] = 'pdf doc docx xls xlsx csv txt rtf html zip ppt pptx xml kmz mp3';
+    field_update_instance($files);
+  }
+  else {
+    $files = field_info_instance('node', 'field_files', 'blog_entry');
+    $files['settings']['file_extensions'] = 'pdf doc docx xls xlsx csv txt rtf zip ppt pptx xml kmz mp3';
+    field_update_instance($files);
+  }
+}
+
+/**
+ * Implements hook_update_N().
+ *
+ * DC-515 - Complete image upload requirements.
+ */
+function nc_blog_entry_update_7014() {
+  $thumb_image = field_info_instance('node', 'field_thumbnail_image', 'blog_entry');
+  $thumb_image['settings']['max_filesize'] = 1048576;
+  field_update_instance($thumb_image);
+}
+

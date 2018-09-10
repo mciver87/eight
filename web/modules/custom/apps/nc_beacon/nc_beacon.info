@@ -1,0 +1,16 @@
+name = NC BEACON Integration
+description = Provides integration with the BEACON HRMS used by NC
+core = 7.x
+package = North Carolina
+version = 7.x-1.0
+project = nc_beacon
+dependencies[] = views
+features[ctools][] = views:views_default:3.0
+features[features_api][] = api:2
+features[views_view][] = empdir
+features_exclude[dependencies][ctools] = ctools
+files[] = plugins/nc_beacon_views_query_plugin.class.php
+files[] = handlers/nc_beacon_views_handler_field_email.class.php
+files[] = handlers/nc_beacon_views_handler_filter_text.class.php
+files[] = handlers/nc_beacon_views_handler_filter_agency.class.php
+project path = profiles/north_carolina/modules/apps

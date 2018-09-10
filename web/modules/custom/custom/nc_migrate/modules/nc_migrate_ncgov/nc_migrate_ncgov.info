@@ -1,0 +1,10 @@
+name = "North Carolina Migrate - NC.gov"
+description = "Module to migrate content into the NC Platform for NC.gov"
+package = "North Carolina Migrate"
+core = 7.x
+dependencies[] = nc_migrate
+
+; NC.gov migration classes.
+files[] = includes/MigrateNCGovNodeBase.class.php
+files[] = includes/MigrateNCGovAgencies.class.php
+files[] = includes/MigrateNCGovServices.class.php

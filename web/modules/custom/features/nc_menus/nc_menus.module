@@ -1,0 +1,343 @@
+<?php
+/**
+ * @file
+ * Code for the NC Menus feature.
+ */
+
+include_once 'nc_menus.features.inc';
+/**
+ * @file
+ * North Carolina Menus module.
+ */
+
+/**
+ * Implements hook_theme().
+ */
+function nc_menus_theme($existing, $type, $theme, $path) {
+  return array(
+    'navigation' => array(
+      'template' => 'navigation',
+    ),
+    'network' => array(
+      'template' => 'network',
+    ),
+    'menu_tree__main_menu__nc_menus' => array(
+      'file' => 'nc_menus.theme.inc',
+    ),
+    'menu_tree__enterprise_nav_menu__nc_menus' => array(
+      'file' => 'nc_menus.theme.inc',
+    ),
+    'menu_tree__network_menu__nc_menus' => array(
+      'file' => 'nc_menus.theme.inc',
+    ),
+  );
+}
+
+/**
+ * Implements hook_preprocess_function() for navigation.tpl.php.
+ */
+function nc_menus_preprocess_navigation(&$variables) {
+  $variables['main_menu_classes'] = "menu-container mainMenu contents-less";
+  $mega_menu = theme_get_setting('mega_menu', 'nc_base_theme');
+  if ($mega_menu == 1) {
+    $variables['main_menu_classes'] .= " menu-full";
+  }
+
+  $variables['enterprise_nav'] = theme('menu_tree__enterprise_nav_menu__nc_menus', array(
+    'tree' => menu_tree('enterprise-nav-menu'),
+    'attributes' => array(
+      'class' => array('links', 'inline', 'enterprise-nav-menu'),
+    ),
+  ));
+
+  $variables['topical_nav'] = theme('menu_tree__main_menu__nc_menus', array(
+    'tree' => menu_tree('main-menu'),
+    'attributes' => array(
+      'class' => array('links', 'inline', 'main-menu'),
+    ),
+  ));
+
+  $variables['site_name'] = variable_get('site_home_breadcrumb', '');
+  if (!$variables['site_name']) {
+    $variables['site_name'] = variable_get('site_name');
+  }
+}
+
+/**
+ * Implements hook_preprocess_function() for network.tpl.php.
+ */
+function nc_menus_preprocess_network(&$variables) {
+  $variables['network_nav'] = theme('menu_tree__network_menu__nc_menus', array(
+    'tree' => menu_tree('network-menu'),
+    'attributes' => array(
+      'class' => array('links', 'inline', 'network-menu'),
+    ),
+  ));
+}
+
+/**
+ * Implements hook_menu_attribute_info_alter().
+ */
+function nc_menus_menu_attribute_info_alter(array &$attributes) {
+  // Only apply the settings to the 'enterprise-nav-menu'.
+  $link = menu_get_object('menu_link', 4);
+  if (!empty($link['menu_name'])) {
+    if (!$link['menu_name'] == 'enterprise-nav-menu') {
+      return;
+    }
+  }
+  $attributes['icon'] = array(
+    'label' => '',
+    'description' => '',
+    'form' => array(
+      '#type' => 'select',
+      '#title' => 'Icon Class',
+      '#description' => "Adds an icon to the menu item based on CSS class. Applies only to the Enterprise Nav Menu.",
+      '#default_value' => '',
+      '#options' => nc_menus_icon_attribute_classes_options(),
+    ),
+    'scope' => array(
+      'item_attributes',
+    ),
+    'enabled' => 1,
+    'default' => "",
+  );
+}
+
+/**
+ * Implements hook_menu_alter().
+ */
+function nc_menus_menu_alter(&$items) {
+  // NC-326: Clone button needs to be in the inline tabs.
+  if (array_key_exists('node/%node/clone/%clone_token', $items)) {
+    $items['node/%node/clone/%clone_token']['type'] = MENU_LOCAL_TASK;
+  }
+}
+
+/**
+ * Provides a list of CSS classes used for iconography.
+ * 
+ * @return array
+ *   Returns a list of classes suited for FORM API select list option array.
+ * 
+ * @see nc_base_theme/css/style.css
+ */
+function nc_menus_icon_attribute_classes_options() {
+  return array(
+    '-select-',
+    'icon-pinterest',
+    'icon-youtube2',
+    'icon-googleplus',
+    'icon-facebook',
+    'icon-instagram',
+    'icon-twitter',
+    'icon-feed',
+    'icon-youtube',
+    'icon-event',
+    'icon-launch',
+    'icon-settings',
+    'icon-turned-in',
+    'icon-turned-in-not',
+    'icon-view-list',
+    'icon-view-module',
+    'icon-wallet-travel',
+    'icon-work',
+    'icon-comment',
+    'icon-email',
+    'icon-add',
+    'icon-remove',
+    'icon-vertical-align-top',
+    'icon-attachment',
+    'icon-phonelink',
+    'icon-keyboard-control',
+    'icon-more-vert',
+    'icon-notifications',
+    'icon-account-balance',
+    'icon-help',
+    'icon-highlight-remove',
+    'icon-info',
+    'icon-info-outline',
+    'icon-label',
+    'icon-label-outline',
+    'icon-language',
+    'icon-query-builder',
+    'icon-search',
+    'icon-error',
+    'icon-warning',
+    'icon-report',
+    'icon-dehaze',
+    'icon-my-location',
+    'icon-arrow-back',
+    'icon-arrow-forward',
+    'icon-cancel',
+    'icon-check',
+    'icon-chevron-left',
+    'icon-chevron-right',
+    'icon-close',
+    'icon-expand-less',
+    'icon-expand-more',
+    'icon-radio-button-off',
+    'icon-radio-button-on',
+  );
+}
+
+/**
+ * Implements hook_menu_block_blocks().
+ */
+function nc_menus_menu_block_blocks() {
+  $theme = variable_get('theme_default', 'nc_base_theme');
+
+  $level = theme_get_setting('right_rail_starting_level', $theme);
+  $depth = theme_get_setting('right_rail_maximum_depth', $theme);
+  $follow = theme_get_setting('right_rail_follow', $theme);
+  $expand = theme_get_setting('right_rail_expand', $theme);
+  // The array key is the block delta used by menu block.
+  $blocks['nc_menus-1'] = array(
+    'parent'      => 'main-menu:0',
+    'title_link'  => 0,
+    'admin_title' => '',
+    'level'       => !$level ? 2 : $level,
+    'follow'      => !$follow ? 0 : $follow,
+    'depth'       => !$depth ? 0 : $depth,
+    'expanded'    => !$expand ? 0 : $expand,
+    'sort'        => 0,
+  );
+
+  return $blocks;
+}
+
+/**
+ * Implements hook_preprocess_block().
+ */
+function nc_menus_preprocess_block(&$variables) {
+  $block_id = $variables['block']->module . '-' . $variables['block']->delta;
+  if ($block_id == 'menu_block-nc_menus-1') {
+    // Provide nav-title class to the block title attributes.
+    $variables['title_attributes_array']['class'] = 'nav-title';
+  }
+}
+
+/**
+ * Implements hook_preprocess_menu_block_wrapper().
+ */
+function nc_menus_preprocess_menu_block_wrapper(&$variables) {
+  if ($variables['delta'] == 'nc_menus-1') {
+    // Iterate through the menu links and adjust attributes as needed.
+    foreach (element_children($variables['content']) as $key) {
+      $menu_link = &$variables['content'][$key];
+      nc_menus_menu_block_nc_menus_1_link($menu_link);
+      if (!empty($menu_link['#below'])) {
+        foreach (element_children($menu_link['#below']) as $i) {
+          $below_link = &$menu_link['#below'][$i];
+          nc_menus_menu_block_nc_menus_1_link($below_link);
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Process menu links attributes for menu-block--nc_menus-1.
+ *
+ * @param array $link
+ *   A menu_link array to process.
+ */
+function nc_menus_menu_block_nc_menus_1_link(&$link) {
+  if (!empty($link['#attributes']['class'])) {
+    if (in_array('active-trail', $link['#attributes']['class'])) {
+      $link['#attributes']['class'][] = 'current-page-ancestor';
+    }
+    if (in_array('active', $link['#attributes']['class'])) {
+      $link['#attributes']['class'][] = 'current-page';
+    }
+  }
+  if (!empty($link['#localized_options']['attributes']['class'])) {
+    $link['#localized_options']['attributes']['class'] = array();
+  }
+}
+
+/**
+ * Implements hook_form_form_id_alter().
+ */
+function nc_menus_form_system_site_information_settings_alter(&$form, &$form_state, $form_id) {
+  // NC-698: Home breadcrumb needs custom text.
+  $form['site_information']['site_home_breadcrumb'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Home Breadcrumb Text'),
+    '#default_value' => check_plain(variable_get('site_home_breadcrumb', '')),
+    '#description' => t('This text will replace Home in the first breadcrumb.'),
+  );
+  $form['site_information']['disable_main_menu_expand'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Disable Main Menu Expansion?'),
+    '#default_value' => check_plain(variable_get('disable_main_menu_expand', FALSE)),
+    '#description' => t('Display the main menu as expanded in the main navigation bar.'),
+  );
+}
+
+/**
+ * Implements hook_form_system_theme_settings_alter().
+ */
+function nc_menus_form_system_theme_settings_alter(&$form, &$form_state) {
+  $theme = variable_get('theme_default', 'nc_base_theme');
+  if ($form['var']['#value'] == 'theme_' . $theme . '_settings') {
+
+    $form[$theme . '_settings']['right_rail_menu'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Right Rail Menu'),
+      '#description' => t('The right rail menu options control how the menu is displayed via Menu Block configuration. See <a href="/admin/help/menu_block">menu block help</a> for help on specific settings. <br \><em>Warning:</em> It is possible to create a poor user experience by altering these settings, therefore testing on a non-production environment is recommended.'),
+    );
+    $values = range(0, 7);
+    $form[$theme . '_settings']['right_rail_menu']['right_rail_starting_level'] = array(
+      '#type' => 'select',
+      '#title' => t('Starting Level'),
+      '#description' => t('The starting level dictates what branch depth of the menu to begin from.'),
+      '#default_value' => theme_get_setting('right_rail_starting_level', $theme),
+      '#options' => array_slice($values, 2, 7, TRUE),
+    );
+    $max_values = array(
+      '0' => 'Unlimited',
+      '1' => '1',
+      '2' => '2',
+      '3' => '3',
+      '4' => '4',
+      '5' => '5',
+      '6' => '6',
+      '7' => '7',
+      '8' => '8',
+      '9' => '9',
+    );
+    $form[$theme . '_settings']['right_rail_menu']['right_rail_maximum_depth'] = array(
+      '#type' => 'select',
+      '#title' => t('Maximum Depth'),
+      '#description' => t('From the starting level, specify the maximum depth of the menu tree.'),
+      '#default_value' => theme_get_setting('right_rail_maximum_depth', $theme),
+      '#options' => $max_values,
+    );
+    $follow_values = array(
+      '0' => 'None',
+      'active' => 'Active Trail',
+      'child' => 'Children',
+    );
+    $form[$theme . '_settings']['right_rail_menu']['right_rail_follow'] = array(
+      '#type' => 'select',
+      '#title' => t('Follow'),
+      '#description' => t('Make the starting level follow the active menu item. If the active menu item is deeper than the level specified above, the starting level will follow the active menu item. Otherwise, the starting level of the tree will remain fixed.'),
+      '#default_value' => theme_get_setting('right_rail_follow', $theme),
+      '#options' => $follow_values,
+    );
+    $form[$theme . '_settings']['right_rail_menu']['right_rail_expand'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Expand'),
+      '#description' => t('Expand the entire menu tree.'),
+      '#default_value' => theme_get_setting('right_rail_expand', $theme),
+    );
+  }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function nc_menus_form_menu_edit_item_alter(&$form, &$form_state, $form_id) {
+  $form['expanded']['#description'] = t('If selected and this menu link has children, the menu will always appear expanded in the mobile menu.');
+}

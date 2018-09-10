@@ -1,0 +1,60 @@
+@media screen and (min-width: 1024px) {
+  .mobile-nav div {
+    max-width: 300px;
+    height: 10rem;
+    top: 0;
+  }
+  .mobile-nav div img {
+    width: 70%;
+    height: 70%;
+    margin-top: 10%;
+  }
+  .mobile-nav div svg {
+    display: block;
+    max-height: 100%;
+    height: auto;
+  }
+  .mobile-nav div a,
+  .mobile-nav h1 a {
+    background-image: none;
+    height: 100%;
+    width: 100%;
+    text-align: center;
+  }
+  .mobile-nav .site-title-mobile {
+    display: none;
+  }
+  .menu-container {
+    padding-top: 80px;
+  }
+  .enterprise-nav {
+    height: 80px;
+  }
+  .enterprise-nav ul li a {
+    line-height: 90px;
+  }
+  .header-container .alert-widget {
+    top: 20px;
+  }
+  .header-search {
+    top: 30px;
+  }
+  .enterprise-nav ul li:last-child {
+    margin-right: 70px;
+  }
+
+  .topical-nav ul li.home a {
+    background: none;
+    background-image: none;
+    font-family: 'Georgia';
+    text-decoration: none;
+    font-size: 1.3rem;
+    text-align: center;
+    font-weight: 700;
+  }
+}
+@media print {
+  .enterprise-core-dark .mobile-nav div a {
+    background: none !important;
+  }
+}

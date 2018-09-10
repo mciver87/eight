@@ -1,0 +1,5 @@
+name = NC Breadcrumb Behavior
+description = "Modifies the behavior of breadcrumbs."
+core = 7.x
+dependencies[] = menu_breadcrumb
+scripts[] = js/abt.breadcrumbs.js

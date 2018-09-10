@@ -1,0 +1,11 @@
+name = NC 404
+description = "Creates the standard 404 Page for the NC Gov sites"
+core = 7.x
+dependencies[] = nc_cards
+dependencies[] = nc_carousel
+dependencies[] = nc_fields
+dependencies[] = bean
+dependencies[] = field_collection
+dependencies[] = paragraphs
+dpeendencies[] = nc_landing_page
+dependencies[] = blockreference

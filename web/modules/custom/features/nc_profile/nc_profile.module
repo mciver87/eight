@@ -1,0 +1,50 @@
+<?php
+/**
+ * @file
+ * Code for the NC Profile feature.
+ */
+
+include_once 'nc_profile.features.inc';
+
+/**
+ * Implements hook_preprocess_field(). 
+ */
+function nc_profile_preprocess_field(&$variables, $hook) {
+  if ($variables['element']['#field_name'] == 'field_profile_social_media') {
+    $variables['label'] = t('Follow&nbsp;') . filter_xss($variables['element']['#object']->title);
+    $variables['label_suffix'] = "";
+  }
+}
+
+/**
+ * Implements hook_preprocess_node().
+ */
+function nc_profile_preprocess_node(&$variables) {
+  $language = $variables['language'];
+  // Customize title for profile nodes.
+  if ($variables['node']->type == "profile") {
+    $job_title_prefix = "";
+    if (isset($variables['node']->field_profile_job_title[$language][0]['safe_value'])) {
+      $job_title_prefix = $variables['node']->field_profile_job_title[$language][0]['safe_value'];
+    }
+    $job_title_suffix = "";
+    if (isset($variables['node']->field_profile_organization[$language][0]['safe_value'])) {
+      $job_title_suffix = " of " . $variables['node']->field_profile_organization[$language][0]['safe_value'];
+    }
+    $job_title = '<small itemprop="jobTitle">' . $job_title_prefix . $job_title_suffix . '</small>';
+    $variables['title'] .= $job_title;
+
+    $variables['classes_array'][] = 'person';
+  }
+}
+
+/**
+ * Implements hook_views_pre_render().
+ */
+function nc_profile_views_pre_render(&$view) {
+  if ($view->name == 'profile_list' && $view->current_display == 'page_2') {
+    if ($title = variable_get('views_profile_list_page_2_title', 'Leadership')) {
+      $view->set_title($title);
+    }
+  }
+}

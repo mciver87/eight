@@ -1,0 +1,26 @@
+<?php
+/**
+ * @file
+ * The install and update file for the NC Data Table module.
+ */
+
+/**
+ * ABT#713 - Set language to neutral.
+ */
+function nc_data_table_update_7000() {
+  features_revert(array('nc_data_table' => array('variable')));
+}
+
+/**
+ * Updated to make export option on by default.
+ */
+function nc_data_table_update_7100() {
+  features_revert(array('nc_data_table' => array('field_base')));
+}
+
+/**
+ * ABT-792: Turn off node preview for all content types.
+ */
+function nc_data_table_update_7101() {
+  variable_set('node_preview_data_table', '0');
+}

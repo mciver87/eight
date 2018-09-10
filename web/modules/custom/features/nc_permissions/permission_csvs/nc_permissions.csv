@@ -1,0 +1,502 @@
+module,name,permission,anonymous user,authenticated user,administrator,publisher,editor,event creator,site manager,site admin
+acquia_cloud_sticky_sessions,,,,,,,,,,
+,Stick to Acquia web node,stick to Acquia web node,,,1,1,1,1,1,1
+addthis,,,,,,,,,,
+,Administer Addthis sharing widget,administer addthis,,,1,,,,,1
+,View the addthis widget,view addthis,1,1,1,1,1,1,1,1
+advagg,,,,,,,,,,
+,bypass advanced aggregation,bypass advanced aggregation,,,1,,,,,
+advanced_link,,,,,,,,,,
+,Access Advanced Link autocomplete,access advanced_link autocomplete,1,1,1,1,1,1,1,1
+aggregator,,,,,,,,,,
+,Administer news feeds,administer news feeds,,,1,,,,,1
+,View news feeds,access news feeds,1,1,1,1,,1,1,1
+apps,,,,,,,,,,
+,Administer the App Store,administer apps,,,1,,,,,
+auditfiles,,,,,,,,,,
+,Access Audit Files' reports,access audit files reports,,,1,,,,,1
+,Administer Audit Files,administer audit files,,,1,,,,,1
+autologout,,,,,,,,,,
+,Change own logout threshold,change own logout threshold,,,1,,,,,
+,Administer Autologout,administer autologout,,,1,,,,,
+backup_migrate,,,,,,,,,,
+,Access Backup and Migrate,access backup and migrate,,,1,,,,,
+,Perform a backup,perform backup,,,1,,,,,
+,Access backup files,access backup files,,,1,,,,,
+,Delete backup files,delete backup files,,,1,,,,,
+,Restore the site,restore from backup,,,1,,,,,
+,Administer Backup and Migrate,administer backup and migrate,,,1,,,,,
+bean,,,,,,,,,,
+,Administer block types,administer bean types,,,1,,,,1,1
+,Administer beans,administer beans,,,1,,,,1,1
+,Access the Bean overview page,access bean overview,,,1,1,,,1,1
+,Change the View Mode of the Bean,edit bean view mode,,,1,,,,1,1
+,View Bean page,view bean page,,,1,1,,,1,1
+,Administer Bean Settings,administer bean settings,,,1,,,,1,1
+,View Bean revisions,view bean revisions,,,1,,,,1,1
+,Content Card: Add Bean,create any bean_entity_view bean,,,1,,,,1,1
+,Content Card: Edit Bean,edit any bean_entity_view bean,,,1,1,,,1,1
+,Content Card: View Bean,view any bean_entity_view bean,1,1,1,1,1,1,1,1
+,Content Card: Delete Bean,delete any bean_entity_view bean,,,1,,,,1,1
+,Alert: Add Bean,create any nc_alerts bean,,,1,,,,1,1
+,Alert: Edit Bean,edit any nc_alerts bean,,,1,1,,,1,1
+,Alert: View Bean,view any nc_alerts bean,1,1,1,1,1,1,1,1
+,Alert: Delete Bean,delete any nc_alerts bean,,,1,,,,1,1
+,Article Card: Add Bean,create any nc_card_article bean,,,1,,,,1,1
+,Article Card: Edit Bean,edit any nc_card_article bean,,,1,1,,,1,1
+,Article Card: View Bean,view any nc_card_article bean,1,1,1,1,1,1,1,1
+,Article Card: Delete Bean,delete any nc_card_article bean,,,1,,,,1,1
+,CTA Card: Add Bean,create any nc_card_cta bean,,,1,,,,1,1
+,CTA Card: Edit Bean,edit any nc_card_cta bean,,,1,1,,,1,1
+,CTA Card: View Bean,view any nc_card_cta bean,1,1,1,1,1,1,1,1
+,CTA Card: Delete Bean,delete any nc_card_cta bean,,,1,,,,1,1
+,Stat Card: Add Bean,create any nc_card_stat bean,,,1,,,,1,1
+,Stat Card: Edit Bean,edit any nc_card_stat bean,,,1,1,,,1,1
+,Stat Card: View Bean,view any nc_card_stat bean,1,1,1,1,1,1,1,1
+,Stat Card: Delete Bean,delete any nc_card_stat bean,,,1,,,,1,1
+,Animated Stat Card: Add Bean,create any nc_card_animated_stat bean,,,1,,,,1,1
+,Animated Stat Card: Edit Bean,edit any nc_card_animated_stat bean,,,1,1,,,1,1
+,Animated Stat Card: View Bean,view any nc_card_animated_stat bean,1,1,1,1,1,1,1,
+,Animated Stat Card: Delete Bean,delete any nc_card_animated_stat bean,,,1,,,,1,1
+,Government Card: Add Bean,create any nc_card_govt bean,,,1,,,,1,1
+,Government Card: Edit Bean,edit any nc_card_govt bean,,,1,,,,1,1
+,Government Card: View Bean,view any nc_card_govt bean,1,1,1,1,1,1,1,1
+,Government Card: Delete Bean,delete any nc_card_govt bean,,,1,,,,1,1
+,Service Card: Add Bean,create any nc_card_service bean,,,1,,,,1,1
+,Service Card: Edit Bean,edit any nc_card_service bean,,,1,1,,,1,1
+,Service Card: View Bean,view any nc_card_service bean,1,1,1,1,1,1,1,1
+,Service Card: Delete Bean,delete any nc_card_service bean,,,1,,,,1,1
+,Agency Card: Add Bean,create any nc_card_agency bean,,,1,,,,1,1
+,Agency Card: Edit Bean,edit any nc_card_agency bean,,,1,1,,,1,1
+,Agency Card: View Bean,view any nc_card_agency bean,1,1,1,1,1,1,1,1
+,Agency Card: Delete Bean,delete any nc_card_agency bean,,,1,,,,1,1
+,Info Card: Add Bean,create any nc_card_info bean,,,1,,,,1,1
+,Info Card: Edit Bean,edit any nc_card_info bean,,,1,1,,,1,1
+,Info Card: View Bean,view any nc_card_info bean,1,1,1,1,1,1,1,1
+,Info Card: Delete Bean,delete any nc_card_info bean,,,1,,,,1,1
+,Event Card: Add Bean,create any nc_card_event bean,,,1,,,,1,1
+,Event Card: Edit Bean,edit any nc_card_event bean,,,1,1,,,1,1
+,Event Card: View Bean,view any nc_card_event bean,1,1,1,1,1,1,1,1
+,Event Card: Delete Bean,delete any nc_card_event bean,,,1,,,,1,1
+,Person Card: Add Bean,create any nc_card_person bean,,,1,,,,1,1
+,Person Card: Edit Bean,edit any nc_card_person bean,,,1,1,,,1,1
+,Person Card: View Bean,view any nc_card_person bean,1,1,1,1,1,1,1,1
+,Person Card: Delete Bean,delete any nc_card_person bean,,,1,,,,1,1
+,Video Card: Add Bean,create any nc_card_video bean,,,1,,,,1,1
+,Video Card: Edit Bean,edit any nc_card_video bean,,,1,1,,,1,1
+,Video Card: View Bean,view any nc_card_video bean,1,1,1,1,1,1,1,1
+,Video Card: Delete Bean,delete any nc_card_video bean,,,1,,,,1,1
+,Carousel: Add Bean,create any nc_carousel bean,,,1,,,,1,1
+,Carousel: Edit Bean,edit any nc_carousel bean,,,1,1,,,1,1
+,Carousel: View Bean,view any nc_carousel bean,1,1,1,1,1,1,1,1
+,Carousel: Delete Bean,delete any nc_carousel bean,,,1,,,,1,1
+,NC Charts Pie: Add Bean,create any nc_charts_pie bean,,,1,,,,1,1
+,NC Charts Pie: Edit Bean,edit any nc_charts_pie bean,,,1,1,,,1,1
+,NC Charts Pie: View Bean,view any nc_charts_pie bean,1,1,1,,,,,
+,NC Charts Pie: Delete Bean,delete any nc_charts_pie bean,,,1,,,,1,1
+,NC Charts Bar: Add Bean,create any nc_charts_bar bean,,,1,,,,1,1
+,NC Charts Bar: Edit Bean,edit any nc_charts_bar bean,,,1,1,,,1,1
+,NC Charts Bar: View Bean,view any nc_charts_bar bean,1,1,1,,,,,
+,NC Charts Bar: Delete Bean,delete any nc_charts_bar bean,,,1,,,,1,1
+,NC Charts Line: Add Bean,create any nc_charts_line bean,,,1,,,,1,1
+,NC Charts Line: Edit Bean,edit any nc_charts_line bean,,,1,1,,,1,1
+,NC Charts Line: View Bean,view any nc_charts_line bean,1,1,1,,,,,
+,NC Charts Line: Delete Bean,delete any nc_charts_line bean,,,1,,,,1,1
+,Quick Links: Add Bean,create any nc_quicklinks bean,,,1,,,,1,1
+,Quick Links: Edit Bean,edit any nc_quicklinks bean,,,1,1,,,1,1
+,Quick Links: View Bean,view any nc_quicklinks bean,1,1,1,1,1,1,1,1
+,Quick Links: Delete Bean,delete any nc_quicklinks bean,,,1,,,,1,1
+,Signup: MailChimp: Add Bean,create any nc_signup_mailchimp bean,,,1,,,,1,1
+,Signup: MailChimp: Edit Bean,edit any nc_signup_mailchimp bean,,,1,1,,,1,1
+,Signup: MailChimp: View Bean,view any nc_signup_mailchimp bean,1,1,1,1,1,1,1,1
+,Signup: MailChimp: Delete Bean,delete any nc_signup_mailchimp bean,,,1,,,,1,1
+,Signup: Constant Contact: Add Bean,create any nc_signup_constant_contact bean,,,1,,,,1,1
+,Signup: Constant Contact: Edit Bean,edit any nc_signup_constant_contact bean,,,1,1,,,1,1
+,Signup: Constant Contact: View Bean,view any nc_signup_constant_contact bean,1,1,1,1,1,1,1,1
+,Signup: Constant Contact: Delete Bean,delete any nc_signup_constant_contact bean,,,1,,,,1,1
+,Signup: iContact: Add Bean,create any nc_signup_icontact bean,,,1,,,,1,1
+,Signup: iContact: Edit Bean,edit any nc_signup_icontact bean,,,1,1,,,1,1
+,Signup: iContact: View Bean,view any nc_signup_icontact bean,1,1,1,1,1,1,1,1
+,Signup: iContact: Delete Bean,delete any nc_signup_icontact bean,,,1,,,,1,1
+,Follow Us: Add Bean,create any nc_social_follow_us bean,,,1,,,,1,1
+,Follow Us: Edit Bean,edit any nc_social_follow_us bean,,,1,1,,,1,1
+,Follow Us: View Bean,view any nc_social_follow_us bean,1,1,1,1,1,1,1,1
+,Follow Us: Delete Bean,delete any nc_social_follow_us bean,,,1,,,,1,1
+bigmenu,,,,,,,,,,
+,Administer Big Menu,administer bigmenu,,,1,,,,,1
+,Use Big Menu,use bigmenu,,,1,,,,,1
+block,,,,,,,,,,
+,Administer blocks,administer blocks,,,1,1,,,1,1
+boxes,,,,,,,,,,
+,Edit boxes,edit boxes,,,1,,,,1,1
+,Administer boxes,administer boxes,,,1,,,,1,1
+breakpoints,,,,,,,,,,
+,Administer Breakpoints,administer breakpoints,,,1,,,,1,1
+captcha,,,,,,,,,,
+,Administer CAPTCHA settings,administer CAPTCHA settings,,,1,,,,,1
+,Skip CAPTCHA,skip CAPTCHA,,1,1,1,1,1,1,1
+ckeditor_link,,,,,,,,,,
+,Access CKEditor Link,access ckeditor link,,1,1,1,1,1,1,1
+,Administer CKEditor Link,administer ckeditor link,,,1,,,,,
+clone,,,,,,,,,,
+,Clone any node,clone node,,,1,1,1,,1,1
+,Clone own nodes.,clone own nodes,,,1,1,1,,1,1
+comment,,,,,,,,,,
+,Administer comments and comment settings,administer comments,,,1,,,,,1
+,View comments,access comments,1,1,1,1,1,1,1,1
+,Post comments,post comments,1,1,1,1,1,1,1,1
+,Skip comment approval,skip comment approval,,,1,,,,1,1
+,Edit own comments,edit own comments,,1,1,1,1,1,1,1
+comment_notify,,,,,,,,,,
+,Administer Comment Notify,administer comment notify,,,1,,,,,1
+,Subscribe to comment notifications,subscribe to comments,,1,1,1,1,1,1,1
+context_by_node,,,,,,,,,,
+,create context_by_node,create context_by_node,,,1,,,,1,1
+context_field,,,,,,,,,,
+,Use Context Field Editor,use context field editor,,,1,,,,1,1
+context_ui,,,,,,,,,,
+,Administer contexts,administer contexts,,,1,,,,1,1
+,Access All Blocks,context ajax block access,,,1,,,,1,1
+contextual,,,,,,,,,,
+,Use contextual links,access contextual links,,,1,,,,1,1
+ctools,,,,,,,,,,
+,Use CTools importer,use ctools import,,,1,,,,,
+dashboard,,,,,,,,,,
+,View the administrative dashboard,access dashboard,,,1,,,,1,1
+defaultcontent,,,,,,,,,,
+,Edit node machine name,edit node machine name,,,1,,,,,
+delta_ui,,,,,,,,,,
+,Administer Delta,administer delta,,,1,,,,,
+devel,,,,,,,,,,
+,Access developer information,access devel information,,,1,,,,1,1
+,Execute PHP code,execute php code,,,1,,,,,1
+,Switch users,switch users,,,1,,,,,1
+elasticsearch_connector,,,,,,,,,,
+,Administer elasticsearch connector,administer elasticsearch connector,,,1,,,,,
+entity_autocomplete,,,,,,,,,,
+,Use Entity Autocomplete,use entity autocomplete,,,1,,,,1,1
+features,,,,,,,,,,
+,Administer features,administer features,,,1,,,,,
+,Manage features,manage features,,,1,,,,,
+,Generate features,generate features,,,1,,,,,
+,Edit feature machine name,rename features,,,1,,,,,
+field_collection,,,,,,,,,,
+,Administer field collections,administer field collections,,,1,,,,,1
+field_group,,,,,,,,,,
+,Administer fieldgroups,administer fieldgroups,,,1,,,,,1
+filter,,,,,,,,,,
+,Administer text formats and filters,administer filters,,,1,,,,,
+,Use the Full HTML text format,use text format full_html,,1,1,1,1,1,1,1
+,Use the Raw HTML text format,use text format raw_html,,1,1,1,1,,1,1
+,Use the Filtered HTML text format,use text format filtered_html,1,1,1,1,1,1,1,1
+follow,,,,,,,,,,
+,Edit own follow links,edit own follow links,,,1,,,,,1
+,Edit the site-wide follow links,edit site follow links,,,1,,,,,1
+,Edit any user's follow links,edit any user follow links,,,1,,,,,1
+,Administer follow,administer follow,,,1,,,,,1
+,Change link titles,change follow link titles,,,1,,,,,1
+googleanalytics,,,,,,,,,,
+,Administer Google Analytics,administer google analytics,,,1,,,,,1
+,Opt-in or out of tracking,opt-in or out of tracking,,,1,,,,,1
+,Use PHP for tracking visibility,use PHP for tracking visibility,,,1,,,,,
+i18n_node,,,,,,,,,,
+,Administer content translations,administer content translations,,,1,,,,,1
+i18n_string,,,,,,,,,,
+,Translate user-defined strings,translate user-defined strings,,,1,,,,,
+,Translate admin strings,translate admin strings,,,1,,,,,
+image,,,,,,,,,,
+,Administer image styles,administer image styles,,,1,,,,,1
+imce,,,,,,,,,,
+,Administer IMCE,administer imce,,,1,,,,,1
+jcaption,,,,,,,,,,
+,Access jCaption settings,access jcaption settings,,,1,,,,,
+locale,,,,,,,,,,
+,Administer languages,administer languages,,,1,,,,1,1
+,Translate interface texts,translate interface,,,1,,,,1,1
+maxlength,,,,,,,,,,
+,Bypass maxlength setting,bypass maxlength,,,1,,,,,1
+menu,,,,,,,,,,
+,Administer menus and menu items,administer menu,,,1,,,,,1
+menu_attributes,,,,,,,,,,
+,Administer menu attributes,administer menu attributes,,,1,,,,,1
+metatag,,,,,,,,,,
+,Administer meta tags,administer meta tags,,,1,,,,,1
+,Edit meta tags,edit meta tags,,,1,,,,1,1
+microdata,,,,,,,,,,
+,Administer microdata,administer microdata,,,1,,,,,1
+migrate,,,,,,,,,,
+,Access to basic migration information,migration information,,,1,,,,,1
+,Access to advanced migration information,advanced migration information,,,1,,,,,1
+module_filter,,,,,,,,,,
+,Administer Module Filter,administer module filter,,,1,,,,,1
+nc_addressfield_staticmap,,,,,,,,,,
+,Administer NC Address Field Static Map,administrator addressfield nc_addressfield_staticmap,,,1,,,,,
+nc_permissions,,,,,,,,,,
+,NC Permissions Export,nc_permissions export,,,1,,,,,
+,NC Permissions Import,nc_permissions import,,,1,,,,,
+,NC Permissions Reset,nc_permissions reset,,,1,,,,,
+nc_search,,,,,,,,,,
+,Administer search,administer nc search,,,1,,,,,
+,Use search,search nc content,1,1,1,1,1,1,1,1
+node,,,,,,,,,,
+,Bypass content access control,bypass node access,,,1,,,,,1
+,Administer content types,administer content types,,,1,,,,,1
+,Administer content,administer nodes,,,1,,,,1,1
+,Access the content overview page,access content overview,,,1,1,1,1,1,1
+,View published content,access content,1,1,1,1,1,1,1,1
+,View own unpublished content,view own unpublished content,,,1,1,1,1,1,1
+,View content revisions,view revisions,,,1,1,1,,1,1
+,Revert content revisions,revert revisions,,,1,1,,,1,1
+,Delete content revisions,delete revisions,,,1,,,,1,1
+,Data Table: Create new content,create data_table content,,,1,1,1,,1,1
+,Data Table: Edit own content,edit own data_table content,,,1,1,1,,1,1
+,Data Table: Edit any content,edit any data_table content,,,1,1,1,,1,1
+,Data Table: Delete own content,delete own data_table content,,,1,1,1,,1,1
+,Data Table: Delete any content,delete any data_table content,,,1,,,,1,1
+,Landing Page: Create new content,create landing_page content,,,1,,,,1,1
+,Landing Page: Edit own content,edit own landing_page content,,,1,,,,1,1
+,Landing Page: Edit any content,edit any landing_page content,,,1,,,,1,1
+,Landing Page: Delete own content,delete own landing_page content,,,1,,,,1,1
+,Landing Page: Delete any content,delete any landing_page content,,,1,,,,1,1
+,Video: Create new content,create video content,,,1,,,,,
+,Video: Edit own content,edit own video content,,,1,1,1,,1,1
+,Video: Edit any content,edit any video content,,,1,1,1,,1,1
+,Video: Delete own content,delete own video content,,,1,1,1,,1,1
+,Video: Delete any content,delete any video content,,,1,,,,1,1
+,Agency: Create new content,create agency content,,,1,1,1,,1,1
+,Agency: Edit own content,edit own agency content,,,1,1,1,,1,1
+,Agency: Edit any content,edit any agency content,,,1,1,1,,1,1
+,Agency: Delete own content,delete own agency content,,,1,1,1,,1,1
+,Agency: Delete any content,delete any agency content,,,1,,,,1,1
+,Blog entry: Create new content,create blog_entry content,,,1,1,1,,1,1
+,Blog entry: Edit own content,edit own blog_entry content,,,1,1,1,,1,1
+,Blog entry: Edit any content,edit any blog_entry content,,,1,1,1,,1,1
+,Blog entry: Delete own content,delete own blog_entry content,,,1,1,1,,1,1
+,Blog entry: Delete any content,delete any blog_entry content,,,1,,,,1,1
+,Document: Create new content,create document content,,,1,1,1,,1,1
+,Document: Edit own content,edit own document content,,,1,1,1,,1,1
+,Document: Edit any content,edit any document content,,,1,1,1,,1,1
+,Document: Delete own content,delete own document content,,,1,1,1,,1,1
+,Document: Delete any content,delete any document content,,,1,,,,1,1
+,Event: Create new content,create event content,,,1,1,1,1,1,1
+,Event: Edit own content,edit own event content,,,1,1,1,1,1,1
+,Event: Edit any content,edit any event content,,,1,1,1,1,1,1
+,Event: Delete own content,delete own event content,,,1,1,1,,1,1
+,Event: Delete any content,delete any event content,,,1,,,,1,1
+,Media Gallery: Create new content,create media_gallery content,,,1,,,,,
+,Media Gallery: Edit own content,edit own media_gallery content,,,1,1,1,,1,1
+,Media Gallery: Edit any content,edit any media_gallery content,,,1,1,1,,1,1
+,Media Gallery: Delete own content,delete own media_gallery content,,,1,1,1,,1,1
+,Media Gallery: Delete any content,delete any media_gallery content,,,1,,,,1,1
+,Photo: Create new content,create photo content,,,1,,,,,
+,Photo: Edit own content,edit own photo content,,,1,1,1,,1,1
+,Photo: Edit any content,edit any photo content,,,1,1,1,,1,1
+,Photo: Delete own content,delete own photo content,,,1,1,1,,1,1
+,Photo: Delete any content,delete any photo content,,,1,,,,1,1
+,Profile: Create new content,create profile content,,,1,1,1,,1,1
+,Profile: Edit own content,edit own profile content,,,1,1,1,,1,1
+,Profile: Edit any content,edit any profile content,,,1,1,1,,1,1
+,Profile: Delete own content,delete own profile content,,,1,1,1,,1,1
+,Profile: Delete any content,delete any profile content,,,1,,,,1,1
+,Press Release: Create new content,create press_release content,,,1,1,1,,1,1
+,Press Release: Edit own content,edit own press_release content,,,1,1,1,,1,1
+,Press Release: Edit any content,edit any press_release content,,,1,1,1,,1,1
+,Press Release: Delete own content,delete own press_release content,,,1,1,1,,1,1
+,Press Release: Delete any content,delete any press_release content,,,1,,,,1,1
+,Services: Create new content,create services content,,,1,1,1,,1,1
+,Services: Edit own content,edit own services content,,,1,1,1,,1,1
+,Services: Edit any content,edit any services content,,,1,1,1,,1,1
+,Services: Delete own content,delete own services content,,,1,1,1,,1,1
+,Services: Delete any content,delete any services content,,,1,,,,1,1
+,Site Page: Create new content,create site_page content,,,1,1,1,,1,1
+,Site Page: Edit own content,edit own site_page content,,,1,1,1,,1,1
+,Site Page: Edit any content,edit any site_page content,,,1,1,1,,1,1
+,Site Page: Delete own content,delete own site_page content,,,1,1,1,,1,1
+,Site Page: Delete any content,delete any site_page content,,,1,,,,1,1
+,Tax Type: Create new content,create tax_type content,,,1,1,1,,1,1
+,Tax Type: Edit own content,edit own tax_type content,,,1,1,1,,1,1
+,Tax Type: Edit any content,edit any tax_type content,,,1,1,1,,1,1
+,Tax Type: Delete own content,delete own tax_type content,,,1,1,1,,1,1
+,Tax Type: Delete any content,delete any tax_type content,,,1,,,,1,1
+,Webform: Create new content,create webform content,,,1,1,1,,1,1
+,Webform: Edit own content,edit own webform content,,,1,1,1,,1,1
+,Webform: Edit any content,edit any webform content,,,1,1,1,,1,1
+,Webform: Delete own content,delete own webform content,,,1,1,1,,1,1
+,Webform: Delete any content,delete any webform content,,,1,,,,1,1
+,Digital Commons: Create new content,create digital_commons content,,,1,1,1,,1,1
+,Digital Commons: Edit own content,edit own digital_commons content,,,1,1,1,,1,1
+,Digital Commons: Edit any content,edit any digital_commons content,,,1,1,1,,1,1
+,Digital Commons: Delete own content,delete own digital_commons content,,,1,1,1,,1,1
+,Digital Commons: Delete any content,delete any digital_commons content,,,1,,,,1,1
+,Map Page: Create new content,create map_page content,,,1,1,1,,1,1
+,Map Page: Edit own content,edit own map_page content,,,1,1,1,,1,1
+,Map Page: Edit any content,edit any map_page content,,,1,1,1,,1,1
+,Map Page: Delete own content,delete own map_page content,,,1,1,1,,1,1
+,Map Page: Delete any content,delete any map_page content,,,1,,,,1,1
+nodequeue,,,,,,,,,,
+,Administer nodequeue,administer nodequeue,,,1,,,,,1
+,Manipulate queues,manipulate queues,,,1,,,,,1
+,Manipulate all queues,manipulate all queues,,,1,,,,,1
+oauth_common,,,,,,,,,,
+,Access own OAuth authorizations,access own authorizations,,,1,,,,,1
+,Access own OAuth consumers,access own consumers,,,1,,,,,1
+,Authorize any OAuth consumers,oauth authorize any consumers,,,1,,,,,1
+,Register any OAuth consumers,oauth register any consumers,,,1,,,,,1
+,Administer OAuth,administer oauth,,,1,,,,,1
+,Administer OAuth consumers,administer consumers,,,1,,,,,1
+page_manager,,,,,,,,,,
+,Use Page Manager,use page manager,,,1,,,,,1
+,Administer Page Manager,administer page manager,,,1,,,,,1
+panels,,,,,,,,,,
+,Use Panels Dashboard,use panels dashboard,,,1,,,,,
+,View administrative links on Panel panes,view pane admin links,,,1,,,,,
+,Configure access settings on Panel panes,administer pane access,,,1,,,,,
+,Use the Panels In-Place Editor,use panels in place editing,,,1,,,,,
+,Change layouts with the Panels In-Place Editor,change layouts in place editing,,,1,,,,,
+,Configure advanced settings on Panel panes,administer advanced pane settings,,,1,,,,,
+,Administer Panels layouts,administer panels layouts,,,1,,,,,
+,Administer Panels styles,administer panels styles,,,1,,,,,
+,Configure caching settings on Panels,use panels caching features,,,1,,,,,
+,Use panel locks,use panels locks,,,1,,,,,
+,Use the Panels In-Place Editor with Page Manager,use ipe with page manager,,,1,,,,,
+paragraphs,,,,,,,,,,
+,Administer paragraphs bundles,administer paragraphs bundles,,,1,,,,,1
+path,,,,,,,,,,
+,Administer URL aliases,administer url aliases,,,1,,,,,1
+,Create and edit URL aliases,create url aliases,,,1,1,,,1,1
+pathauto,,,,,,,,,,
+,Administer pathauto,administer pathauto,,,1,,,,,
+,Notify of Path Changes,notify of path changes,,,1,,,,,
+picture,,,,,,,,,,
+,Administer Pictures,administer pictures,,,1,,,,1,1
+recaptcha,,,,,,,,,,
+,Administer reCAPTCHA,administer recaptcha,,,1,,,,1,1
+redirect,,,,,,,,,,
+,Administer URL redirections,administer redirects,,,1,,,,,1
+revision_scheduler,,,,,,,,,,
+,Schedule revisions,schedule revisions,,,1,,,,,1
+role_delegation,,,,,,,,,,
+,Assign all roles,assign all roles,,,1,,,,,
+,Assign publisher role,assign publisher role,,,1,,,,,1
+,Assign editor role,assign editor role,,,1,,,,,1
+,Assign event creator role,assign event creator role,,,1,,,,,1
+,Assign site manager role,assign site manager role,,,1,,,,,1
+,Assign site admin role,assign site admin role,,,1,,,,,1
+s3fs,,,,,,,,,,
+,Administer S3 File System,administer s3fs,,,1,,,,,
+search_api,,,,,,,,,,
+,Administer Search API,administer search_api,,,1,,,,,
+shortcut,,,,,,,,,,
+,Administer shortcuts,administer shortcuts,,,1,,,,,1
+,Edit current shortcut set,customize shortcut links,,,1,,,,,1
+,Select any shortcut set,switch shortcut sets,,,1,,,,,1
+smtp,,,,,,,,,,
+,Administer SMTP Authentication Support module,administer smtp module,,,1,,,,,
+system,,,,,,,,,,
+,Administer modules,administer modules,,,1,,,,,
+,Administer site configuration,administer site configuration,,,1,,,,,
+,Administer themes,administer themes,,,1,,,,,
+,Administer software updates,administer software updates,,,1,,,,,
+,Administer actions,administer actions,,,1,,,,,
+,Use the administration pages and help,access administration pages,,,1,,,,1,1
+,Use the site in maintenance mode,access site in maintenance mode,,,1,,,,,
+,View the administration theme,view the administration theme,,,1,1,1,,1,1
+,View site reports,access site reports,,,1,,,,1,1
+,Block IP addresses,block IP addresses,,,1,,,,,1
+tablefield,,,,,,,,,,
+,Export Tablefield Data as CSV,export tablefield,1,1,1,1,1,1,1,1
+,Rebuild any tablefield,rebuild tablefield,,,1,1,1,,1,1
+,Allow changes in the global tablefield module configuration,configure tablefield,,,1,,,,,
+taxonomy,,,,,,,,,,
+,Administer vocabularies and terms,administer taxonomy,,,1,,,,1,1
+,Edit terms in Agency category,edit terms in agency_category,,,1,,,,1,1
+,Delete terms from Agency category,delete terms in agency_category,,,1,,,,1,1
+,Edit terms in Agency/Department,edit terms in nc_agency_department,,,1,,,,1,1
+,Delete terms from Agency/Department,delete terms in nc_agency_department,,,1,,,,1,1
+,Edit terms in Blog Category,edit terms in blog_category,,,1,,,,1,1
+,Delete terms from Blog Category,delete terms in blog_category,,,1,,,,1,1
+,Edit terms in Blog Terms,edit terms in blog_terms,,,1,,,,1,1
+,Delete terms from Blog Terms,delete terms in blog_terms,,,1,,,,1,1
+,Edit terms in Card Keywords,edit terms in card_keywords,,,1,,,,1,1
+,Delete terms from Card Keywords,delete terms in card_keywords,,,1,,,,1,1
+,Edit terms in Division,edit terms in nc_agency_department,,,1,,,,1,1
+,Delete terms from Division,delete terms in nc_agency_department,,,1,,,,1,1
+,Edit terms in Document Collection,edit terms in document_collection,,,1,,,,1,1
+,Delete terms from Document Collection,delete terms in document_collection,,,1,,,,1,1
+,Edit terms in Document Terms,edit terms in document_terms,,,1,,,,1,1
+,Delete terms from Document Terms,delete terms in document_terms,,,1,,,,1,1
+,Edit terms in DPS Divisions,edit terms in dps_divisions,,,1,,,,1,1
+,Delete terms from DPS Divisions,delete terms in dps_divisions,,,1,,,,1,
+,Edit terms in Event Organizer,edit terms in event_organizer,,,1,,,,1,1
+,Delete terms from Event Organizer,delete terms in event_organizer,,,1,,,,1,1
+,Edit terms in Event Terms,edit terms in event_terms,,,1,,,,1,1
+,Delete terms from Event Terms,delete terms in event_terms,,,1,,,,1,1
+,Edit terms in Event Type,edit terms in event_type,,,1,,,,1,1
+,Delete terms from Event Type,delete terms in event_type,,,1,,,,1,1
+,Edit terms in Key Search Topics,edit terms in key_search_topics,,,1,,,,1,1
+,Delete terms from Key Search Topics,delete terms in key_search_topics,,,1,,,,1,1
+,Edit terms in North Carolina Counties,edit terms in nc_counties,,,1,,,,1,1
+,Delete terms from North Carolina Counties,delete terms in nc_counties,,,1,,,,1,1
+,Edit terms in Press Release Terms,edit terms in press_release_terms,,,1,,,,1,1
+,Delete terms from Press Release Terms,delete terms in press_release_terms,,,1,,,,1,1
+,Edit terms in Service category,edit terms in service_category,,,1,,,,1,1
+,Delete terms from Service category,delete terms in service_category,,,1,,,,1,1
+,Edit terms in Video Terms,edit terms in video_terms,,,1,,,,1,1
+,Delete terms from Video Terms,delete terms in video_terms,,,1,,,,1,1
+toolbar,,,,,,,,,,
+,Use the administration toolbar,access toolbar,,,1,1,1,1,1,1
+translation,,,,,,,,,,
+,Translate content,translate content,,,1,1,1,,1,1
+twitter,,,,,,,,,,
+,Administer Twitter configuration,administer twitter,,,1,,,,,
+,Add Twitter accounts,add twitter accounts,,,1,,,,1,1
+,Add authenticated Twitter accounts,add authenticated twitter accounts,,,1,,,,1,1
+,Administer Twitter accounts,administer twitter accounts,,,1,,,,1,1
+user,,,,,,,,,,
+,Administer permissions,administer permissions,,,1,,,,,
+,Administer users,administer users,,,1,,,,,1
+,View user profiles,access user profiles,,,1,,,,1,1
+,Change own username,change own username,,,1,,,,,1
+,Cancel own user account,cancel account,,,1,,,,,1
+,Select method for cancelling own account,select account cancellation method,,,1,,,,,1
+video_embed_field,,,,,,,,,,
+,Administer video styles,administer video styles,,,1,,,,,1
+views,,,,,,,,,,
+,Administer views,administer views,,,1,,,,,1
+,Bypass views access control,access all views,,,1,,,,,1
+webform,,,,,,,,,,
+,Access all webform results,access all webform results,,,1,,,,1,1
+,Access own webform results,access own webform results,,1,1,1,1,1,1,1
+,Edit all webform submissions,edit all webform submissions,,,1,,,,1,1
+,Delete all webform submissions,delete all webform submissions,,,1,,,,1,1
+,Access own webform submissions,access own webform submissions,,1,1,1,1,1,1,1
+,Edit own webform submissions,edit own webform submissions,,,1,1,,,1,1
+,Delete own webform submissions,delete own webform submissions,,,1,1,,,1,1
+,Content authors: access and edit webform components and settings,edit webform components,,1,1,1,1,1,1,1
+webform_deter,,,,,,,,,,
+,Administer Webform Deter,administer webform_deter,,,1,,,,,1
+webform_remote_post,,,,,,,,,,
+,Admin webform remote posts,admin webform remote posts,,,1,,,,,1
+workbench,,,,,,,,,,
+,Administer Workbench settings,administer workbench,,,1,,,,,
+,Access My Workbench,access workbench,,,1,1,1,1,1,1
+workbench_moderation,,,,,,,,,,
+,View all unpublished content,view all unpublished content,,,1,1,1,1,1,1
+,Administer Workbench Moderation,administer workbench moderation,,,1,,,,1,1
+,Bypass moderation restrictions,bypass workbench moderation,,,1,,,,1,1
+,View moderation history,view moderation history,,,1,1,1,1,1,1
+,View the moderation messages on a node,view moderation messages,,,1,1,1,1,1,1
+,"Use ""My drafts"" workbench tab",use workbench_moderation my drafts tab,,,1,1,1,1,1,1
+,"Use ""Needs review"" workbench tab",use workbench_moderation needs review tab,,,1,1,1,1,1,1
+,Moderate all content from Draft to Needs Review,moderate content from draft to needs_review,,,1,1,1,1,1,1
+,Moderate all content from Needs Review to Draft,moderate content from needs_review to draft,,,1,1,,,1,1
+,Moderate all content from Needs Review to Published,moderate content from needs_review to published,,,1,1,,,1,1
+xmlsitemap,,,,,,,,,,
+,Administer XML sitemap settings.,administer xmlsitemap,,,1,,,,1,1
+nc_google_cse,,,,,,,,,,
+,Administer NC Google SCE,administer nc_google_cse,,,1,,,,,1
+nc_table_of_contents,,,,,,,,,,
+,Table of Contents: Add Bean,create any nc_table_of_contents bean,,,1,,,,1,1
+,Table of Contents: Edit Bean,edit any nc_table_of_contents bean,,,1,1,,,1,1
+,Table of Contents: View Bean,view any nc_table_of_contents bean,1,1,1,1,1,1,1,1
+,Table of Contents: Delete Bean,delete any nc_table_of_contents bean,,,1,,,,1,1

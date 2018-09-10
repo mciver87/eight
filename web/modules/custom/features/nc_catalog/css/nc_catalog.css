@@ -1,0 +1,123 @@
+.nc-catalog-page .header-image {
+  margin-bottom:10px;
+}
+
+.nc-catalog-page .item-list ul,
+.nc-catalog-page .item-list ul li {
+  margin: 0;
+  list-style-type: none;
+}
+
+.nc-catalog-page .article .keywords,
+.nc-catalog-page .article .term-keywords {
+  display:none;
+}
+
+.nc-catalog-page .form-wrapper {
+  width:100%;
+}
+
+.nc-catalog-page input[type="checkbox"] {
+  position: absolute;
+  left: -9999px;
+}
+
+.nc-catalog-page input[type="checkbox"]+label {
+  display: inline-block;
+    position: relative;
+    padding-left: 40px;
+    line-height: 24px;
+    cursor: pointer;
+}
+
+.nc-catalog-page input[type="checkbox"]+label:after {
+    position: absolute;
+    display: block;
+    content: '';
+    width: 24px;
+    height: 24px;
+    line-height: 24px;
+    border: 2px solid #6f7785;
+    top: 0;
+    left: 0;
+    border-radius: 4px;
+    transition: all .15s ease-in-out;
+}
+.nc-catalog-page input[type="checkbox"][disabled]+label:after {
+  background-color:#6f7785;
+  cursor: not-allowed;
+}
+
+.nc-catalog-page input[type="checkbox"]:checked+label:after {
+  background: #397aac;
+  border: 2px solid #397aac;
+}
+
+.nc-catalog-page input[type="checkbox"]:checked+label:before {
+  font-family: 'icomoon';
+  font-size: 24px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  color: #fff;
+}
+.nc-catalog-page input[type="checkbox"]:checked+label:before {
+  content: "\e5ca";
+}
+.nc-catalog-page .pager {
+  width:100%;
+}
+.nc-catalog-page .pager a {
+  cursor: pointer;
+}
+
+.nc-catalog-page .pager .next {
+  margin: 0 auto;
+  display: table;
+}
+.nc-catalog-page .pager .view-all {
+  display:table;
+  margin-right:0;
+  margin-left:auto;
+}
+
+.nc-catalog-contact p, .nc-catalog-location p {
+  display: inline-block;
+  margin-right: 10px;
+  margin-bottom: 10px;
+}
+
+.nc-catalog-location, .description-wrapper p, .catalog-links {
+  margin-bottom: 10px;
+}
+
+.nc-catalog-expander {
+  border-radius: 4px;
+  display: inline-block;
+  text-align: left;
+  padding: 8px 13px;
+  line-height: 1.5;
+  background-color: #092940;
+  border: 2px solid #092940;
+  color: #fff;
+  text-decoration: none;
+  vertical-align: top;
+  position: relative;
+  transition: all .15s ease-in-out;
+  cursor: pointer;
+  margin-bottom: 10px;
+  user-select: none;
+}
+
+.nc-catalog-expander span:before {
+  display: inline-block;
+  position: relative;
+  transition: all .35s ease-in-out;
+}
+
+.catalog-expanded span:before {
+  -ms-transform: rotate(90deg);  /* IE 9 */
+  -webkit-transform: rotate(90deg); /* Safari */
+  transform: rotate(90deg);
+}

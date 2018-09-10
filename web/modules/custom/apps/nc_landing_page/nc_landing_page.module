@@ -1,0 +1,131 @@
+<?php
+/**
+ * @file
+ * Code for the NC Landing Page feature.
+ */
+
+include_once 'nc_landing_page.features.inc';
+
+/**
+ * Implements template_preprocess_entity().
+ */
+function nc_landing_page_preprocess_entity(&$vars) {
+  if ('paragraphs_item' == $vars['entity_type']) {
+    $para = $vars['paragraphs_item'];
+
+    // Add the band class out of the gate.
+    $vars['classes_array'][] = 'band';
+
+    // Apply the color scheme class, if selected.
+    $color_scheme = field_get_items('paragraphs_item', $para, 'field_band_color_scheme');
+    if (!empty($color_scheme[0]['value'])) {
+      $vars['classes_array'][] = $color_scheme[0]['value'];
+    }
+
+    // Apply the padding scheme class, if selected.
+    $padding_scheme = field_get_items('paragraphs_item', $para, 'field_band_padding');
+    if (!empty($padding_scheme[0]['value'])) {
+      $vars['classes_array'][] = $padding_scheme[0]['value'];
+    }
+
+    // Apply the background image, if one exists.
+    $background_image = field_get_items('paragraphs_item', $para, 'field_band_background_image');
+    if (!empty($background_image)) {
+      $vars['attributes_array']['style'] = 'background-image: url(' . image_style_url('band_background_image', $background_image[0]['uri']) . ');';
+
+      // Apply the background image style, if one exists.
+      $background_image_style = field_get_items('paragraphs_item', $para, 'field_background_image_style');
+      if (!empty($background_image_style)) {
+        $vars['classes_array'][] = $background_image_style[0]['value'];
+      }
+    }
+
+    // Apply full-, 2- and 3-column specific classes.
+    switch ($para->bundle) {
+      case 'full_width':
+        $vars['layout_class'] = '';
+        break;
+
+      case 'two_column':
+        $layout = field_get_items('paragraphs_item', $para, 'field_left_right_sizing');
+        if (!empty($layout[0]['value'])) {
+          $vars['layout_class'] = $layout[0]['value'];
+        }
+        break;
+
+      case 'three_column':
+        $vars['layout_class'] = 'parts-span-third';
+        break;
+
+      case 'four_column':
+        $vars['layout_class'] = 'parts-span-fourth';
+    }
+
+    // Pass clean title through to template to format per styleguide.
+    if (!empty($vars['field_full_width_title'])) {
+      $vars['title'] = !empty($vars['field_full_width_title'][0]['safe_value']) ? $vars['field_full_width_title'][0]['safe_value'] : '';
+      if (!empty($vars['content']['field_full_width_title'])) {
+        // Disable rendering this element.
+        $vars['content']['field_full_width_title']['#printed'] = TRUE;
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_preprocess_page().
+ */
+function nc_landing_page_preprocess_page(&$variables) {
+  // Determine if we should be hiding the title of this page.
+  if (!empty($variables['node'])) {
+    if (node_is_page($variables['node'])) {
+      // Check if this node has the field_hide_title field checked.
+      $suppress = field_get_items('node', $variables['node'], 'field_hide_title', LANGUAGE_NONE);
+      if (!empty($suppress) && $suppress[0]['value']) {
+        // Title should be hidden. For accessibility purposes let css hide it.
+        $variables['title_attributes_array']['class'][] = 'element-invisible';
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_blockreference_blocks_post_alter().
+ */
+function nc_landing_page_blockreference_blocks_post_alter(&$blocks, $context) {
+  if ($context['type'] === 'options_list') {
+    // Remove some of the blocks from the list to prevent UI issues.
+    foreach ($blocks as $index => $value) {
+      if (strstr($index, 'boxes_add__')) {
+        unset($blocks[$index]);
+      }
+    }
+  }
+}
+
+/**
+ * Calls a hook to override the default color schemes.
+ */
+function nc_landing_page_color_schemes() {
+  $colors = array(
+    'theme-core-black' => 'Core - Black',
+    'theme-core-blue' => 'Core - Blue',
+    'theme-core-gray' => 'Core - Gray',
+    'theme-core-light-gray' => 'Core - Light Gray',
+    'theme-core-off-white' => 'Core - Off White',
+    'theme-accent-cool-gray' => 'Accent - Cool Gray',
+    'theme-accent-warm-gray' => 'Accent - Warm Gray',
+    'theme-accent-light-blue' => 'Accent - Light Blue',
+    'theme-accent-blue' => 'Accent - Blue',
+    'theme-accent-indigo' => 'Accent - Indigo',
+    'theme-accent-deep-purple' => 'Accent - Deep Purple',
+    'theme-accent-purple' => 'Accent - Purple',
+    'theme-accent-red' => 'Accent - Red',
+    'theme-accent-orange' => 'Accent - Orange',
+    'theme-accent-olive' => 'Accent - Olive',
+    'theme-accent-green' => 'Accent - Green',
+    'theme-accent-turquoise' => 'Accent - Turquoise',
+  );
+  drupal_alter('nc_color_options', $colors);
+  return $colors;
+}

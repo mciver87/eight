@@ -1,0 +1,6 @@
+name = NC AddressField Static Map
+description = "Displays a static Google map for address fields."
+configure = admin/config/system/nc_addressfield_staticmap
+core = 7.x
+package = Fields
+dependencies[] = addressfield

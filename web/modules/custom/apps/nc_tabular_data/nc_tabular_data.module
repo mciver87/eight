@@ -1,0 +1,21 @@
+<?php
+
+/**
+ * @file
+ * Required for module.
+ */
+
+/**
+ * Implements hook_field_formatter_info().
+ */
+function nc_tabular_data_preprocess_tablefield_view($vars) {
+  if (module_exists('libraries') && file_exists(libraries_get_path('datatables') . '/media/js/jquery.dataTables.min.js')) {
+    $lib_path = libraries_get_path('datatables');
+    drupal_add_js($lib_path . '/media/js/jquery.dataTables.min.js');
+  }
+  if (module_exists('libraries') && file_exists(libraries_get_path('datatables_responsive') . '/js/dataTables.responsive.min.js')) {
+    $lib_path = libraries_get_path('datatables_responsive');
+    drupal_add_js($lib_path . '/js/dataTables.responsive.min.js');
+    drupal_add_js(drupal_get_path('module', 'nc_tabular_data') . '/js/' . 'nc_tabular_data.js');
+  }
+}

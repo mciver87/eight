@@ -1,0 +1,10 @@
+name = NC Editor Enhanced IMCE Privileges
+description = Adds additional privileges to the NC Editor IMCE profile based upon the needs of NCDEQ's users in that role.
+core = 7.x
+package = Features
+version = 7.x-1.0
+dependencies[] = nc_wysiwyg
+features[features_api][] = api:2
+features[features_override_items][] = variable.imce_profiles
+features[features_overrides][] = variable.imce_profiles.value|2|directories|0|delete
+features[features_overrides][] = variable.imce_profiles.value|2|mkdirnum

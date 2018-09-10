@@ -1,0 +1,15 @@
+name = NC Alerts Integration Library
+description = This is a code-level integration library to assist in developing NC Alerts integrations.
+core = 7.x
+package = North Carolina
+version = 7.x-1.0
+project = nc_alerts_integration_library
+dependencies[] = nc_alerts
+files[] = includes/AbstractAlertsCollector.class.inc
+files[] = includes/AbstractRequestDelegate.class.inc
+files[] = includes/AbstractResponseBodyParser.class.inc
+files[] = includes/CachedAlertsCollector.class.inc
+files[] = includes/DrupalRequestDelegate.class.inc
+files[] = includes/RequestDelegateInterface.class.inc
+files[] = includes/RequestParserConnector.class.inc
+files[] = includes/ResponseBodyParserInterface.class.inc

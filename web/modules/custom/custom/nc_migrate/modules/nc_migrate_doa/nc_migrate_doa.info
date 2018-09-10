@@ -1,0 +1,18 @@
+name = "North Carolina Migrate - DOA"
+description = "Module to migrate content into the NC Platform for DOA"
+package = "North Carolina Migrate"
+core = 7.x
+dependencies[] = nc_migrate
+dependencies[] = nc_site_page
+dependencies[] = nc_document
+
+; Class files for this module
+files[] = includes/MigrateDOAItemUrl.class.php
+files[] = includes/MigrateDOABase.class.php
+files[] = includes/MigrateDOAPages.class.php
+files[] = includes/MigrateDOAFiles.class.php
+files[] = includes/MigrateDOADocument.class.php
+files[] = includes/MigrateDOADocumentSource.class.php
+files[] = includes/MigrateDOACSVSource.class.php
+files[] = includes/MigrateDOAPageMenu.class.php
+files[] = includes/MigrateDOAFileUri.class.php

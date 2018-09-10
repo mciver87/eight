@@ -1,0 +1,187 @@
+<?php
+/**
+ * @file
+ * Code for the NC Alerts feature.
+ */
+
+include_once 'nc_alerts.features.inc';
+
+define('NC_ALERTS_VARIABLE_AUTOROATE', 'nc_alerts_autoroate');
+
+/**
+ * Implements hook_bean_types_api_info().
+ */
+function nc_alerts_bean_types_api_info() {
+  return array('api' => 4);
+}
+
+/**
+ * Implements hook_bean_types().
+ */
+function nc_alerts_bean_types() {
+  $plugins = array();
+  $plugin_path = drupal_get_path('module', 'nc_alerts') . '/plugins';
+  $plugins['nc_alerts'] = array(
+    'label' => t('Alert'),
+    'description' => t('Provides site-wide alerts with configurable severity levels.'),
+    'handler' => array(
+      'class' => 'NCAlertsBean',
+      'parent' => 'bean',
+    ),
+    'path' => $plugin_path,
+    'file' => 'NCAlertsBean.class.php',
+  );
+  return $plugins;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function nc_alerts_theme() {
+  $items = array();
+
+  $items['alert'] = array(
+    'arguments' => array(
+      'alert' => NULL,
+    ),
+    'file' => 'nc_alerts.theme.inc',
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function nc_alerts_block_info() {
+  $blocks['nc_alerts_block'] = array(
+    'info' => t('NC Alerts'),
+    'cache' => DRUPAL_NO_CACHE,
+  );
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function nc_alerts_block_view($delta = '') {
+  switch ($delta) {
+    case 'nc_alerts_block':
+      $block['content'] = nc_alerts_contents();
+      $block['content']['#pre_render'] = array('nc_alerts_pre_render_alerts_content');
+      $block['content']['#post_render'] = array('nc_alerts_post_render_alerts_content');
+      break;
+  }
+  return $block;
+}
+
+/**
+ * Update the wrapper for the alerts.
+ *
+ * @param mixed $content
+ *   content passed in
+ *
+ * @return string
+ *   Wrapped content to match style guide
+ */
+function nc_alerts_post_render_alerts_content($content) {
+  // Added if statement to avoid placing an
+  // empty alerts wrapper which adds extra spacing.
+  if (!empty($content)) {
+    return sprintf('<div id="alerts" data-alerts-hash="%s" class="wrapper group alerts">%s</div>', md5($content), $content);
+  }
+}
+
+/**
+ * Remove the theme wrappers (excessive wrapping and markup.
+ *
+ * @param mixed $element
+ *   Element passed in
+ *
+ * @return mixed
+ *   Altered element
+ */
+function nc_alerts_pre_render_alerts_content($element) {
+  // The theme_wrappers add quite a bit of markup.
+  // This will remove it.
+  // TODO: Create a setting to allow admin users to
+  // enable/disable.
+  unset($element['#theme_wrappers']);
+  return $element;
+}
+
+/**
+ * Render the block content for nc_alerts.
+ */
+function nc_alerts_contents() {
+  $build = array();
+  // Allows alerts to be inserted before the bean alerts.
+  drupal_alter('pre_build_alert_array', $build);
+  $now = date('c');
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', 'bean')
+    ->fieldCondition('field_alert_expiration', 'value', $now, '>')
+    ->propertyCondition('type', 'nc_alerts', '=');
+  $result = $query->execute();
+  if (!empty($result['bean'])) {
+    foreach ($result['bean'] as $bean) {
+      $build[] = bean_view(bean_load($bean->bid));
+    }
+  }
+
+  // Add hook here, so that we can inject alerts into the render
+  // even if they aren't officially blocks (to be used for DPS).
+  // module_invoke_all('nc_alerts_build_array', $build);
+  drupal_alter('build_alert_array', $build);
+
+  return $build;
+}
+
+/**
+ * Implements hook_admin().
+ */
+function nc_alerts_admin() {
+  $form = array();
+
+  $form['nc_alerts_autoroate'] = array(
+    '#type' => 'select',
+    '#title' => t('Auto rotate alerts'),
+    '#default_value' => variable_get(NC_ALERTS_VARIABLE_AUTOROATE, 0),
+    '#options' => array(
+      0 => t('Disabled'),
+      3000 => t('3 seconds'),
+      5000 => t('5 seconds'),
+      10000 => t('10 seconds'),
+      20000 => t('20 seconds'),
+    ),
+  );
+
+  return system_settings_form($form);
+}
+
+/**
+ * Implements hook_menu().
+ */
+function nc_alerts_menu() {
+  $items = array();
+
+  $items['admin/config/nc_alerts'] = array(
+    'title' => 'North Carolina Alerts',
+    'description' => 'Configuration options for NC Alerts',
+    'position' => 'left',
+    'weight' => 753,
+    'page callback' => 'system_admin_menu_block_page',
+    'access arguments' => array('administer site configuration'),
+    'file' => 'system.admin.inc',
+    'file path' => drupal_get_path('module', 'system'),
+  );
+
+  $items['admin/config/nc_alerts/settings'] = array(
+    'title' => 'North Carolina Alerts Rotation',
+    'description' => 'Configuration options for NC Alerts',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('nc_alerts_admin'),
+    'access arguments' => array('administer site configuration'),
+  );
+
+  return $items;
+}

@@ -1,0 +1,19 @@
+<?php
+/**
+ * @file
+ * Code for the NC Blog Entry feature.
+ */
+
+include_once 'nc_blog_entry.features.inc';
+
+
+/**
+ * Implements hook_preprocess_node().
+ */
+function nc_blog_entry_preprocess_node(&$node) {
+  if ($node['type'] == 'blog_entry' && $node['view_mode'] == 'teaser') {
+    if (!empty($node['content']['links'])) {
+      $node['content']['links']['node']['#links']['node-readmore']['title'] = t('Continue Reading');
+    }
+  }
+}

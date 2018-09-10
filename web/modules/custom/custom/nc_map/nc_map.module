@@ -1,0 +1,47 @@
+<?php
+/**
+ * @file
+ * File for the nc_map module.
+ */
+
+/**
+ * Implements hook_bean_types_api_info().
+ */
+function nc_map_bean_types_api_info() {
+  return array('api' => 4);
+}
+
+/**
+ * Implements hook_bean_types().
+ */
+function nc_map_bean_types() {
+  $plugins = array();
+  $plugins['nc_map'] = array(
+    'label'       => t('NC Map'),
+    'description' => t('Used to create a map of NC Counties.'),
+    'handler'     => array(
+      'class'  => 'NcMapBean',
+      'parent' => 'bean',
+    ),
+    'path'        => drupal_get_path('module', 'nc_map') . '/plugins/bean',
+    'file'        => 'NCMap.class.php',
+  );
+  return $plugins;
+}
+
+/**
+ * Implements hook_form_alter().
+ */
+function nc_map_form_bean_form_alter(&$form, &$form_state, $form_id) {
+  if ($form['#bundle'] == 'nc_map') {
+    // We don't use title for this bean, so set it to the label field.
+    $form['title'] = t($form_state['label']);
+    // Hide some Bean elements to clean up the UI.
+    hide($form['title']);
+    hide($form['view_mode']);
+    hide($form['revision']);
+    hide($form['captcha']);
+    hide($form['redirect']);
+    hide($form['settings']['bean_type']);
+  }
+}

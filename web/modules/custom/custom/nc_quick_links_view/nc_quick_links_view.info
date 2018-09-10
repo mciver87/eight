@@ -1,0 +1,14 @@
+; Core module header.
+name = NC Quick Links View
+description = Creates new View style for displaying links and dates in a quick list.
+core = 7.x
+package = North Carolina
+version = 7.x-1.0
+project = nc_quick_links_view
+
+; Dependencies.
+dependencies[] = views
+
+;Views Files
+files[] = views/plugins/views_plugin_style_nc_quick_links.inc
+files[] = views/plugins/views_plugin_row_nc_quick_link.inc

@@ -1,0 +1,416 @@
+<?php
+/**
+ * @file
+ * Drupal needs this blank file.
+ */
+
+/**
+ * Implements hook_menu_local_tasks_alter().
+ */
+function nc_crawler_admin_menu_local_tasks_alter(&$data, $router_item, $root_path) {
+  // Check to see if this is the page we want to alter.
+  if (empty($router_item['page_arguments'])) {
+    return;
+  }
+  if (is_array($router_item['page_arguments'][0]) && (empty($router_item['page_arguments'][0]['machine_name']) || 'nc_crawler_admin' != $router_item['page_arguments'][0]['machine_name'])) {
+    return;
+  }
+  if ('admin/apps/%/%/configure' != $root_path) {
+    return;
+  }
+
+  // Check to see if we're already on the add page.
+  if (!empty($router_item['page_arguments'][1])) {
+    return;
+  }
+
+  // Now add action item.
+  $action = array(
+    '#theme' => 'menu_local_action',
+    '#link' => $router_item,
+  );
+  $action['#link']['title'] = t('Add crawler');
+  $action['#link']['href'] .= '/_add';
+
+  $data['actions']['output'][] = $action;
+  $data['actions']['count'] = count($data['actions']['output']);
+}
+
+/**
+ * Util function to retrieve crawler(s) from the ES server.
+ */
+function nc_crawler_admin_get_crawlers($ids = array()) {
+  $crawlers = array();
+
+  // Get ES client.
+  $client = _nc_crawler_admin_get_es_client();
+  if ($client) {
+    try {
+      $query_parts = array();
+      $query_parts[] = '_id:_meta';
+      $query_parts[] = 'type:web';
+
+      if (!empty($ids)) {
+        if (!is_array($ids)) {
+          $ids = array($ids);
+        }
+        $query_parts[] = '_type:(' . implode(' OR ', $ids) . ')';
+      }
+
+      $query = new Elastica\Query\QueryString(implode(' AND ', $query_parts));
+      $search = new Elastica\Search($client);
+      $search->addIndex('_river');
+      $search->setQuery($query);
+
+      foreach ($search->scanAndScroll() as $scroll_id => $result_set) {
+        $results = $result_set->getResults();
+        foreach ($results as $result) {
+          $crawler = $result->getSource();
+          $crawler['name'] = $result->getType();
+          $crawlers[$crawler['name']] = $crawler;
+        }
+      }
+      ksort($crawlers);
+    }
+    catch (Exception $e) {
+      drupal_set_message($e->getMessage(), 'error');
+    }
+  }
+
+  return $crawlers;
+}
+
+/**
+ * Util function to retrieve a single crawler.
+ */
+function nc_crawler_admin_get_crawler($id) {
+  $crawlers = nc_crawler_admin_get_crawlers($id);
+  return !empty($crawlers) ? array_pop($crawlers) : NULL;
+}
+
+/**
+ * Util function to get a connected ES client for the ncgov server.
+ */
+function _nc_crawler_admin_get_es_client() {
+  $client = NULL;
+  global $shortcode;
+  global $os_env;
+  $index_name = $os_env . '_' . $shortcode;
+
+  try {
+    // Make sure Elastica libs are loaded.
+    $elastica_loaded = _nc_crawler_admin_elastica_loaded();
+    if ($elastica_loaded) {
+      // Retrieve ES index in use.
+      $index = search_api_index_load($index_name);
+      if (!empty($index)) {
+        // Retrieve ES server info from index or local override var if defined.
+        $server = search_api_server_load(variable_get('nc_crawler_admin_server', $index->server));
+        if (!empty($server)) {
+          $cluster_id = $server->getCluster();
+          if ($cluster_id) {
+            $cluster = elasticsearch_connector_cluster_load($cluster_id);
+            if ($cluster) {
+              // Create new client for the ES server.
+              $servers = _nc_crawler_admin_get_server_def($cluster);
+              $client = new Elastica\Client(array(
+                'servers' => $servers,
+              ));
+            }
+          }
+        }
+      }
+    }
+    else {
+      throw new Exception('Failed to load Elastica');
+    }
+  }
+  catch (Exception $e) {
+    drupal_set_message($e->getMessage(), 'error');
+  }
+
+  return $client;
+}
+
+/**
+ * Check if the Elastica library is loaded.
+ *
+ * @return bool
+ *   Returns TRUE if loaded.
+ */
+function _nc_crawler_admin_elastica_loaded() {
+  $loaded = &drupal_static(__FUNCTION__);
+
+  if (!isset($loaded)) {
+    if (!class_exists('\Elastica\Client') && module_exists('composer_manager')) {
+      drupal_load('module', 'composer_manager');
+      composer_manager_register_autoloader();
+    }
+    elseif (!class_exists('\Elastica\Client')) {
+      spl_autoload_register('_nc_crawler_admin_elastica_autoload');
+    }
+
+    $loaded = class_exists('\Elastica\Client');
+  }
+
+  return $loaded;
+}
+
+/**
+ * Autoloader for the Elastica classes.
+ */
+function _nc_crawler_admin_elastica_autoload($name) {
+  static $lookup_cache = array();
+
+  if (isset($lookup_cache[$name])) {
+    return $lookup_cache[$name];
+  }
+  elseif (drupal_substr($name, 0, 8) == 'Elastica') {
+    $path = _nc_crawler_admin_elastica_path();
+    if (file_exists($file_path = $path . '/' . str_replace('\\', '/', $name) . '.php')) {
+      require_once $file_path;
+      $lookup_cache[$name] = TRUE;
+      return TRUE;
+    }
+  }
+  $lookup_cache[$name] = FALSE;
+  return FALSE;
+}
+
+/**
+ * Return path to Elastica library path, or FALSE if not found.
+ */
+function _nc_crawler_admin_elastica_path($reset = FALSE) {
+  static $path = NULL;
+
+  if ($reset === TRUE) {
+    $path = NULL;
+  }
+
+  if (!isset($path)) {
+    $path = FALSE;
+    // If Libraries API is installed, we first use that to try and find the
+    // library. Otherwise we manually check a few locations.
+    $search_dirs = array();
+    if (function_exists('libraries_get_path')) {
+      $dir = libraries_get_path('Elastica');
+      // Confusingly, Libraries API 1.x will return sites/all/libraries/NAME on
+      // failure, while Libraries API 2.x returns FALSE in that case.
+      if (!empty($dir)) {
+        $search_dirs[] = $dir;
+      }
+    }
+    else {
+      $search_dirs[] = 'sites/all/libraries/Elastica';
+    }
+    foreach ($search_dirs as $dir) {
+      $dir = DRUPAL_ROOT . '/' . $dir . '/lib';
+      if (is_dir($dir)) {
+        $path = $dir;
+        break;
+      }
+    }
+  }
+
+  return $path;
+}
+
+/**
+ * Util function to clean up search_api server defs for use with Elastica.
+ */
+function _nc_crawler_admin_get_server_def($cluster) {
+  // Hardcode defaults.
+  $config = array(
+    'transport' => 'Http',
+    'persistent' => 1,
+    'timeout' => 300,
+    'log' => FALSE,
+    'retryOnConflict' => 0,
+    'headers' => array(
+      'http_user' => '',
+    ),
+    'url' => '',
+  );
+
+  // Override with cluster def.
+  $config += parse_url($cluster->url);
+  if (!empty($cluster->options['username'])) {
+    $config['headers']['http_user'] = $cluster->options['username'];
+    if (!empty($cluster->options['password'])) {
+      $config['headers']['Authorization'] = 'Basic ' . base64_encode($cluster->options['username'] . ':' . $cluster->options['password']);
+    }
+    else {
+      $config['headers']['http_pass'] = '';
+    }
+  }
+
+  return array($config);
+}
+
+/**
+ * Util function to save out crawler definition.
+ */
+function nc_crawler_admin_save_crawler($name, $config) {
+  global $shortcode;
+  global $os_env;
+  $index_name = $os_env . '_' . $shortcode;
+
+  // Assemble data package for ES River Web interface.
+  $data = $config;
+  $data['type'] = 'web';
+
+  // Make sure we have consistent config options for all crawlers.
+  $data['crawl']['index'] = $index_name;
+  $data['crawl']['type'] = $index_name;
+  $data['crawl']['overwrite'] = TRUE;
+  $mapping = _nc_crawler_admin_get_mapping($index_name, $index_name);
+  foreach ($data['crawl']['includeFilter'] as $url_pattern) {
+    // Stub out properties from mapping.
+    $properties = array();
+
+    foreach ($mapping['properties'] as $prop_name => $prop_info) {
+      // Skip properties set by crawler.
+      if (in_array($prop_name, array('url', 'id'))) {
+        continue;
+      }
+
+      // Set defaults based on type.
+      switch ($prop_info['type']) {
+        case 'date':
+          break;
+
+        case 'integer':
+          $properties[$prop_name]['value'] = 0;
+          break;
+
+        case 'string':
+        default:
+          $properties[$prop_name]['value'] = NULL;
+          break;
+      }
+    }
+
+    $properties['title'] = array(
+      'text' => 'title',
+    );
+    $properties['type'] = array(
+      'value' => 'site_page',
+    );
+    $properties['search_api_language'] = array(
+      'value' => 'und',
+    );
+    $properties['search_api_site_hash'] = array(
+      'value' => 'XXXXXX',
+    );
+    $properties['status'] = array(
+      'value' => '1',
+    );
+    $properties['nid'] = array(
+      'value' => '0',
+    );
+    $properties['body:value'] = array(
+      'text' => 'body',
+      'trimSpaces' => TRUE,
+    );
+
+    $data['crawl']['target'][] = array(
+      'pattern' => array(
+        'url' => $url_pattern,
+        'mimeType' => 'text/html',
+      ),
+      'properties' => $properties,
+    );
+  }
+
+  // Scrub crawler definition, remove empty values, cast ints.
+  if (empty($data['schedule']['cron'])) {
+    unset($data['schedule']);
+  }
+  if (empty($data['crawl']['maxDepth'])) {
+    unset($data['crawl']['maxDepth']);
+  }
+  if (empty($data['crawl']['userAgent'])) {
+    unset($data['crawl']['userAgent']);
+  }
+  foreach ($data['crawl'] as $key => $val) {
+    if (is_numeric($val)) {
+      $data['crawl'][$key] = (int) $val;
+    }
+  }
+
+  try {
+    // Get ES client + connection.
+    $client = _nc_crawler_admin_get_es_client();
+    $client->request("_river/{$name}/_meta", \Elastica\Request::PUT, $data);
+  }
+  catch (Exception $e) {
+    drupal_set_message($e->getMessage(), 'error');
+    return FALSE;
+  }
+
+  return TRUE;
+}
+
+/**
+ * Util function to delete crawler definition.
+ */
+function nc_crawler_admin_delete_crawler($name) {
+  try {
+    // Get ES client + connection.
+    $client = _nc_crawler_admin_get_es_client();
+    $client->request("_river/{$name}/", \Elastica\Request::DELETE);
+  }
+  catch (Exception $e) {
+    drupal_set_message($e->getMessage(), 'error');
+    return FALSE;
+  }
+
+  return TRUE;
+}
+
+/**
+ * Util function to preprocess a textarea into non-empty lines.
+ */
+function _nc_crawler_admin_preprocess_textarea($data) {
+  $retval = array();
+  if (!empty($data)) {
+    $lines = explode("\r\n", trim($data));
+    foreach ($lines as $line) {
+      $line = trim($line);
+      if (!empty($line)) {
+        $retval[] = $line;
+      }
+    }
+  }
+
+  return $retval;
+}
+
+/**
+ * Util function to retrieve mappings from an index.
+ */
+function _nc_crawler_admin_get_mapping($index, $mapping = NULL) {
+  // Get ES client.
+  $client = _nc_crawler_admin_get_es_client();
+  if ($client) {
+    global $shortcode;
+    global $os_env;
+    $index_name = $os_env . '_' . $shortcode;
+    try {
+      $mappings = $client->getIndex($index_name)->getMapping();
+      if (!empty($mappings)) {
+        if (!$mapping) {
+          return $mappings;
+        }
+        elseif (isset($mappings[$mapping])) {
+          return $mappings[$mapping];
+        }
+      }
+    }
+    catch (Exception $e) {
+      drupal_set_message($e->getMessage(), 'error');
+    }
+  }
+
+  return NULL;
+}

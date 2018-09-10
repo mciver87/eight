@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the NC SMTP Configuration feature.
+ */
+
+include_once 'nc_smtp_configuration.features.inc';

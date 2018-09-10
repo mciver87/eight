@@ -1,0 +1,122 @@
+<?php
+/**
+ * @file
+ * Contains install, uninstall, update hooks for module.
+ */
+
+/**
+ * Implements hook_enable().
+ */
+function nc_search_enable() {
+  nc_search_reset();
+}
+
+/**
+ * NC-935: Disabled ignore case processor to preserve case in indexed body text.
+ */
+function nc_search_update_7001() {
+  features_revert_module('nc_search');
+}
+
+/**
+ * NC-935: Remove service type from search index.
+ */
+function nc_search_update_7002() {
+  features_revert_module('nc_search');
+}
+
+/**
+ * NC-1090: Move to elasticsearch_connector module.
+ */
+function nc_search_update_7003() {
+  module_enable(array(
+    'elasticsearch_connector',
+    'elasticsearch_connector_search_api',
+  ));
+  $old_servers = array(
+    'openshift_production',
+    'openshift_staging',
+  );
+  foreach ($old_servers as $server) {
+    $server = search_api_server_load($server);
+    if (!empty($server->machine_name)) {
+      search_api_server_delete($server->machine_name);
+    }
+  }
+  features_revert_module('nc_search');
+  search_api_index_reindex('ncgov');
+  module_disable(array('search_api_elasticsearch'));
+  cache_clear_all();
+  registry_rebuild();
+}
+
+/**
+ * NC-1091: Revert nc_search to enable HTML preprocessor.
+ */
+function nc_search_update_7004() {
+  features_revert_module('nc_search');
+}
+
+
+/**
+ * NC-29: Disable and Re-Enable search index.
+ */
+function nc_search_update_7005() {
+  nc_search_reindex();
+}
+
+/**
+ * NC-29: Revert nc_search to switch to single term.
+ */
+function nc_search_update_7006() {
+  features_revert_module('nc_search');
+}
+
+/**
+ * NC-29: Disable and Re-Enable search index.
+ */
+function nc_search_update_7007() {
+  nc_search_reindex();
+}
+
+/**
+ * ABT-82: Disable and Re-Enable search index.
+ */
+function nc_search_update_7008() {
+  features_revert_module('nc_search');
+}
+
+/**
+ * ABT-630: Adding document attachments to search.
+ */
+function nc_search_update_7009() {
+  features_revert_module('nc_search');
+}
+
+/**
+ * ABT-627: Adding all the block data to the search index under its parent page.
+ */
+function nc_search_update_7010() {
+  features_revert_module('nc_search');
+}
+
+/**
+ * Revert Search as update with Module Upgrade.
+ */
+function nc_search_update_7011() {
+  features_revert_module('nc_search');
+}
+
+/**
+ * Revert Search as update with Module Upgrade.
+ */
+function nc_search_update_7012() {
+  features_revert_module('nc_search');
+}
+
+/**
+ * Revert Search to strip html data.
+ */
+function nc_search_update_7013() {
+  features_revert_module('nc_search');
+}

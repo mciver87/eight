@@ -1,0 +1,8 @@
+name = NC Footer Blocks
+description = Placeholder blocks/boxes for the four(4) columns within the footer region.
+core = 7.x
+package = North Carolina
+version = 7.x-1.0
+project = nc_footer_blocks
+dependencies[] = boxes
+dependencies[] = ctools

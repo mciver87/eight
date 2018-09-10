@@ -1,0 +1,110 @@
+<?php
+/**
+ * @file
+ * File for the nc_social module.
+ */
+
+/**
+ * Implements hook_theme().
+ */
+function nc_social_theme($existing, $type, $theme, $path) {
+  return array(
+    'nc_social_share' => array(
+      'variables' => array(
+        'url'       => NULL,
+      ),
+      'template' => 'nc-social-share-block',
+    ),
+    'nc_social_share_follow_us' => array(
+      'variables' => array(
+        'facebook'  => FALSE,
+        'twitter'   => FALSE,
+        'instagram' => FALSE,
+        'flickr'    => FALSE,
+        'youtube'   => FALSE,
+        'pinterest' => FALSE,
+        'feed'      => FALSE,
+        'medium'    => FALSE,
+        'title'     => FALSE,
+      ),
+      'template' => 'nc-social-share-follow-us',
+    ),
+  );
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function nc_social_block_info() {
+  $blocks = array();
+  $blocks['nc_social_share'] = array(
+    'info'   => t('NC Social Share'),
+    'cache'  => DRUPAL_CACHE_PER_PAGE,
+    'status' => 1,
+    'region' => 'social_share',
+  );
+  $blocks['nc_social_share_follow_us'] = array(
+    'info' => t('NC Social Share Follow Us'),
+    'cache' => DRUPAL_CACHE_PER_PAGE,
+  );
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function nc_social_block_view($delta = '') {
+  $block = array();
+  switch ($delta) {
+    case 'nc_social_share':
+      $block['content'] = _nc_social_block_view_social_share();
+      break;
+  }
+  return $block;
+}
+
+/**
+ * Themes the output for the social share block.
+ */
+function _nc_social_block_view_social_share() {
+  global $base_url;
+  return theme('nc_social_share', array(
+    'url' => $base_url . '/' . drupal_get_path_alias(current_path()),
+  ));
+}
+
+/**
+ * Implements hook_bean_types_api_info().
+ */
+function nc_social_bean_types_api_info() {
+  return array('api' => 4);
+}
+
+/**
+ * Implements hook_bean_types().
+ */
+function nc_social_bean_types() {
+  $plugins = array();
+  $plugins['nc_social_follow_us'] = array(
+    'label'       => t('Follow Us'),
+    'description' => t('Used to add social media links to landing pages for specific departments.'),
+    'handler'     => array(
+      'class'  => 'NcSocialFollowUsBean',
+      'parent' => 'bean',
+    ),
+    'path'        => drupal_get_path('module', 'nc_social') . '/plugins/bean',
+    'file'        => 'NCSocialFollowUs.class.php',
+  );
+  return $plugins;
+}
+
+/**
+ * Implements hook_follow_networks_alter().
+ */
+function nc_social_follow_networks_alter(&$networks, $uid = 0) {
+  // Add a network.
+  $networks[$uid]['medium'] = array(
+    'title' => t('Medium'),
+    'domain' => 'medium.com',
+  );
+}

@@ -1,0 +1,475 @@
+<?php
+/**
+ * @file
+ * File for the nc_file_browser module.
+ */
+
+/**
+ * Implements hook_permission().
+ */
+function nc_file_browser_permission() {
+  return array(
+    'administer nc file browser' => array(
+      'title' => t('Use the NC File Browser'),
+      'description' => t('Allows the user to view and interact with the NC File Browser.'),
+    ),
+    'delete mkdir nc file browser' => array(
+      'title' => t('Delete Files and Create Folders in NC File Browser'),
+      'description' => t('Allows the user extended privileges with the NC File Browser.'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function nc_file_browser_menu() {
+  $items = array();
+
+  // Adds a new tab to the user profile page
+  $items['user/%user/nc_file_browser'] = array(
+    'title' => 'NC File browser',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('nc_file_browser_interface'),
+    'access arguments' => array('administer nc file browser'),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 11,
+  );
+
+  // The ajax callback for requests from client working on the NC File Browser iframe
+  $items['admin/config/media/nc-file-browser/ajax'] = array(
+    'page callback' => 'nc_file_browser_ajax',
+    'type' => MENU_CALLBACK,
+    'access callback' => TRUE,
+  );
+
+  // Used by the "Browse Server" options in CKEditor.
+  $items['admin/config/media/nc-file-browser/ckeditor'] = array(
+    'page callback' => 'nc_file_browser_ckeditor_interface',
+    'access arguments' => array('administer nc file browser'),
+  );
+
+    // Used for file management in node edit.
+  $items['admin/config/media/nc-file-browser/node-edit'] = array(
+    'page callback' => 'nc_file_browser_node_edit_interface',
+    'access arguments' => array('administer nc file browser'),
+  );
+
+  $items['admin/config/media/nc-file-browser'] = array(
+    'title' => 'NC File Browser',
+    'description' => 'Configuration for NC File Browser',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('_nc_file_browser_admin_form'),
+    'access arguments' => array('delete mkdir nc file browser'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+
+  return $items;
+}
+
+/**
+ * Page argument for file browser.
+ */
+function nc_file_browser_interface() {
+  $form = array();
+
+  drupal_add_js(drupal_get_path('module', 'nc_file_browser') . '/browser.js', array('scope' => 'footer'));
+  drupal_add_js(array('node_endpoint' => variable_get('nc_file_browser_node_endpoint', 'https://nonprod-filebrowser.dc.nc.gov')), array('type' => 'setting'));
+
+  if (user_access('delete mkdir nc file browser')) {
+    $form['browser_table'] = array(
+      '#markup' => '<iframe src="' . variable_get('nc_file_browser_node_endpoint', 'https://nonprod-filebrowser.dc.nc.gov') . '/?bucket=' . _s3fs_get_setting('public_folder') . '&role=1" id="nc-file-browser" frameborder="0" style="border: 1px solid #eee; width: 99%; height: 700px" class="nc-file-browser-frame"></iframe>',
+    );
+  }
+  else {
+    $form['browser_table'] = array(
+      '#markup' => '<iframe src="' . variable_get('nc_file_browser_node_endpoint', 'https://nonprod-filebrowser.dc.nc.gov') . '/?bucket=' . _s3fs_get_setting('public_folder') . '&role=0" id="nc-file-browser" frameborder="0" style="border: 1px solid #eee; width: 99%; height: 700px" class="nc-file-browser-frame"></iframe>',
+    );
+  }
+
+  return $form;
+}
+
+/**
+ * Page argument for file browser CKEditor Interface.
+ */
+function nc_file_browser_ckeditor_interface() {
+
+  if (module_exists('admin_menu')) {
+    module_invoke('admin_menu', 'suppress');
+  }
+
+  $form = array();
+
+  drupal_add_js(drupal_get_path('module', 'nc_file_browser') . '/browser.js', array('scope' => 'footer'));
+  drupal_add_js(array('node_endpoint' => variable_get('nc_file_browser_node_endpoint', 'https://nonprod-filebrowser.dc.nc.gov')), array('type' => 'setting'));
+
+  if (user_access('delete mkdir nc file browser')) {
+    $form['browser_table'] = array(
+      '#markup' => '<iframe src="' . variable_get('nc_file_browser_node_endpoint', 'https://nonprod-filebrowser.dc.nc.gov') . '/?bucket=' . _s3fs_get_setting('public_folder') . '&browse=1&role=1" id="nc-file-browser" frameborder="0" style="border: 1px solid #eee; width: 99%; height: 700px" class="nc-file-browser-frame"></iframe>',
+    );
+  }
+  else {
+    $form['browser_table'] = array(
+      '#markup' => '<iframe src="' . variable_get('nc_file_browser_node_endpoint', 'https://nonprod-filebrowser.dc.nc.gov') . '/?bucket=' . _s3fs_get_setting('public_folder') . '&browse=1" id="nc-file-browser" frameborder="0" style="border: 1px solid #eee; width: 99%; height: 700px" class="nc-file-browser-frame"></iframe>',
+    );
+  }
+
+  return $form;
+}
+
+/**
+ * Page argument for file browser CKEditor Interface.
+ */
+function nc_file_browser_node_edit_interface() {
+
+  if (module_exists('admin_menu')) {
+    module_invoke('admin_menu', 'suppress');
+  }
+
+  $form = array();
+
+  drupal_add_js(drupal_get_path('module', 'nc_file_browser') . '/browser.js');
+  drupal_add_js(array('node_endpoint' => variable_get('nc_file_browser_node_endpoint', 'https://nonprod-filebrowser.dc.nc.gov')), array('type' => 'setting'));
+
+  $form['attach_button'] = array(
+    '#markup' => '<p class="nc-browser-attach button" class="nc-browser-attach" style="border: 3px solid orange; display: inline-block">Attach highlighted item</p>',
+  );
+
+  if (user_access('delete mkdir nc file browser')) {
+    $form['browser_table'] = array(
+      '#markup' => '<iframe src="' . variable_get('nc_file_browser_node_endpoint', 'https://nonprod-filebrowser.dc.nc.gov') . '/?bucket=' . _s3fs_get_setting('public_folder') . '&browse=2&role=1" id="nc-file-browser" frameborder="0" style="border: 1px solid #eee; width: 99%; height: 700px" class="nc-file-browser-frame"></iframe>',
+    );
+  }
+  else {
+    $form['browser_table'] = array(
+      '#markup' => '<iframe src="' . variable_get('nc_file_browser_node_endpoint', 'https://nonprod-filebrowser.dc.nc.gov') . '/?bucket=' . _s3fs_get_setting('public_folder') . '&browse=2" id="nc-file-browser" frameborder="0" style="border: 1px solid #eee; width: 99%; height: 700px" class="nc-file-browser-frame"></iframe>',
+    );
+  }
+
+  return $form;
+}
+
+/**
+ * Implements hook_field_widget_form_alter().
+ */
+function nc_file_browser_field_widget_form_alter(&$element, &$form_state, $context) {
+  // Add a css class and js to widget form elements for all fields of types file/image.
+  // browser.js should be added everywhere a WYSIWYG editor may appear.
+  if (path_is_admin(current_path())) {
+    drupal_add_js(drupal_get_path('module', 'nc_file_browser') . '/browser.js', array('scope' => 'footer'));
+  }
+
+  if (!empty($context['instance']['widget']['settings']['ncfb_filefield_on']) && $context['instance']['widget']['settings']['ncfb_filefield_on'] == 1 && user_access('administer nc file browser')) {
+    drupal_add_js(array('bucket' => _s3fs_get_setting('public_folder')), array('type' => 'setting'));
+    drupal_add_js(array('node_endpoint' => variable_get('nc_file_browser_node_endpoint', 'https://nonprod-filebrowser.dc.nc.gov')), array('type' => 'setting'));
+
+    // Add the ability to delete and create directories, if appropriate.
+    if (user_access('delete mkdir nc file browser')) {
+      drupal_add_js(array('role' => 1), array('type' => 'setting'));
+    }
+    // Be sure not to overwrite existing attributes.
+    if (!isset($element['#theme_wrappers'])) {
+      $element['#theme_wrappers'][] = 'fieldset';
+    }
+    $element['#attributes']['class'][] = 'nc-file-interact';
+    // The last part of the data-target value needed by imce filefield
+    // will be 0 for single file fields, but will be variable for filefields
+    // that allow multiple values.
+    $numeric_count = count(
+      array_filter($element, 'is_numeric', ARRAY_FILTER_USE_KEY)
+    ) - 1;
+
+    $element['#attributes']['data-target'][] = 'edit-' . str_replace('_', '-', $element[0]['#field_name']) . '-' . $element[0]['#language'] . '-' . $numeric_count;
+  }
+}
+
+// Handles AJAX requests from client working with browser in node edit.
+// The population of a filename string returns the client a FID to use IMCE filefield.
+// If POST includes an uploaded file list, we iterate through and add them to the database.
+// This should be able to handle requests from the NC File Browser Tab AND node edit
+function nc_file_browser_ajax() {
+  global $user;
+  // $test_name = $_GET['name'];
+  // $uri = 'public://' . $test_name;
+
+  // handle attaching existing files to node
+  if (!empty($_POST['name'])) {
+    $uri = $_POST['name'];
+    $filename = explode("/", $uri);
+
+    $files = file_load_multiple(array(), array('uri' => $uri));
+    $file = reset($files);
+    $fid = $file->fid;
+
+    if ($file->fid !== NULL) {
+      echo $file->fid;
+    }
+    else {
+      // So a file isn't found in file_managed. This is likely quite rare for most sites.
+      // IMCE filefield will register these files on the fly (imce_filefield.inc:199).
+      // NC File Browser does the same here.
+
+      $file = (object) array(
+        'uid' => $user->uid,
+        'filename' => end($filename),
+        'uri' => $uri,
+        'filesize' => filesize($uri),
+        'filemime' => file_get_mimetype($uri),
+        'status' => FILE_STATUS_PERMANENT,
+      );
+      file_save($file);
+      if (!empty($file->fid)) {
+        nc_file_browser_file_register($file);
+      }
+      echo $file->fid;
+    }
+  }
+
+  // handle new uploads
+  if (!empty($_POST['uploads'])) {
+
+    $file_info = $_POST['uploads'];
+
+    for ($i = 1; $i < count($file_info); $i+=2) {
+      $destination_uri = 'public://' . str_replace('undefined/', '', $file_info['0']) . $file_info[$i];
+      $j = $i + 1;
+      // Check if file exists already in file_managed.
+      if (!db_query("SELECT 1 FROM {file_managed} WHERE uri = :uri", array(':uri' => $destination_uri))->fetchField()) {
+        // Initialize a file object to add to file_managed.
+        $file = (object)array(
+          'filename' => $file_info[$i],
+          'uri' => $destination_uri,
+          'status' => FILE_STATUS_PERMANENT,
+          'filesize' => $file_info[$j],
+          'filemime' => file_get_mimetype($destination_uri),
+          'uid' => $user->uid,
+        );
+        nc_file_browser_file_save($file);
+
+        nc_file_browser_file_register($file);
+      }
+    }
+  }
+
+  // handle file deletion
+  if (!empty($_POST['delete'])) {
+    $delete_file_info = $_POST['delete'];
+
+    for ($i = 0; $i < count($delete_file_info); $i++) {
+      $check = nc_file_browser_delete_filepath($delete_file_info[$i]);
+      if (!$check) {
+        return;
+      }
+    }
+    echo 'confirm';
+  }
+}
+
+/**
+ * Deletes a file by uri.
+ */
+function nc_file_browser_delete_filepath($uri) {
+  $file = file_load_multiple(array(), array('uri' => $uri));
+  $file = reset($file);
+
+  // File exists in database
+  if ($file) {
+    $usage = file_usage_list($file);
+    $is_imce = isset($usage['imce']);
+    unset($usage['imce']);
+
+    // File is in use by an other module.
+    if (!empty($usage)) {
+      $message = "<div class='file-notify'><div class='message-wrapper error' style='background-image: none'><div class='wrapper'><div class='messages error'><p><b>" . $file->filename . "</b> is in use elsewhere on the site, and cannot be deleted. It is in use at:</p>";
+      foreach ($usage as $module => $info) {
+        foreach ($info as $type => $type_info) {
+          foreach ($type_info as $id => $num) {
+            $message .= "<p><b>Type: </b>$type <b>ID:</b> $id </p><p><a href='/node/$id\' class='button' target='blank'>Open in New Tab</a></p>";
+          }
+        }
+      }
+
+      $message .= " <a class='file-notify-close button ghost inverted'>Close Notification</a></div></div></div></div>";
+      echo $message;
+      return FALSE;
+    }
+    // Force delete file. Prevent running file_usage_list() second time.
+    if (!file_delete($file, TRUE)) {
+      return FALSE;
+    }
+  }
+
+  // Not in db. Probably loaded via ftp.
+  elseif (!file_unmanaged_delete($uri)) {
+    return FALSE;
+  }
+
+  return TRUE;
+}
+
+/**
+ * Registers the file as an imce file in file_usage, provided it isn't already registered.
+ */
+function nc_file_browser_file_register($file) {
+  if (!db_query("SELECT 1 FROM {file_usage} WHERE module = 'imce' AND fid = :fid OR module = 'ncfb' AND fid = :fid", array(':fid' => $file->fid))->fetchField()) {
+    file_usage_add($file, 'imce', 'file', $file->fid);
+    // ajax_deliver(array('#type' => 'ajax', '#commands' => 'new file added to file_usage: ' . $file->fid));
+    return;
+  }
+}
+
+// Modified file_save() (file.inc:612) function allowing us to provide filesize info from S3.
+function nc_file_browser_file_save(stdClass $file) {
+  $file->timestamp = REQUEST_TIME;
+
+  // Load the stored entity, if any.
+  if (!empty($file->fid) && !isset($file->original)) {
+    $file->original = entity_load_unchanged('file', $file->fid);
+  }
+
+  module_invoke_all('file_presave', $file);
+  module_invoke_all('entity_presave', $file, 'file');
+
+  if (empty($file->fid)) {
+    drupal_write_record('file_managed', $file);
+    // Inform modules about the newly added file.
+    module_invoke_all('file_insert', $file);
+    module_invoke_all('entity_insert', $file, 'file');
+  }
+  else {
+    drupal_write_record('file_managed', $file, 'fid');
+    // Inform modules that the file has been updated.
+    module_invoke_all('file_update', $file);
+    module_invoke_all('entity_update', $file, 'file');
+  }
+
+  // Clear internal properties.
+  unset($file->original);
+  // Clear the static loading cache.
+  entity_get_controller('file')->resetCache(array($file->fid));
+
+  return $file;
+}
+
+/**
+ * Returns supported file widgets.
+ */
+function nc_file_browser_supported_widgets() {
+  static $ncfb_widgets;
+  if (!isset($ncfb_widgets)) {
+    $ncfb_widgets = array('file_generic', 'image_image');
+    drupal_alter('imce_filefield_supported_widgets', $ncfb_widgets);
+    $ncfb_widgets = array_unique($ncfb_widgets);
+  }
+  return $ncfb_widgets;
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function nc_file_browser_form_field_ui_field_edit_form_alter(&$form, &$form_state) {
+  $instance = $form['#instance'];
+  if (in_array($instance['widget']['type'], nc_file_browser_supported_widgets())) {
+    $form['instance']['widget']['settings'] += array('ncfb_filefield_on' => array(
+      '#type' => 'checkbox',
+      '#title' => t('Allow users to select files from NC File Browser for this field.'),
+      '#default_value' => 1,
+      '#weight' => 16,
+    ));
+  }
+}
+
+/**
+ * Creates the admin config form for NC File Browser.
+ */
+function _nc_file_browser_admin_form($form, &$form_state) {
+  $form['nc_file_browser_node_endpoint'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Node endpoint URL for file browser'),
+    '#description' => t('Set the location for the file browser node app. Should include https://.'),
+    '#default_value' => variable_get('nc_file_browser_node_endpoint', 'https://nonprod-filebrowser.dc.nc.gov'),
+    '#required' => TRUE,
+  );
+
+  return system_settings_form($form);
+}
+
+/**
+ * Implements hook_user_view().
+ */
+function nc_file_browser_user_view($account, $view_mode, $langcode) {
+  $account->content['file_browser'] = array(
+    '#type' => 'markup',
+    '#markup' => '<iframe src="' . variable_get('nc_file_browser_node_endpoint', 'https://nonprod-filebrowser.dc.nc.gov') . '/?bucket=' . _s3fs_get_setting('public_folder') . '&role=1" id="nc-file-browser" frameborder="0" style="border: 1px solid #eee; width: 0px; height: 0px" class="nc-file-browser-frame"></iframe>',
+    '#weight' => 10,
+  );
+}
+
+// /**
+//  * Implements hook_ctools_plugin_api().
+//  */
+function nc_file_browser_ctools_plugin_api($owner, $api) {
+  if ($owner == 'services' && $api == 'services') {
+    return array(
+      'version' => 3,
+    );
+  }
+}
+
+// /**
+//  * Implements hook_default_services_endpoint().
+//  * Exported endpoint from a working REST config.
+//  */
+function nc_file_browser_default_services_endpoint() {
+
+  $endpoint = new stdClass();
+  $endpoint->disabled = FALSE; /* Edit this to true to make a default endpoint disabled initially */
+  $endpoint->api_version = 3;
+  $endpoint->name = 'filebrowser';
+  $endpoint->server = 'rest_server';
+  $endpoint->path = 'rest2';
+  $endpoint->authentication = array(
+    'services_oauth' => array(
+      'oauth_context' => 'filebrowser',
+      'authorization' => 'base',
+      'credentials' => 'token',
+    ),
+  );
+  $endpoint->server_settings = array(
+    'formatters' => array(
+      'json' => TRUE,
+      'bencode' => FALSE,
+      'jsonp' => FALSE,
+      'php' => FALSE,
+      'xml' => FALSE,
+    ),
+    'parsers' => array(
+      'application/json' => TRUE,
+      'application/x-www-form-urlencoded' => TRUE,
+      'application/xml' => FALSE,
+      'multipart/form-data' => FALSE,
+      'text/xml' => FALSE,
+    ),
+  );
+  $endpoint->resources = array(
+    'system' => array(
+      'actions' => array(
+        'connect' => array(
+          'enabled' => '1',
+          'settings' => array(
+            'services_oauth' => array(
+              'credentials' => 'token',
+              'authorization' => 'base',
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+  $endpoint->debug = 0;
+
+  $endpoints['rest'] = $endpoint;
+
+  return $endpoints;
+}

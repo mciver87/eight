@@ -1,0 +1,15 @@
+name = NC DPS Missing Persons Alerts
+description = Adds the DPS Silver and Amber alerts to the NC Alerts alert bar.
+core = 7.x
+package = North Carolina
+version = 7.x-1.0
+project = nc_dps_alerts
+dependencies[] = nc_alerts
+dependencies[] = nc_alerts_integration_library
+files[] = includes/AbstractNcAlertsMissingPersonsAlertsCollector.class.inc
+files[] = includes/NcAlertsMissingPersonsAlertsCollectorPre.class.inc
+files[] = includes/NcAlertsMissingPersonsAlertsCollectorPost.class.inc
+files[] = includes/NcAlertsMissingPersonsForm.class.inc
+files[] = includes/NcAlertsMissingPersonsMenu.class.inc
+files[] = includes/NcAlertsMissingPersonsResponseBodyParser.class.inc
+#scripts[] = js/abt.nc_dps_alerts.js

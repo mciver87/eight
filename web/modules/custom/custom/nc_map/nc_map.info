@@ -1,0 +1,12 @@
+name = NC Map
+description = "Adds block for adding a County map of North Carolina."
+core = 7.x
+package = North Carolina
+version = 7.x-1.0
+project = nc_map
+dependencies[] = block
+dependencies[] = bean
+dependencies[] = features
+dependencies[] = nc_util
+features[features_api][] = api:2
+files[] = "plugins/bean/NCMap.class.php"

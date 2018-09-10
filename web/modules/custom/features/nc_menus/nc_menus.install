@@ -1,0 +1,226 @@
+<?php
+
+/**
+ * @file
+ * Install file for the NC Menus feature.
+ */
+
+/**
+ * Add placeholder main menu links.
+ */
+function nc_menus_add_main_menu_links() {
+
+  $menus = array('main-menu', 'enterprise-nav-menu', 'network-menu');
+
+  // Main Menu Items.
+  $menu_items['home'] = array(
+    'link_path' => '<front>',
+    'link_title' => t('Home'),
+    'menu_name' => $menus[0],
+    'weight' => 0,
+    'expanded' => TRUE,
+  );
+  $menu_items['about'] = array(
+    'link_path' => '<front>',
+    'link_title' => t('About Us'),
+    'menu_name' => $menus[0],
+    'weight' => 1,
+    'expanded' => TRUE,
+  );
+  $menu_items['news'] = array(
+    'link_path' => '<front>',
+    'link_title' => t('News'),
+    'menu_name' => $menus[0],
+    'weight' => 2,
+    'expanded' => TRUE,
+  );
+  $menu_items['contact'] = array(
+    'link_path' => '<front>',
+    'link_title' => t('Contact'),
+    'menu_name' => $menus[0],
+    'weight' => 3,
+    'expanded' => TRUE,
+  );
+  $menu_items['press'] = array(
+    'link_path' => '<front>',
+    'link_title' => t('Press Releases'),
+    'menu_name' => $menus[0],
+    'weight' => 4,
+    'expanded' => TRUE,
+  );
+  $menu_items['updates'] = array(
+    'link_path' => '<front>',
+    'link_title' => t('Receive Updates'),
+    'menu_name' => $menus[0],
+    'weight' => 5,
+    'expanded' => TRUE,
+  );
+  $menu_items['social'] = array(
+    'link_path' => '<front>',
+    'link_title' => t('Social Media Links'),
+    'menu_name' => $menus[0],
+    'weight' => 6,
+    'expanded' => TRUE,
+  );
+  $menu_items['locations'] = array(
+    'link_path' => '<front>',
+    'link_title' => t('Locations'),
+    'menu_name' => $menus[0],
+    'weight' => 7,
+    'expanded' => TRUE,
+  );
+  $menu_items['events'] = array(
+    'link_path' => '<front>',
+    'link_title' => t('Events'),
+    'menu_name' => $menus[0],
+    'weight' => 8,
+    'expanded' => TRUE,
+  );
+  $menu_items['programs'] = array(
+    'link_path' => '<front>',
+    'link_title' => t('Programs'),
+    'menu_name' => $menus[0],
+    'weight' => 9,
+    'expanded' => TRUE,
+  );
+
+  // Enterprise Nav Items.
+  $menu_items['ncgov_home'] = array(
+    'link_path' => 'http://www.nc.gov/',
+    'link_title' => t('NC.gov'),
+    'menu_name' => $menus[1],
+    'weight' => 0,
+    'expanded' => TRUE,
+    'options' => array(
+      'attributes' => array(),
+      'item_attributes' => array(
+        'id' => '',
+        'class' => '',
+        'style' => '',
+        'icon' => '',
+      ),
+      'identifier' => 'enterprise-nav-menu_home:<front>',
+    ),
+  );
+  $menu_items['agencies'] = array(
+    'link_path' => 'http://www.nc.gov/agencies',
+    'link_title' => t('Agencies'),
+    'menu_name' => $menus[1],
+    'weight' => 1,
+    'expanded' => TRUE,
+    'options' => array(
+      'attributes' => array(),
+      'item_attributes' => array(
+        'id' => '',
+        'class' => '',
+        'style' => '',
+        'icon' => 28,
+      ),
+      'identifier' => 'enterprise-nav-menu_agencies:<front>',
+    ),
+  );
+  $menu_items['jobs'] = array(
+    'link_path' => 'http://www.nc.gov/jobs',
+    'link_title' => t('Jobs'),
+    'menu_name' => $menus[1],
+    'weight' => 2,
+    'expanded' => TRUE,
+    'options' => array(
+      'attributes' => array(),
+      'item_attributes' => array(
+        'id' => '',
+        'class' => '',
+        'style' => '',
+        'icon' => 16,
+      ),
+      'identifier' => 'enterprise-nav-menu_jobs:<front>',
+    ),
+  );
+  $menu_items['online_services'] = array(
+    'link_path' => 'http://www.nc.gov/services',
+    'link_title' => t('Services'),
+    'menu_name' => $menus[1],
+    'weight' => 3,
+    'expanded' => TRUE,
+    'options' => array(
+      'attributes' => array(),
+      'item_attributes' => array(
+        'id' => '',
+        'class' => '',
+        'style' => '',
+        'icon' => 24,
+      ),
+      'identifier' => 'enterprise-nav-menu_online-services:<front>',
+    ),
+  );
+
+  // Network Menu Items.
+  $menu_items['network_ncgov_home'] = array(
+    'link_path' => '<front>',
+    'link_title' => t('NC.gov Home'),
+    'menu_name' => $menus[2],
+    'weight' => 0,
+    'expanded' => TRUE,
+  );
+  $menu_items['employee_directory'] = array(
+    'link_path' => 'employee-directory',
+    'link_title' => t('Employee Directory'),
+    'menu_name' => $menus[2],
+    'weight' => 1,
+    'expanded' => TRUE,
+  );
+  $menu_items['accessibility'] = array(
+    'link_path' => 'http://www.nc.gov/accessibility',
+    'link_title' => t('Accessibility'),
+    'menu_name' => $menus[2],
+    'weight' => 2,
+    'expanded' => TRUE,
+  );
+  $menu_items['terms_of_use'] = array(
+    'link_path' => 'http://www.nc.gov/terms',
+    'link_title' => t('Terms of Use'),
+    'menu_name' => $menus[2],
+    'weight' => 3,
+    'expanded' => TRUE,
+  );
+  $menu_items['privacy_policy'] = array(
+    'link_path' => 'http://www.nc.gov/privacy',
+    'link_title' => t('Privacy Policy'),
+    'menu_name' => $menus[2],
+    'weight' => 4,
+    'expanded' => TRUE,
+  );
+  $menu_items['open_book'] = array(
+    'link_path' => 'http://www.ncopenbook.gov',
+    'link_title' => t('NC OpenBook'),
+    'menu_name' => $menus[2],
+    'weight' => 5,
+    'expanded' => TRUE,
+  );
+
+  // Add the menu items to each menu.
+  foreach ($menu_items as $index => $item) {
+    // Look the table first if the data does exist.
+    $exists = db_query(
+    "SELECT mlid from {menu_links}
+    WHERE link_title=:link_title
+    AND link_path=:link_path",
+    array(
+      ':link_title' => $item['link_title'],
+      ':link_path' => $item['link_path'],
+    ))->fetchField();
+    // Save the record if the data does not exist.
+    if (!$exists) {
+      $mlid = menu_link_save($item);
+    }
+  }
+
+  menu_cache_clear_all();
+}
+
+/**
+ * Add main menu links.
+ */
+function nc_menus_install() {
+  nc_menus_add_main_menu_links();
+}

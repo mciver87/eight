@@ -1,0 +1,11 @@
+name = NC Social
+description = "Adds blocks for adding social media functionality."
+core = 7.x
+package = North Carolina
+version = 7.x-1.0
+project = nc_social
+dependencies[] = block
+dependencies[] = bean
+dependencies[] = features
+features[features_api][] = api:2
+files[] = "plugins/bean/NCSocialFollowUs.class.php"

@@ -1,0 +1,5 @@
+name = NC Field Formatters
+description = "Custom field formatters for the NC platform."
+core = 7.x
+package = Fields
+dependencies[] = text
