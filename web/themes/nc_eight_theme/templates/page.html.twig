@@ -166,14 +166,14 @@
                   {{ action_links }}
                 </ul>
               {% endif %}
-              {% if page_landing_page {# ERROR: Encountered unexpected token T_IS_NOT_IDENTICAL on line 171: !== #}TRUE %}
+              {% if page_landing_page !== #}TRUE %}
                 {{ page.content }}
               {% endif %}
               {{ feed_icons }}
             </div>
 
             <!--landing page -->
-            {% if page_landing_page {# ERROR: Encountered unexpected token T_IS_IDENTICAL on line 178: === #}TRUE %}
+            {% if page_landing_page == TRUE %}
               {{ page.content }}
             {% endif %}
 
@@ -196,7 +196,7 @@
         <div class="band-content wrapper">
             {{ page.social_share }}
         </div>
-      </section> 
+      </section>
     {% endif %}
 
     <section id="user-feedback" class="band user-feedback">
