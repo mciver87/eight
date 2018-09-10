@@ -166,14 +166,14 @@
                   {{ action_links }}
                 </ul>
               {% endif %}
-              {% if page_landing_page !== TRUE %}
+              {% if page_landing_page == FALSE %}
                 {{ page.content }}
               {% endif %}
               {{ feed_icons }}
             </div>
 
             <!--landing page -->
-            {% if page_landing_page === TRUE %}
+            {% if page_landing_page == TRUE %}
               {{ page.content }}
             {% endif %}
 
