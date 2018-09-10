@@ -4,3 +4,4 @@ global-styling:
     theme:
      css/contextual-links.css: {}
      css/print.css: { media:print }
+     css/style-ncgov.css: {}
