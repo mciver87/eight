@@ -1,5 +1,5 @@
 name: nc_eight_theme
-description: 'New Drupal 8 Twig Theme created with the help of Twigify.'
+description: 'Drupal 8 Theme for NC Gov.'
 package: Core
 version: VERSION
 core: 8.x

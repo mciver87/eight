@@ -1,7 +1,8 @@
 global-styling:
-  version: VERSION
+  version: 1.x
   css:
     theme:
-     css/contextual-links.css: {}
-     css/print.css: { media:print }
+     # css/contextual-links.css: {}
+     # css/print.css: { media:print }
+     css/style.css: {}
      css/style-ncgov.css: {}
