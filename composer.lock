@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "0598ae7a0ba5e3e67ee738c9bedb8052",
+    "content-hash": "026b1c4af5edffd7a04c2d98827ab672",
     "packages": [
         {
             "name": "alchemy/zippy",
@@ -3276,39 +3276,36 @@
         },
         {
             "name": "drupal/migrate_upgrade",
-            "version": "2.0.0-beta1",
+            "version": "dev-3.x",
             "source": {
                 "type": "git",
                 "url": "https://git.drupal.org/project/migrate_upgrade",
-                "reference": "8.x-2.0-beta1"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://ftp.drupal.org/files/projects/migrate_upgrade-8.x-2.0-beta1.zip",
-                "reference": "8.x-2.0-beta1",
-                "shasum": "d5458312b74f2d6975b76d5f1115368b364c91b7"
+                "reference": "dba6379841106b20c3bf7e533cf607971723bfa4"
             },
             "require": {
-                "drupal/core": "^8.1",
+                "drupal/core": "*",
                 "drupal/migrate_plus": "*"
+            },
+            "require-dev": {
+                "drupal/coder": "^8"
             },
             "type": "drupal-module",
             "extra": {
                 "branch-alias": {
-                    "dev-2.x": "2.x-dev"
+                    "dev-3.x": "3.x-dev"
                 },
                 "drupal": {
-                    "version": "8.x-2.0-beta1",
-                    "datestamp": "1472752139",
+                    "version": "8.x-3.0-rc4+4-dev",
+                    "datestamp": "1535381280",
                     "security-coverage": {
                         "status": "not-covered",
-                        "message": "Beta releases are not covered by Drupal security advisories."
+                        "message": "Dev releases are not covered by Drupal security advisories."
                     }
                 }
             },
             "notification-url": "https://packages.drupal.org/8/downloads",
             "license": [
-                "GPL-2.0-or-later"
+                "GPL-2.0+"
             ],
             "authors": [
                 {
@@ -3340,7 +3337,8 @@
             "homepage": "https://www.drupal.org/project/migrate_upgrade",
             "support": {
                 "source": "http://cgit.drupalcode.org/migrate_upgrade"
-            }
+            },
+            "time": "2018-08-27T14:48:03+00:00"
         },
         {
             "name": "drupal/oauth",
@@ -9499,6 +9497,7 @@
         "drupal/captcha": 10,
         "drupal/diff": 5,
         "drupal/ldap": 10,
+        "drupal/migrate_upgrade": 20,
         "drupal/path_redirect_import": 10,
         "drupal/redis": 5,
         "drupal/webform": 5
